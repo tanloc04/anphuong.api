@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("anphuong.api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cd5dc038cef2c5f8281fbd7ecb3edef06e216a4f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+19c1f191c5127a928e534f3fd357b9778e8433be")]
 [assembly: System.Reflection.AssemblyProductAttribute("anphuong.api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("anphuong.api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

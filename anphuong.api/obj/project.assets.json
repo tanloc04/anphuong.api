@@ -88,6 +88,16 @@
         "frameworkReferences": [
           "Microsoft.AspNetCore.App"
         ]
+      },
+      "anphuong.Core/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "compile": {
+          "bin/placeholder/anphuong.Core.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/anphuong.Core.dll": {}
+        }
       }
     }
   },
@@ -439,12 +449,17 @@
         "swashbuckle.aspnetcore.swaggerui.6.6.2.nupkg.sha512",
         "swashbuckle.aspnetcore.swaggerui.nuspec"
       ]
+    },
+    "anphuong.Core/1.0.0": {
+      "type": "project",
+      "path": "../anphuong.Core/anphuong.Core.csproj",
+      "msbuildProject": "../anphuong.Core/anphuong.Core.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net8.0": [
-      "C:\\Users\\thanh\\OneDrive\\Documents\\anphuong.api\\anphuong.Core\\anphuong.Core.csproj",
-      "Swashbuckle.AspNetCore >= 6.6.2"
+      "Swashbuckle.AspNetCore >= 6.6.2",
+      "anphuong.Core >= 1.0.0"
     ]
   },
   "packageFolders": {
@@ -528,16 +543,5 @@
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.101/PortableRuntimeIdentifierGraph.json"
       }
     }
-  },
-  "logs": [
-    {
-      "code": "NU1105",
-      "level": "Error",
-      "message": "Unable to find project information for 'C:\\Users\\thanh\\OneDrive\\Documents\\anphuong.api\\anphuong.Core\\anphuong.Core.csproj'. If you are using Visual Studio, this may be because the project is unloaded or not part of the current solution so run a restore from the command-line. Otherwise, the project file may be invalid or missing targets required for restore.",
-      "libraryId": "C:\\Users\\thanh\\OneDrive\\Documents\\anphuong.api\\anphuong.Core\\anphuong.Core.csproj",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    }
-  ]
+  }
 }

@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "dgSpecHash": "4a3lv763a0M=",
-  "success": false,
+  "dgSpecHash": "6dz9ZRIUxxI=",
+  "success": true,
   "projectFilePath": "C:\\Users\\thanh\\OneDrive\\Documents\\anphuong.api\\anphuong.api\\anphuong.api.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\thanh\\.nuget\\packages\\microsoft.extensions.apidescription.server\\6.0.5\\microsoft.extensions.apidescription.server.6.0.5.nupkg.sha512",
@@ -11,15 +11,5 @@
     "C:\\Users\\thanh\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\6.6.2\\swashbuckle.aspnetcore.swaggergen.6.6.2.nupkg.sha512",
     "C:\\Users\\thanh\\.nuget\\packages\\swashbuckle.aspnetcore.swaggerui\\6.6.2\\swashbuckle.aspnetcore.swaggerui.6.6.2.nupkg.sha512"
   ],
-  "logs": [
-    {
-      "code": "NU1105",
-      "level": "Error",
-      "message": "Unable to find project information for 'C:\\Users\\thanh\\OneDrive\\Documents\\anphuong.api\\anphuong.Core\\anphuong.Core.csproj'. If you are using Visual Studio, this may be because the project is unloaded or not part of the current solution so run a restore from the command-line. Otherwise, the project file may be invalid or missing targets required for restore.",
-      "libraryId": "C:\\Users\\thanh\\OneDrive\\Documents\\anphuong.api\\anphuong.Core\\anphuong.Core.csproj",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    }
-  ]
+  "logs": []
 }
