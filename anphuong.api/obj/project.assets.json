@@ -443,27 +443,28 @@
   },
   "projectFileDependencyGroups": {
     "net8.0": [
+      "C:\\Users\\thanh\\OneDrive\\Documents\\anphuong.api\\anphuong.Core\\anphuong.Core.csproj",
       "Swashbuckle.AspNetCore >= 6.6.2"
     ]
   },
   "packageFolders": {
-    "C:\\Users\\tanlo\\.nuget\\packages\\": {},
+    "C:\\Users\\thanh\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Code\\anphuong.api\\anphuong.api\\anphuong.api.csproj",
+      "projectUniqueName": "C:\\Users\\thanh\\OneDrive\\Documents\\anphuong.api\\anphuong.api\\anphuong.api.csproj",
       "projectName": "anphuong.api",
-      "projectPath": "D:\\Code\\anphuong.api\\anphuong.api\\anphuong.api.csproj",
-      "packagesPath": "C:\\Users\\tanlo\\.nuget\\packages\\",
-      "outputPath": "D:\\Code\\anphuong.api\\anphuong.api\\obj\\",
+      "projectPath": "C:\\Users\\thanh\\OneDrive\\Documents\\anphuong.api\\anphuong.api\\anphuong.api.csproj",
+      "packagesPath": "C:\\Users\\thanh\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\thanh\\OneDrive\\Documents\\anphuong.api\\anphuong.api\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\tanlo\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\thanh\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -477,7 +478,11 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "C:\\Users\\thanh\\OneDrive\\Documents\\anphuong.api\\anphuong.Core\\anphuong.Core.csproj": {
+              "projectPath": "C:\\Users\\thanh\\OneDrive\\Documents\\anphuong.api\\anphuong.Core\\anphuong.Core.csproj"
+            }
+          }
         }
       },
       "warningProperties": {
@@ -490,7 +495,7 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "9.0.300"
+      "SdkAnalysisLevel": "9.0.100"
     },
     "frameworks": {
       "net8.0": {
@@ -520,8 +525,19 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.101/PortableRuntimeIdentifierGraph.json"
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "NU1105",
+      "level": "Error",
+      "message": "Unable to find project information for 'C:\\Users\\thanh\\OneDrive\\Documents\\anphuong.api\\anphuong.Core\\anphuong.Core.csproj'. If you are using Visual Studio, this may be because the project is unloaded or not part of the current solution so run a restore from the command-line. Otherwise, the project file may be invalid or missing targets required for restore.",
+      "libraryId": "C:\\Users\\thanh\\OneDrive\\Documents\\anphuong.api\\anphuong.Core\\anphuong.Core.csproj",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    }
+  ]
 }
