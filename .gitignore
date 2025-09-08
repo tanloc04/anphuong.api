@@ -551,3 +551,13 @@ FodyWeavers.xsd
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudio,dotnetcore,visualstudiocode,aspnetcore
 /anphuong.api/obj
+anphuong.api/obj/anphuong.api.csproj.nuget.dgspec.json
+anphuong.api/obj/anphuong.api.csproj.nuget.g.props
+anphuong.api/obj/Debug/net8.0/anphuong.api.AssemblyInfo.cs
+anphuong.api/obj/Debug/net8.0/anphuong.api.AssemblyInfoInputs.cache
+anphuong.api/obj/Debug/net8.0/anphuong.api.assets.cache
+anphuong.api/obj/Debug/net8.0/anphuong.api.csproj.AssemblyReference.cache
+anphuong.api/obj/Debug/net8.0/anphuong.api.GeneratedMSBuildEditorConfig.editorconfig
+anphuong.api/obj/Debug/net8.0/rpswa.dswa.cache.json
+anphuong.api/obj/project.assets.json
+anphuong.api/obj/project.nuget.cache
