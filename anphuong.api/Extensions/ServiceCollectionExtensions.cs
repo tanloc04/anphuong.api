@@ -1,4 +1,9 @@
-﻿namespace anphuong.api.Extensions
+﻿using anphuong.Core.Interfaces.Repositories;
+using anphuong.Core.Interfaces.Services;
+using anphuong.Repository.Repositories;
+using anphuong.Service;
+
+namespace anphuong.api.Extensions
 {
     //services, controllers declared here
     public static class ServiceCollectionExtensions
@@ -7,6 +12,19 @@
         {
             services.AddHttpContextAccessor();
 
+            //----------------Pagination----------
+            services.AddScoped(typeof(IPaginationService<>), typeof(PaginationService<>));
+
+            //----------------JWT-----------------
+            services.AddScoped<IJwtService, JwtService>();
+
+            //----------------User----------------
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IUserService, UserService>();
+
+            //----------------Customer----------------
+            services.AddScoped<ICustomerRepository, CustomerRepository>();
+            services.AddScoped<ICustomerService, CustomerService>();
         }
     }
 }
