@@ -30,7 +30,7 @@ namespace anphuong.Repository.Context
             // Configuring User entity
             modelBuilder.Entity<User>(entity =>
             {
-                entity.HasKey(e => e.UserId);
+                entity.HasKey(e => e.Id);
                 entity.Property(e => e.Username).IsRequired().HasMaxLength(30);
                 entity.Property(e => e.Password).HasMaxLength(100);
                 entity.Property(e => e.PasswordHash).HasMaxLength(256);
@@ -50,12 +50,12 @@ namespace anphuong.Repository.Context
             // Configuring Customer entity
             modelBuilder.Entity<Customer>(entity =>
             {
-                entity.HasKey(e => e.CustomerId);
+                entity.HasKey(e => e.Id);
                 entity.Property(e => e.FullName).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.Phone).HasMaxLength(20);
                 entity.Property(e => e.Address).HasMaxLength(300);
-                entity.Property(e => e.CreateAt).IsRequired().HasColumnType("datetime");
-                entity.Property(e => e.UpdateAt).IsRequired().HasColumnType("datetime");
+                entity.Property(e => e.CreatedAt).IsRequired().HasColumnType("datetime");
+                entity.Property(e => e.UpdatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.IsDeleted).IsRequired();
 
                 // One-to-many relationship with Orders
@@ -68,7 +68,7 @@ namespace anphuong.Repository.Context
             // Configuring Order entity
             modelBuilder.Entity<Order>(entity =>
             {
-                entity.HasKey(e => e.OrderId);
+                entity.HasKey(e => e.Id);
                 entity.Property(e => e.PaymentMethod).IsRequired();
                 entity.Property(e => e.Status).IsRequired();
                 entity.Property(e => e.ShippingDate).IsRequired().HasColumnType("datetime");
@@ -87,7 +87,7 @@ namespace anphuong.Repository.Context
             // Configuring OrderDetail entity
             modelBuilder.Entity<OrderDetail>(entity =>
             {
-                entity.HasKey(e => e.OrderDetailId);
+                entity.HasKey(e => e.Id);
                 entity.Property(e => e.IsCustomize).IsRequired();
                 entity.Property(e => e.CustomizeHeight).IsRequired();
                 entity.Property(e => e.CustomizeWidth).IsRequired();
@@ -109,7 +109,7 @@ namespace anphuong.Repository.Context
             // Configuring Product entity
             modelBuilder.Entity<Product>(entity =>
             {
-                entity.HasKey(e => e.ProductId);
+                entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.Price).IsRequired().HasColumnType("float");
                 entity.Property(e => e.Discount).IsRequired().HasColumnType("float");
@@ -144,7 +144,7 @@ namespace anphuong.Repository.Context
             // Configuring Variant entity
             modelBuilder.Entity<Variant>(entity =>
             {
-                entity.HasKey(e => e.VariantId);
+                entity.HasKey(e => e.Id);
                 entity.Property(e => e.CreateAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.UpdateAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.IsDeleted).IsRequired();
@@ -159,7 +159,7 @@ namespace anphuong.Repository.Context
             // Configuring Color entity
             modelBuilder.Entity<Color>(entity =>
             {
-                entity.HasKey(e => e.ColorId);
+                entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(50);
                 entity.Property(e => e.HexCode).IsRequired().HasMaxLength(7);
                 entity.Property(e => e.CreatedAt).IsRequired().HasColumnType("datetime");
@@ -170,7 +170,7 @@ namespace anphuong.Repository.Context
             // Configuring DetailImage entity
             modelBuilder.Entity<DetailImage>(entity =>
             {
-                entity.HasKey(e => e.DetailImageId);
+                entity.HasKey(e => e.Id);
                 entity.Property(e => e.Thumnail).IsRequired().HasMaxLength(200);
                 entity.Property(e => e.Image1).HasMaxLength(200);
                 entity.Property(e => e.Image2).HasMaxLength(200);
@@ -184,7 +184,7 @@ namespace anphuong.Repository.Context
             // Configuring Inventory entity
             modelBuilder.Entity<Inventory>(entity =>
             {
-                entity.HasKey(e => e.InventoryId);
+                entity.HasKey(e => e.Id);
                 entity.Property(e => e.QuantityInStock).IsRequired();
                 entity.Property(e => e.CreatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.UpdatedAt).IsRequired().HasColumnType("datetime");
@@ -200,7 +200,7 @@ namespace anphuong.Repository.Context
             // Configuring Category entity
             modelBuilder.Entity<Category>(entity =>
             {
-                entity.HasKey(e => e.CategoryId);
+                entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.Description).HasMaxLength(500);
                 entity.Property(e => e.CreatedAt).IsRequired().HasColumnType("datetime");
@@ -211,7 +211,7 @@ namespace anphuong.Repository.Context
             // Configuring Behavior entity
             modelBuilder.Entity<Behavior>(entity =>
             {
-                entity.HasKey(e => e.BehaviorId);
+                entity.HasKey(e => e.Id);
                 entity.Property(e => e.ViewCount).IsRequired();
                 entity.Property(e => e.BuyCount).IsRequired();
                 entity.Property(e => e.CreatedAt).IsRequired().HasColumnType("datetime");

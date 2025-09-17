@@ -2,7 +2,7 @@
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 using anphuong.Core.Domains.Entities;
 using anphuong.Core.Interfaces.Repositories;
-using anphuong.Repository.Data;
+using anphuong.Repository.Context;
 using Microsoft.EntityFrameworkCore;
 
 namespace anphuong.Repository.Repositories
@@ -10,10 +10,10 @@ namespace anphuong.Repository.Repositories
 
     public class GenericRepository<T> : IGenericRepository<T> where T : Entity
     {
-        protected readonly AnPhuongFurnitureContext _context;
+        protected readonly anphuongDbContext _context;
         private readonly DbSet<T> _set;
 
-        public GenericRepository(AnPhuongFurnitureContext context)
+        public GenericRepository(anphuongDbContext context)
         {
             _context = context;
             _set = _context.Set<T>();
