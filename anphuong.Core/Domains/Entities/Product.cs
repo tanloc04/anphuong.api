@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace anphuong.Core.Domains.Entities
 {
-    public class Product
+    public class Product : Entity
     {
         [Key]
         public int ProductId { get; set; }
@@ -19,9 +19,6 @@ namespace anphuong.Core.Domains.Entities
         public int WidthSize { get; set; }
         public int HeightSize { get; set; }
         public string Material { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
-        public bool IsDeleted { get; set; }
         public int DetailImageId { get; set; }
         public int CategoryId { get; set; }
         public int VariationId { get; set; }

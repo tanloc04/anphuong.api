@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace anphuong.Core.Domains.Entities
 {
-    public class DetailImage
+    public class DetailImage : Entity
     {
         [Key]
         public int DetailImageId { get; set; }
@@ -16,8 +16,5 @@ namespace anphuong.Core.Domains.Entities
         public string Image2 { get; set; }
         public string Image3 { get; set; }
         public string Image4 { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
-        public bool IsDeleted { get; set; }
     }
 }

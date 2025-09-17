@@ -7,10 +7,9 @@ using System.Threading.Tasks;
 
 namespace anphuong.Core.Domains.Entities
 {
-    public class OrderDetail
+    public class OrderDetail : Entity
     {
         [Key]
-        public int OrderDetailId { get; set; }
         public bool IsCustomize { get; set; }
         public int CustomizeHeight { get; set; }
         public int CustomizeWidth { get; set; }
@@ -18,9 +17,6 @@ namespace anphuong.Core.Domains.Entities
         public string CustomizeMaterial { get; set; }
         public int Quantity { get; set; }
         public double SubTotalPrice { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
-        public bool IsDeleted { get; set; }
         public int ProductId { get; set; }
         public int OrderId { get; set; }
         public Product Product { get; set; }
