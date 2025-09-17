@@ -12,7 +12,7 @@ using anphuong.Repository.Context;
 namespace anphuong.Repository.Migrations
 {
     [DbContext(typeof(anphuongDbContext))]
-    [Migration("20250917100319_InitialCreate")]
+    [Migration("20250917102801_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -412,7 +412,8 @@ namespace anphuong.Repository.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime");
+                        .HasColumnType("datetime")
+                        .HasColumnName("created_at");
 
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
@@ -438,7 +439,8 @@ namespace anphuong.Repository.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime");
+                        .HasColumnType("datetime")
+                        .HasColumnName("updated_at");
 
                     b.Property<string>("Username")
                         .IsRequired()

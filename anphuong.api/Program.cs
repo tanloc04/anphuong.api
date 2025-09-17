@@ -8,9 +8,9 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Json;
 
+Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 
-Env.Load();
 builder.Configuration
     .AddEnvironmentVariables();
 
