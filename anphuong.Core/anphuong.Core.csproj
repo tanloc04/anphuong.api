@@ -11,7 +11,6 @@
     <Folder Include="Domains\DTOs\ResponseDTOs\" />
     <Folder Include="Domains\DTOs\RequestDTOs\" />
     <Folder Include="Domains\Enums\" />
-    <Folder Include="Domains\Entities\" />
     <Folder Include="Interfaces\Repositories\" />
     <Folder Include="Interfaces\Services\" />
   </ItemGroup>
