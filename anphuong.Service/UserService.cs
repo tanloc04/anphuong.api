@@ -8,6 +8,7 @@ using anphuong.Core.Domains.Objects;
 using anphuong.Core.Exceptions;
 using anphuong.Core.Interfaces.Repositories;
 using anphuong.Core.Interfaces.Services;
+using anphuong.Repository.Repositories;
 using Mapster;
 using Microsoft.AspNetCore.Http;
 
@@ -18,30 +19,38 @@ namespace anphuong.Service
     {
 
         private readonly IUserRepository _userRepository;
+        private readonly ICustomerRepository _customerRepository;
         private readonly IJwtService _jwtService;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UserService(IUserRepository userRepository, IJwtService jwtService, IHttpContextAccessor httpContextAccessor)
+        public UserService(IUserRepository userRepository, ICustomerRepository customerRepository,
+            IJwtService jwtService, IHttpContextAccessor httpContextAccessor)
         {
             _userRepository = userRepository;
+            _customerRepository = customerRepository;
             _jwtService = jwtService;
             _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task RegisterAsync(RegisterRequestDTO requestDTO)
         {
-            // Hash the password
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(requestDTO.Password);
 
-            // Create the user and save to the database
-            var newUser = new User
+            var newCustomer = new Customer
             {
-                Email = requestDTO.Email,
-                PasswordHash = hashedPassword,
-                Username = requestDTO.Username,
-                Status = "1"
+                Phone = requestDTO.Phone,
+                FullName = requestDTO.Fullname,
+                CustomerAddress = requestDTO.CustomerAddress,
+                User = new User
+                {
+                    Email = requestDTO.Email,
+                    Username = requestDTO.Username,
+                    PasswordHash = hashedPassword,
+                    Status = "ACTIVE"
+                }
             };
-            await _userRepository.AddAsync(newUser);
+
+            await _customerRepository.AddAsync(newCustomer);
         }
 
         public async Task<User?> AuthenticateUserAsync(string email, string password)

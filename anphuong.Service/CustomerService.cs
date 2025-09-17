@@ -39,7 +39,6 @@ namespace anphuong.Service
         public async Task<Customer> Create(CustomerDTO customerDTO)
         {
             var customerEntity = customerDTO.Adapt<Customer>();
-
             await _customerRepository.AddAsync(customerEntity);
 
             return customerEntity;
