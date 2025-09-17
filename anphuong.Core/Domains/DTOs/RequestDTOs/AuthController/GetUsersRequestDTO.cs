@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using anphuong.Core.Domains.DTOs.StandardizedDTOs;
+﻿using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 
 namespace anphuong.Core.Domains.DTOs.RequestDTOs.AuthController
 {

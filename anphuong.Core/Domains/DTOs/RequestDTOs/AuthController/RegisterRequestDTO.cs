@@ -13,6 +13,11 @@ namespace anphuong.Core.Domains.DTOs.RequestDTOs.AuthController
         [Required(ErrorMessage = "{0} is required")]
         [MinLength(PASSWORD_MIN_LENGTH, ErrorMessage = "{0} must be at least {1} characters")]
         public string Password { get; set; } = null!;
+
+        [Required(ErrorMessage = "{0} is required")]
+        [Compare("Password", ErrorMessage = "Confirm Password do not match")]
+        public string ConfirmPassword { get; set; } = null!;
+
         public string Username { get; set; } = null!;
 
         [Required(ErrorMessage = "Phone is required")]

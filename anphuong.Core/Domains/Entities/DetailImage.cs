@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace anphuong.Core.Domains.Entities
+﻿namespace anphuong.Core.Domains.Entities
 {
     public class DetailImage : Entity
     {

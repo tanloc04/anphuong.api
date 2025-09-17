@@ -9,7 +9,7 @@ namespace anphuong.Service
         public PagingResponseDTO<T> GetPagedData(int totalItems, IEnumerable<T> data, PageInfoRequestDTO pageInfo)
         {
 
-            if (totalItems == 0 && data == null)    
+            if (totalItems == 0 && data == null)
             {
                 return new PagingResponseDTO<T>
                 {

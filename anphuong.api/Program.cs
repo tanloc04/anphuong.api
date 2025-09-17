@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.Json;
 using anphuong.api.Extensions;
 using anphuong.Repository.Context;
 using DotNetEnv;
@@ -5,8 +7,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
-using System.Text.Json;
 
 Env.Load();
 var builder = WebApplication.CreateBuilder(args);

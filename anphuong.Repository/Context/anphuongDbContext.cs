@@ -1,10 +1,5 @@
 ﻿using anphuong.Core.Domains.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace anphuong.Repository.Context
 {
@@ -20,7 +15,7 @@ namespace anphuong.Repository.Context
         public DbSet<Product> Products { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Behavior> Behaviors { get; set; }
-        public DbSet<Color> Colors { get; set; }    
+        public DbSet<Color> Colors { get; set; }
         public DbSet<DetailImage> DetailImages { get; set; }
         public DbSet<Inventory> Inventories { get; set; }
         public DbSet<Variant> Variants { get; set; }
