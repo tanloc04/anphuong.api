@@ -53,7 +53,7 @@ namespace anphuong.Repository.Context
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.FullName).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.Phone).HasMaxLength(20);
-                entity.Property(e => e.Address).HasMaxLength(300);
+                entity.Property(e => e.CustomerAddress).HasMaxLength(300);
                 entity.Property(e => e.CreatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.UpdatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.IsDeleted).IsRequired();
@@ -145,8 +145,8 @@ namespace anphuong.Repository.Context
             modelBuilder.Entity<Variant>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.CreateAt).IsRequired().HasColumnType("datetime");
-                entity.Property(e => e.UpdateAt).IsRequired().HasColumnType("datetime");
+                entity.Property(e => e.CreatedAt).IsRequired().HasColumnType("datetime");
+                entity.Property(e => e.UpdatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.IsDeleted).IsRequired();
 
                 // Many-to-one relationship with Color

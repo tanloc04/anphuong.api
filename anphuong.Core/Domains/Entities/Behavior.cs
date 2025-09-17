@@ -9,7 +9,6 @@ namespace anphuong.Core.Domains.Entities
 {
     public class Behavior : Entity
     {
-        [Key]
         public int ViewCount { get; set; }
         public int BuyCount { get; set; }
     }

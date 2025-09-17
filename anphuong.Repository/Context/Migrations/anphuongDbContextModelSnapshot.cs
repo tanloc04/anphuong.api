@@ -8,7 +8,7 @@ using anphuong.Repository.Context;
 
 #nullable disable
 
-namespace anphuong.Repository.Context.Migrations
+namespace anphuong.Repository.Migrations
 {
     [DbContext(typeof(anphuongDbContext))]
     partial class anphuongDbContextModelSnapshot : ModelSnapshot
@@ -24,11 +24,11 @@ namespace anphuong.Repository.Context.Migrations
 
             modelBuilder.Entity("anphuong.Core.Domains.Entities.Behavior", b =>
                 {
-                    b.Property<int>("BehaviorId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BehaviorId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("BuyCount")
                         .HasColumnType("int");
@@ -45,18 +45,18 @@ namespace anphuong.Repository.Context.Migrations
                     b.Property<int>("ViewCount")
                         .HasColumnType("int");
 
-                    b.HasKey("BehaviorId");
+                    b.HasKey("Id");
 
                     b.ToTable("Behaviors");
                 });
 
             modelBuilder.Entity("anphuong.Core.Domains.Entities.Category", b =>
                 {
-                    b.Property<int>("CategoryId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CategoryId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime");
@@ -77,18 +77,18 @@ namespace anphuong.Repository.Context.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime");
 
-                    b.HasKey("CategoryId");
+                    b.HasKey("Id");
 
                     b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("anphuong.Core.Domains.Entities.Color", b =>
                 {
-                    b.Property<int>("ColorId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ColorId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime");
@@ -109,26 +109,26 @@ namespace anphuong.Repository.Context.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime");
 
-                    b.HasKey("ColorId");
+                    b.HasKey("Id");
 
                     b.ToTable("Colors");
                 });
 
             modelBuilder.Entity("anphuong.Core.Domains.Entities.Customer", b =>
                 {
-                    b.Property<int>("CustomerId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CustomerId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Address")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("CustomerAddress")
                         .IsRequired()
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
-
-                    b.Property<DateTime>("CreateAt")
-                        .HasColumnType("datetime");
 
                     b.Property<string>("FullName")
                         .IsRequired()
@@ -143,13 +143,13 @@ namespace anphuong.Repository.Context.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<DateTime>("UpdateAt")
+                    b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.HasKey("CustomerId");
+                    b.HasKey("Id");
 
                     b.HasIndex("UserId")
                         .IsUnique();
@@ -159,14 +159,17 @@ namespace anphuong.Repository.Context.Migrations
 
             modelBuilder.Entity("anphuong.Core.Domains.Entities.DetailImage", b =>
                 {
-                    b.Property<int>("DetailImageId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DetailImageId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime");
+
+                    b.Property<int>("DetailImageId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Image1")
                         .IsRequired()
@@ -199,18 +202,18 @@ namespace anphuong.Repository.Context.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime");
 
-                    b.HasKey("DetailImageId");
+                    b.HasKey("Id");
 
                     b.ToTable("DetailImages");
                 });
 
             modelBuilder.Entity("anphuong.Core.Domains.Entities.Inventory", b =>
                 {
-                    b.Property<int>("InventoryId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InventoryId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime");
@@ -227,7 +230,7 @@ namespace anphuong.Repository.Context.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime");
 
-                    b.HasKey("InventoryId");
+                    b.HasKey("Id");
 
                     b.HasIndex("ProductId");
 
@@ -236,11 +239,11 @@ namespace anphuong.Repository.Context.Migrations
 
             modelBuilder.Entity("anphuong.Core.Domains.Entities.Order", b =>
                 {
-                    b.Property<int>("OrderId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime");
@@ -266,7 +269,7 @@ namespace anphuong.Repository.Context.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime");
 
-                    b.HasKey("OrderId");
+                    b.HasKey("Id");
 
                     b.HasIndex("CustomerId");
 
@@ -275,11 +278,11 @@ namespace anphuong.Repository.Context.Migrations
 
             modelBuilder.Entity("anphuong.Core.Domains.Entities.OrderDetail", b =>
                 {
-                    b.Property<int>("OrderDetailId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderDetailId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime");
@@ -319,7 +322,7 @@ namespace anphuong.Repository.Context.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime");
 
-                    b.HasKey("OrderDetailId");
+                    b.HasKey("Id");
 
                     b.HasIndex("OrderId");
 
@@ -330,11 +333,11 @@ namespace anphuong.Repository.Context.Migrations
 
             modelBuilder.Entity("anphuong.Core.Domains.Entities.Product", b =>
                 {
-                    b.Property<int>("ProductId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProductId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
@@ -384,7 +387,7 @@ namespace anphuong.Repository.Context.Migrations
                     b.Property<int>("WidthSize")
                         .HasColumnType("int");
 
-                    b.HasKey("ProductId");
+                    b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
 
@@ -399,11 +402,11 @@ namespace anphuong.Repository.Context.Migrations
 
             modelBuilder.Entity("anphuong.Core.Domains.Entities.User", b =>
                 {
-                    b.Property<int>("UserId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime");
@@ -439,23 +442,23 @@ namespace anphuong.Repository.Context.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
 
-                    b.HasKey("UserId");
+                    b.HasKey("Id");
 
                     b.ToTable("Users");
                 });
 
             modelBuilder.Entity("anphuong.Core.Domains.Entities.Variant", b =>
                 {
-                    b.Property<int>("VariantId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VariantId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("ColorId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("CreateAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime");
 
                     b.Property<bool>("IsDeleted")
@@ -464,10 +467,10 @@ namespace anphuong.Repository.Context.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("UpdateAt")
+                    b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime");
 
-                    b.HasKey("VariantId");
+                    b.HasKey("Id");
 
                     b.HasIndex("ColorId");
 

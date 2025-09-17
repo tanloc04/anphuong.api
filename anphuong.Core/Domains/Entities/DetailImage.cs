@@ -9,7 +9,6 @@ namespace anphuong.Core.Domains.Entities
 {
     public class DetailImage : Entity
     {
-        [Key]
         public int DetailImageId { get; set; }
         public string Thumnail { get; set; }
         public string Image1 { get; set; }

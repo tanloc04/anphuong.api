@@ -60,7 +60,7 @@ namespace anphuong.Service
             {
                 string keyword = searchCondition.Keyword.ToLower();
                 filter = AddFilter(filter, c =>
-                    (c.Fullname != null && c.Fullname.ToLower().Contains(keyword)) ||
+                    (c.FullName != null && c.FullName.ToLower().Contains(keyword)) ||
                     (c.Phone != null && c.Phone.ToLower().Contains(keyword)) ||
                     (c.CustomerAddress != null && c.CustomerAddress.ToLower().Contains(keyword)) ||
                     (c.User != null && c.User.Username != null && c.User.Username.ToLower().Contains(keyword))
@@ -84,7 +84,7 @@ namespace anphuong.Service
                 CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt,
                 IsDeleted = c.IsDeleted,
-                Fullname = c.Fullname,
+                Fullname = c.FullName,
                 Phone = c.Phone,
                 CustomerAddress = c.CustomerAddress,
                 Username = c.User?.Username,
@@ -118,7 +118,7 @@ namespace anphuong.Service
                 CreatedAt = customer.CreatedAt,
                 UpdatedAt = customer.UpdatedAt,
                 IsDeleted = customer.IsDeleted,
-                Fullname = customer.Fullname,
+                Fullname = customer.FullName,
                 Phone = customer.Phone,
                 CustomerAddress = customer.CustomerAddress,
                 Username = customer.User?.Username,

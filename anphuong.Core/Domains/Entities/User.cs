@@ -9,7 +9,6 @@ namespace anphuong.Core.Domains.Entities
 {
     public class User : Entity
     {
-        [Key]
         public string Username { get; set; }
         public string? Password { get; set; }
         public string? PasswordHash { get; set; }

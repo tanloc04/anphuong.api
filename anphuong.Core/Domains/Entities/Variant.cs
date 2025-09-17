@@ -7,13 +7,8 @@ using System.Threading.Tasks;
 
 namespace anphuong.Core.Domains.Entities
 {
-    public class Variant
+    public class Variant : Entity
     {
-        [Key]
-        public int VariantId { get; set; }
-        public DateTime CreateAt { get; set; }
-        public DateTime UpdateAt { get; set; }
-        public bool IsDeleted { get; set; }
         public int ColorId { get; set; }
         public int ProductId { get; set; }
         public Color Color { get; set; }

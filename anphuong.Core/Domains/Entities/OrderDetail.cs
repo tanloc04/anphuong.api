@@ -9,7 +9,6 @@ namespace anphuong.Core.Domains.Entities
 {
     public class OrderDetail : Entity
     {
-        [Key]
         public bool IsCustomize { get; set; }
         public int CustomizeHeight { get; set; }
         public int CustomizeWidth { get; set; }
