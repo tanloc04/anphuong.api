@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace anphuong.Core.Domains.DTOs.API
 {
-    public class APIResponseDTO<T>
+    public class ApiResponseDTO<T>
     {
         public bool Success { get; set; }
 

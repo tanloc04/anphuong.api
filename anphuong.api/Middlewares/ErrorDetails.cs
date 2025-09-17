@@ -1,24 +1,16 @@
 ﻿using System.Net;
 using System.Text.Json;
 
-namespace anphuong.Core.Domains.Objects
+namespace anphuong.api.Middlewares
 {
     public class ErrorDetails
     {
-        #region Error Detail
-
-        /*Add ErrorDetails here, for example:
-        public static readonly ErrorDetails INVALID_ID = new(HttpStatusCode.BadRequest, "Invalid ID");*/
-
-        #endregion
-
+        public static readonly ErrorDetails CAN_NOT_DELETE_YOURSELF = new(HttpStatusCode.Conflict, "Cannot Delete Yourself");
         public ErrorDetails(HttpStatusCode statusCode, string message)
         {
             StatusCode = statusCode;
             Message = message;
         }
-
-        public static ErrorDetails CAN_NOT_DELETE_YOURSELF { get; set; }
         public HttpStatusCode StatusCode { get; set; }
         public string Message { get; set; } = string.Empty;
 

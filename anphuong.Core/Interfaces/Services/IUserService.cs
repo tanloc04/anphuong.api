@@ -1,0 +1,20 @@
+﻿using anphuong.Core.Domains.DTOs;
+using anphuong.Core.Domains.DTOs.RequestDTOs.AuthController;
+using anphuong.Core.Domains.DTOs.StandardizedDTOs;
+using anphuong.Core.Domains.Entities;
+
+namespace anphuong.Core.Interfaces.Services
+{
+    public interface IUserService
+    {
+        Task<bool> IsUserExists(string email);
+        Task RegisterAsync(RegisterRequestDTO requestDTO);
+        Task<User?> AuthenticateUserAsync(string email, string password);
+        Task<UserDTO?> FindByEmailAsync(string email);
+        Task<UserDTO?> FindByIdAsync(int id);
+        Task<bool> UpdatePassword(UserDTO user, string password);
+        Task<bool> VerifyPassword(UserDTO user, string oldPassword);
+        Task<(List<UserDTO>, int totalItems)> GetUsersAsync(SearchCondition searchCondition, PageInfoRequestDTO pageInfo);
+        Task<bool> DeleteUserAsync(int id);
+    }
+}

@@ -551,3 +551,4 @@ FodyWeavers.xsd
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudio,dotnetcore,visualstudiocode,aspnetcore
 /anphuong.api/obj
+anphuong.api/.env

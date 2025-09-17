@@ -50,7 +50,7 @@ namespace anphuong.api.Middlewares
                     break;
             }
             context.Response.StatusCode = statusCode;
-            await context.Response.WriteAsync(new APIResponseDTO<object>
+            await context.Response.WriteAsync(new ApiResponseDTO<object>
             {
                 Success = false,
                 Message = message
