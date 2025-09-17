@@ -1,12 +1,22 @@
-﻿namespace anphuong.Core.Domains.Entities;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-public partial class Variant : Entity
+namespace anphuong.Core.Domains.Entities
 {
-    public int ColorId { get; set; }
-
-    public int ProductId { get; set; }
-
-    public virtual Color Color { get; set; } = null!;
-
-    public virtual Product Product { get; set; } = null!;
+    public class Variant
+    {
+        [Key]
+        public int VariantId { get; set; }
+        public DateTime CreateAt { get; set; }
+        public DateTime UpdateAt { get; set; }
+        public bool IsDeleted { get; set; }
+        public int ColorId { get; set; }
+        public int ProductId { get; set; }
+        public Color Color { get; set; }
+        public Product Product { get; set; }
+    }
 }

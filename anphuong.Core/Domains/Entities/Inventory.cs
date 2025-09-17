@@ -1,10 +1,21 @@
-﻿namespace anphuong.Core.Domains.Entities;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-public partial class Inventory : Entity
+namespace anphuong.Core.Domains.Entities
 {
-    public int ProductId { get; set; }
-
-    public int? QuantityInStock { get; set; }
-
-    public virtual Product Product { get; set; } = null!;
+    public class Inventory
+    {
+        [Key]
+        public int InventoryId { get; set; }
+        public int QuantityInStock { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+        public bool IsDeleted { get; set; }
+        public int ProductId { get; set; }
+        public Product Product { get; set; }
+    }
 }

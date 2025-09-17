@@ -1,16 +1,23 @@
-﻿namespace anphuong.Core.Domains.Entities;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-public partial class DetailImage : Entity
+namespace anphuong.Core.Domains.Entities
 {
-    public string? ImageStringThumbnail { get; set; }
-
-    public string? ImageString01 { get; set; }
-
-    public string? ImageString02 { get; set; }
-
-    public string? ImageString03 { get; set; }
-
-    public string? ImageString04 { get; set; }
-
-    public virtual ICollection<Product> Products { get; set; } = new List<Product>();
+    public class DetailImage
+    {
+        [Key]
+        public int DetailImageId { get; set; }
+        public string Thumnail { get; set; }
+        public string Image1 { get; set; }
+        public string Image2 { get; set; }
+        public string Image3 { get; set; }
+        public string Image4 { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+        public bool IsDeleted { get; set; }
+    }
 }

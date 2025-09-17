@@ -1,17 +1,20 @@
-﻿namespace anphuong.Core.Domains.Entities;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-public partial class Behavior : Entity
+namespace anphuong.Core.Domains.Entities
 {
-
-    public int CustomerId { get; set; }
-
-    public int ProductId { get; set; }
-
-    public int? ViewCount { get; set; }
-
-    public int? Buy { get; set; }
-
-    public virtual Customer Customer { get; set; } = null!;
-
-    public virtual Product Product { get; set; } = null!;
+    public class Behavior
+    {
+        [Key]
+        public int BehaviorId { get; set; }
+        public int ViewCount { get; set; }
+        public int BuyCount { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+        public bool IsDeleted { get; set; }
+    }
 }

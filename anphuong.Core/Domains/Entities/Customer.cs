@@ -1,18 +1,24 @@
-﻿namespace anphuong.Core.Domains.Entities;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-public partial class Customer : Entity
+namespace anphuong.Core.Domains.Entities
 {
-    public string Fullname { get; set; } = null!;
-
-    public string Phone { get; set; } = null!;
-
-    public string? CustomerAddress { get; set; }
-
-    public int UserId { get; set; }
-
-    public virtual ICollection<Behavior> Behaviors { get; set; } = new List<Behavior>();
-
-    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
-
-    public virtual User User { get; set; } = null!;
+    public class Customer
+    {
+        [Key]
+        public int CustomerId { get; set; }
+        public string FullName { get; set; }
+        public string Phone { get; set; }
+        public string Address { get; set; }
+        public DateTime CreateAt { get; set; }
+        public DateTime UpdateAt { get; set; }
+        public bool IsDeleted { get; set; }
+        public int UserId { get; set; }
+        public User User { get; set; }
+        public ICollection<Order> Orders { get; set; }
+    }
 }

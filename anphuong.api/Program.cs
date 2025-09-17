@@ -1,130 +1,73 @@
-using System.Text;
-using System.Text.Json;
 using anphuong.api.Extensions;
-using anphuong.Repository.Data;
-using DotNetEnv;
+using anphuong.Repository.Context;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+var smtpSettings = builder.Configuration.GetSection("SmtpSettings");
+var connectionString = builder.Configuration.GetConnectionString("Database");
+builder.Services.AddDbContext<anphuongDbContext>(options =>
+    options.UseSqlServer(connectionString));
 
-Env.Load();
-builder.Configuration
-    .AddEnvironmentVariables();
-
-#region Jwt configuration 
-var jwtIssuer = builder.Configuration.GetSection("Jwt:Issuer").Get<string>();
-var jwtAudience = builder.Configuration.GetSection("Jwt:Audience").Get<string>();
-var jwtKey = builder.Configuration.GetSection("Jwt:Key").Get<string>();
-
-builder.Services.AddAuthentication(options =>
+var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]);
+builder.Services.AddAuthentication(x =>
 {
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
-     .AddJwtBearer(options =>
-     {
-         options.TokenValidationParameters = new TokenValidationParameters
-         {
-             ValidateIssuer = true,
-             ValidateAudience = true,
-             ValidateLifetime = true,
-             ValidateIssuerSigningKey = true,
-             ValidIssuer = jwtIssuer,
-             ValidAudience = jwtAudience,
-             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-         };
-
-         options.Events = new JwtBearerEvents
-         {
-             // Customize the 401 response
-             OnChallenge = context =>
-             {
-                 // Skip the default response
-                 context.HandleResponse();
-
-                 // Customize the response
-                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                 context.Response.ContentType = "application/json";
-
-                 var result = JsonSerializer.Serialize(new
-                 {
-                     success = false,
-                     message = "Access Denied. Token is missing or invalid."
-                 });
-
-                 return context.Response.WriteAsync(result);
-             },
-
-             // Customize the 403 response
-             OnForbidden = context =>
-             {
-                 // Customize the response
-                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                 context.Response.ContentType = "application/json";
-
-                 var result = JsonSerializer.Serialize(new
-                 {
-                     success = false,
-                     message = "Access Denied. You do not have permission to access this resource."
-                 });
-
-                 return context.Response.WriteAsync(result);
-             }
-         };
-     });
-#endregion
-
+.AddJwtBearer(x =>
+{
+    x.RequireHttpsMetadata = false;
+    x.SaveToken = true;
+    x.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ValidateIssuer = false,
+        ValidateAudience = false
+    };
+});
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(x =>
+        x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-
-builder.Services.Register();
-
-#region Swagger Configuration
-builder.Services.AddSwaggerGen(c =>
+builder.Services.AddSwaggerGen(option =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "An Phuong API", Version = "v1" });
-
-    // Add JWT Authentication to Swagger
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    ////JWT Config
+    option.DescribeAllParametersInCamelCase();
+    option.ResolveConflictingActions(conf => conf.First());
+    option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
+        In = ParameterLocation.Header,
+        Description = "Please enter a valid token",
         Name = "Authorization",
         Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
         BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "Enter your JWT token here. Example: Bearer {your token}"
+        Scheme = "Bearer"
     });
-
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    option.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
         {
+            new OpenApiSecurityScheme
             {
-                new OpenApiSecurityScheme
+                Reference = new OpenApiReference
                 {
-                    Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    }
-                },
-                new string[] {}
-            }
-        });
+                    Type=ReferenceType.SecurityScheme,
+                    Id="Bearer"
+                }
+            },
+            new string[]{}
+        }
+    });
 });
-#endregion
 
-#region DBConnection
-
-
-var connectionString = builder.Configuration.GetConnectionString("AnPhuongFurnitureDb");
-
-builder.Services.AddDbContext<AnPhuongFurnitureContext>(options =>
-    options.UseSqlServer(connectionString));
-#endregion
+builder.Services.Register();
 
 var app = builder.Build();
 
@@ -132,12 +75,9 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "An Phuong API v1");
-    });
+    app.UseSwaggerUI();
 }
-
+app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
