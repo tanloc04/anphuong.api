@@ -59,7 +59,7 @@ namespace anphuong.api.Controllers
         #endregion
 
         #region Get Current User
-        [Authorize(Policy = "AllowSpecificEmail")]
+        [Authorize]
         [HttpGet]
         [ProducesResponseType(typeof(ApiResponseDTO<UserDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status401Unauthorized)]
