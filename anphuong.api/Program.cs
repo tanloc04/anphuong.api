@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using anphuong.api.Extensions;
@@ -72,6 +73,17 @@ builder.Services.AddAuthentication(options =>
                  });
 
                  return context.Response.WriteAsync(result);
+             },
+
+             OnTokenValidated = context =>
+             {
+                 var emailClaim = context.Principal?.FindFirst("email")?.Value;
+                 if (!string.IsNullOrEmpty(emailClaim))
+                 {
+                     var claimsIdentity = context.Principal?.Identity as ClaimsIdentity;
+                     claimsIdentity?.AddClaim(new Claim(ClaimTypes.Email, emailClaim));
+                 }
+                 return Task.CompletedTask;
              }
          };
      });
@@ -83,6 +95,19 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.Register();
+
+#region Allow Specific Email
+var allowedEmail = builder.Configuration["ALLOWED_EMAILS"]?.Trim();
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AllowSpecificEmail", policy =>
+        policy.RequireAssertion(context =>
+            context.User.HasClaim(c =>
+                (c.Type == ClaimTypes.Email || c.Type == "email")
+                && c.Value.Equals(allowedEmail, StringComparison.OrdinalIgnoreCase))));
+});
+#endregion
 
 #region Swagger Configuration
 builder.Services.AddSwaggerGen(c =>
@@ -139,6 +164,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.MapControllers();

@@ -27,7 +27,8 @@ namespace anphuong.api.Controllers
         [HttpPost("login")]
         [ProducesResponseType(typeof(ApiResponseDTO<LoginDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status403Forbidden)]
+        //[ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status401Unauthorized)]
+        //[ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> Login([FromBody] LoginRequestDTO loginRequest)
         {
             var user = await _userService.AuthenticateUserAsync(loginRequest.Email, loginRequest.Password);
@@ -58,10 +59,11 @@ namespace anphuong.api.Controllers
         #endregion
 
         #region Get Current User
-        [Authorize]
+        [Authorize(Policy = "AllowSpecificEmail")]
         [HttpGet]
         [ProducesResponseType(typeof(ApiResponseDTO<UserDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetCurrentUser()
         {
             if (!User.Identity.IsAuthenticated)
@@ -112,7 +114,6 @@ namespace anphuong.api.Controllers
         [AllowAnonymous]
         [ProducesResponseType(typeof(ApiResponseDTO<LoginDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequestDTO request)
         {
             string idToken = request?.IdToken;

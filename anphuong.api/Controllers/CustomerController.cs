@@ -3,6 +3,7 @@ using anphuong.Core.Domains.DTOs.API;
 using anphuong.Core.Domains.DTOs.RequestDTOs.AuthController;
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 using anphuong.Core.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace anphuong.api.Controllers
@@ -48,13 +49,13 @@ namespace anphuong.api.Controllers
         }
         #endregion
 
-        #region Get Customers
+        #region Get Customers     
+        [Authorize(Policy = "AllowSpecificEmail")]
         [HttpPost("search")]
         [ProducesResponseType(typeof(ApiResponseDTO<PagingResponseDTO<CustomerUserDTO>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetUsers([FromBody] GetUsersRequestDTO request)
         {
             if (!ModelState.IsValid)
