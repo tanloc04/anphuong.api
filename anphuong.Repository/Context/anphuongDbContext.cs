@@ -27,12 +27,11 @@ namespace anphuong.Repository.Context
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Username).IsRequired().HasMaxLength(30);
-                entity.Property(e => e.Password).HasMaxLength(100);
                 entity.Property(e => e.PasswordHash).HasMaxLength(256);
                 entity.Property(e => e.Email).HasMaxLength(100);
                 entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
-                entity.Property(e => e.CreatedAt).IsRequired().HasColumnType("datetime").HasColumnName("created_at");
-                entity.Property(e => e.UpdatedAt).IsRequired().HasColumnType("datetime").HasColumnName("updated_at");
+                entity.Property(e => e.CreatedAt).IsRequired().HasColumnType("datetime");
+                entity.Property(e => e.UpdatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.IsDeleted).IsRequired();
 
                 // One-to-one relationship with Customer
