@@ -155,11 +155,11 @@ namespace anphuong.api.Controllers
                 <div style='max-width: 600px; margin: auto; background: #ffffff; padding: 30px; border-radius: 10px; text-align: center;'>
                     <img src='{anphuongIcon}' 
                          style='margin-bottom: 20px; max-width: 150px; height: auto;' />
-                    <h2 style='color: #202124;'>Confirm Your Account</h2>
-                    <p style='color: #5f6368;'>Click the button below to confirm your account and complete the setup.</p>
+                    <h2 style='color: #202124;'>Xác nhận tài khoản của bạn</h2>
+                    <p style='color: #5f6368;'>Vui lòng nhấn nút bên dưới để xác nhận tài khoản và hoàn tất quá trình đăng ký.</p>
                     <a href='' 
-                       style='display: inline-block; margin: 20px 0; padding: 12px 25px; background-color: #1a73e8; color: #ffffff; text-decoration: none; border-radius: 5px; font-weight: bold;'>Confirm Account</a>
-                    <p style='color: #5f6368; font-size: 12px;'>If you did not request this, you can safely ignore this email.</p>
+                       style='display: inline-block; margin: 20px 0; padding: 12px 25px; background-color: #1a73e8; color: #ffffff; text-decoration: none; border-radius: 5px; font-weight: bold;'>Xác Nhận</a>
+                    <p style='color: #5f6368; font-size: 12px;'>Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.</p>
                 </div>
             </body>
             </html>
