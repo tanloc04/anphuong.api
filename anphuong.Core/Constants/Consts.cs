@@ -6,5 +6,6 @@
         public const int PAGE_NUM_DEFAULT = 1;
         public const int PAGE_SIZE_DEFAULT = 10;
         public const int PASSWORD_MIN_LENGTH = 6;
+        public const string COMPANY_NAME = "Noi That An Phuong";
     }
 }

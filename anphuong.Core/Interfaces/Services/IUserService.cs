@@ -8,7 +8,8 @@ namespace anphuong.Core.Interfaces.Services
     public interface IUserService
     {
         Task<bool> IsUserExists(string email);
-        Task RegisterAsync(RegisterRequestDTO requestDTO);
+        Task<int> RegisterAsync(RegisterRequestDTO requestDTO);
+        Task TestRegisterAsync(RegisterRequestDTO requestDTO);
         Task<User?> AuthenticateUserAsync(string email, string password);
         Task<UserDTO?> FindByEmailAsync(string email);
         Task<UserDTO?> FindByIdAsync(int id);
@@ -16,5 +17,6 @@ namespace anphuong.Core.Interfaces.Services
         Task<bool> VerifyPassword(UserDTO user, string oldPassword);
         Task<(List<UserDTO>, int totalItems)> GetUsersAsync(SearchCondition searchCondition, PageInfoRequestDTO pageInfo);
         Task<bool> DeleteUserAsync(int id);
+        Task<bool> ActivateUserAsync(int userId);
     }
 }

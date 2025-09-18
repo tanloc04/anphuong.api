@@ -31,7 +31,29 @@ namespace anphuong.Service
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task RegisterAsync(RegisterRequestDTO requestDTO)
+        public async Task<int> RegisterAsync(RegisterRequestDTO requestDTO)
+        {
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(requestDTO.Password);
+
+            var newCustomer = new Customer
+            {
+                Phone = requestDTO.Phone,
+                FullName = requestDTO.FullName,
+                CustomerAddress = requestDTO.CustomerAddress,
+                User = new User
+                {
+                    Email = requestDTO.Email,
+                    Username = requestDTO.Username,
+                    PasswordHash = hashedPassword,
+                    Status = "DEACTIVE"
+                }
+            };
+
+            await _customerRepository.AddAsync(newCustomer);
+            return newCustomer.Id;
+        }
+
+        public async Task TestRegisterAsync(RegisterRequestDTO requestDTO)
         {
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(requestDTO.Password);
 
@@ -172,6 +194,11 @@ namespace anphuong.Service
             if (user == null) return false; // User not found
             user.IsDeleted = true;
             return _userRepository.Update(user);
+        }
+
+        public async Task<bool> ActivateUserAsync(int id)
+        {
+            return await _userRepository.ActivateUserAsync(id);
         }
     }
 }

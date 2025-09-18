@@ -14,19 +14,47 @@ namespace anphuong.api.Controllers
     {
         private readonly IUserService _userService;
         private readonly ICustomerService _customerService;
+        private readonly IEmailService _emailService;
         private readonly IPaginationService<CustomerUserDTO> _paginationService;
 
         public CustomerController(IUserService userService, ICustomerService customerService,
+            IEmailService emailService,
             IPaginationService<CustomerUserDTO> paginationService)
         {
             _userService = userService;
             _customerService = customerService;
+            _emailService = emailService;
             _paginationService = paginationService;
         }
 
+        #region Test Register
+        [HttpPost("test-register")]
+        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> DumpRegister([FromBody] RegisterRequestDTO registerRequest)
+        {
+            if (_userService.IsUserExists(registerRequest.Email).GetAwaiter().GetResult())
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Email already exists"
+                });
+            }
+
+            await _userService.TestRegisterAsync(registerRequest);
+
+            return StatusCode(StatusCodes.Status201Created, new ApiResponseDTO<object>
+            {
+                Success = true,
+                Message = "User registered successfully"
+            });
+        }
+        #endregion
+
         #region Register
         [HttpPost("register")]
-        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDTO registerRequest)
         {
@@ -39,12 +67,38 @@ namespace anphuong.api.Controllers
                 });
             }
 
-            await _userService.RegisterAsync(registerRequest);
+            var id = await _userService.RegisterAsync(registerRequest);
+
+            var baseConfirmAccountEndpoint = Environment.GetEnvironmentVariable("CONFIRM_ACCOUNT_ENDPOINT")
+            ?? throw new InvalidOperationException("CONFIRM_ACCOUNT_ENDPOINT environment variable is not set.");
+
+            string confirmAccountEndpoint = baseConfirmAccountEndpoint + id;
+
+            await _emailService.SendEmailAsync(
+                registerRequest.Email,
+                "Confirm Your An Phuong Account",
+                "Click here to confirm your account: " + confirmAccountEndpoint
+            );
 
             return StatusCode(StatusCodes.Status201Created, new ApiResponseDTO<object>
             {
                 Success = true,
-                Message = "User registered successfully"
+                Message = "Email have sent to your"
+            });
+        }
+        #endregion
+
+        #region Confirm Account
+        [HttpPut("account-confirmation/{id}")]
+        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> ConfirmAccount(int id)
+        {
+            await _userService.ActivateUserAsync(id);
+            return StatusCode(StatusCodes.Status200OK, new ApiResponseDTO<object>
+            {
+                Success = true,
+                Message = "Account Activated Successfully."
             });
         }
         #endregion
@@ -86,5 +140,6 @@ namespace anphuong.api.Controllers
             });
         }
         #endregion
+
     }
 }

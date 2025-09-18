@@ -28,6 +28,8 @@ namespace anphuong.api.Extensions
 
             //----------------Google----------------
             services.AddScoped<IGoogleAuthService, GoogleAuthService>();
+            //----------------Email-----------------
+            services.AddScoped<IEmailService, EmailService>();
         }
     }
 }

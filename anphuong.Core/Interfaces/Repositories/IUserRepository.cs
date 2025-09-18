@@ -4,5 +4,6 @@ namespace anphuong.Core.Interfaces.Repositories
 {
     public interface IUserRepository : IGenericRepository<User>
     {
+        public Task<bool> ActivateUserAsync(int id);
     }
 }
