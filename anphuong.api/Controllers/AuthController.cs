@@ -27,7 +27,6 @@ namespace anphuong.api.Controllers
         [HttpPost("login")]
         [ProducesResponseType(typeof(ApiResponseDTO<LoginDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> Login([FromBody] LoginRequestDTO loginRequest)
         {
@@ -81,7 +80,7 @@ namespace anphuong.api.Controllers
 
             if (id == null)
             {
-                return Unauthorized(new ApiResponseDTO<object>
+                return BadRequest(new ApiResponseDTO<object>
                 {
                     Success = true,
                     Message = "User ID is not found in the claims."
@@ -104,8 +103,9 @@ namespace anphuong.api.Controllers
                 Success = true,
                 Data = userDTO
             });
-            #endregion
         }
+        #endregion
+        
 
         #region Google Login
         [HttpPost("google-login")]
@@ -126,7 +126,6 @@ namespace anphuong.api.Controllers
             try
             {
                 var payload = await _googleAuthService.VerifyGoogleTokenAsync(idToken);
-
                 var email = payload.Email;
                 var name = payload.Name;
                 var googleId = payload.Subject;
@@ -136,12 +135,14 @@ namespace anphuong.api.Controllers
 
                 if (user == null)
                 {
-                    return Ok(new ApiResponseDTO<object>
+                    return Ok(new ApiResponseDTO<string>
                     {
                         Success = true,
-                        Data = email
+                        Data = email,
                     });
                 }
+
+                var token = _jwtService.GenerateToken(user.Id.ToString(), user.Email);
 
                 if (!user.Status.Equals("ACTIVE"))
                 {
@@ -153,12 +154,11 @@ namespace anphuong.api.Controllers
                 }
 
                 // 3. Generate JWT token
-                var token = _jwtService.GenerateToken(user.Id.ToString(), user.Email);
 
                 return Ok(new
                 {
-                    success = true,
-                    data = new { token = token }
+                    Success = true,
+                    Data = new LoginDTO() { AccessToken = token }
                 });
             }
             catch (Exception)

@@ -23,9 +23,9 @@ namespace anphuong.Service
             var settings = new GoogleJsonWebSignature.ValidationSettings()
             {
                 Audience = new List<string>
-            {
-                _config[""]
-            }
+                {
+                    _config["GOOGLE_CLIENT_ID"]
+                }
             };
 
             return await GoogleJsonWebSignature.ValidateAsync(idToken, settings);
