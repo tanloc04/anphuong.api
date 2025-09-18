@@ -25,7 +25,7 @@ namespace anphuong.Core.Domains.DTOs.RequestDTOs.AuthController
         public string Phone { get; set; } = null!;
 
         [Required(ErrorMessage = "Fullname is required")]
-        public string Fullname { get; set; } = null!;
+        public string FullName { get; set; } = null!;
 
         [Required(ErrorMessage = "Address is required")]
         public string CustomerAddress { get; set; } = null!;

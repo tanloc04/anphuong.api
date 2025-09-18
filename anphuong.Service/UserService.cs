@@ -38,7 +38,7 @@ namespace anphuong.Service
             var newCustomer = new Customer
             {
                 Phone = requestDTO.Phone,
-                FullName = requestDTO.Fullname,
+                FullName = requestDTO.FullName,
                 CustomerAddress = requestDTO.CustomerAddress,
                 User = new User
                 {

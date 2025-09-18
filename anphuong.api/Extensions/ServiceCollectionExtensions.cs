@@ -25,6 +25,9 @@ namespace anphuong.api.Extensions
             //----------------Customer----------------
             services.AddScoped<ICustomerRepository, CustomerRepository>();
             services.AddScoped<ICustomerService, CustomerService>();
+
+            //----------------Google----------------
+            services.AddScoped<IGoogleAuthService, GoogleAuthService>();
         }
     }
 }

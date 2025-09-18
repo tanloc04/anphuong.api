@@ -9,10 +9,12 @@
   <ItemGroup>
     <Folder Include="Constants\" />
     <Folder Include="Domains\DTOs\ResponseDTOs\" />
-    <Folder Include="Domains\DTOs\RequestDTOs\" />
     <Folder Include="Domains\Enums\" />
     <Folder Include="Interfaces\Repositories\" />
-    <Folder Include="Interfaces\Services\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Apis.Auth" Version="1.71.0" />
   </ItemGroup>
 
 </Project>
