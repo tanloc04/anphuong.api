@@ -141,23 +141,23 @@ namespace anphuong.api.Controllers
         #endregion
 
         #region Send Email
-        [HttpPost("send-form")]
+        [HttpPost("send-email")]
         public async Task<IActionResult> SendForm([FromQuery] string email)
         {
             if (string.IsNullOrWhiteSpace(email))
                 return BadRequest("Email is required.");
             var anphuongIcon = Environment.GetEnvironmentVariable("AN_PHUONG_ICON")
             ?? throw new InvalidOperationException("AN_PHUONG_ICON environment variable is not set.");
-
+            string url = "https://www.youtube.com/watch?v=UwuAPyOImoI&list=RDUwuAPyOImoI&start_radio=1";
             string htmlBody = $@"
             <html>
-            <body style='font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;'>
+            <body style='font-family: Roboto, sans-serif; background-color: #f4f4f4; padding: 20px;'>
                 <div style='max-width: 600px; margin: auto; background: #ffffff; padding: 30px; border-radius: 10px; text-align: center;'>
                     <img src='{anphuongIcon}' 
                          style='margin-bottom: 20px; max-width: 150px; height: auto;' />
                     <h2 style='color: #202124;'>Xác nhận tài khoản của bạn</h2>
                     <p style='color: #5f6368;'>Vui lòng nhấn nút bên dưới để xác nhận tài khoản và hoàn tất quá trình đăng ký.</p>
-                    <a href='' 
+                    <a href='{url}' 
                        style='display: inline-block; margin: 20px 0; padding: 12px 25px; background-color: #1a73e8; color: #ffffff; text-decoration: none; border-radius: 5px; font-weight: bold;'>Xác Nhận</a>
                     <p style='color: #5f6368; font-size: 12px;'>Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.</p>
                 </div>
@@ -165,7 +165,7 @@ namespace anphuong.api.Controllers
             </html>
             ";
 
-            await _emailService.SendEmailAsync(email, "An Phuong", htmlBody);
+            await _emailService.SendEmailAsync(email, "Xác Nhận Tài Khoản An Phương", htmlBody);
 
             return Ok(new { Success = true, Message = "Email has been sent." });
         }
