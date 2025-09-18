@@ -3,7 +3,6 @@ using System.Reflection;
 using anphuong.Core.Domains.Entities;
 using anphuong.Core.Interfaces.Repositories;
 using anphuong.Repository.Context;
-using Microsoft.EntityFrameworkCore;
 
 namespace anphuong.Repository.Repositories
 {

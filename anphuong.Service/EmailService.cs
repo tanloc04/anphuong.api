@@ -1,8 +1,6 @@
-﻿using System.Management;
-using anphuong.Core.Constants;
+﻿using anphuong.Core.Constants;
 using anphuong.Core.Interfaces.Services;
 using MailKit.Net.Smtp;
-using Microsoft.Extensions.Configuration;
 using MimeKit;
 
 namespace anphuong.Service

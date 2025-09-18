@@ -15,7 +15,7 @@ namespace anphuong.api.Controllers
         private readonly IJwtService _jwtService;
         private readonly IUserService _userService;
         private readonly IGoogleAuthService _googleAuthService;
-        public AuthController(IJwtService jwtService, IUserService userService, 
+        public AuthController(IJwtService jwtService, IUserService userService,
             IGoogleAuthService googleAuthService)
         {
             _jwtService = jwtService;
@@ -107,7 +107,7 @@ namespace anphuong.api.Controllers
             });
         }
         #endregion
-        
+
         #region Google Login
         [HttpPost("google-login")]
         [AllowAnonymous]
@@ -171,7 +171,7 @@ namespace anphuong.api.Controllers
             }
         }
         #endregion
-    
-    
+
+
     }
 }
