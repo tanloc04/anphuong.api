@@ -12,6 +12,10 @@ using Microsoft.OpenApi.Models;
 Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(o => o.AddPolicy("AllowAll", p =>
+    p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()
+));
+
 builder.Configuration
     .AddEnvironmentVariables();
 
@@ -162,6 +166,9 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "An Phuong API v1");
     });
 }
+app.UseRouting();  
+
+app.UseCors("AllowAll");   
 
 app.UseAuthentication();
 
