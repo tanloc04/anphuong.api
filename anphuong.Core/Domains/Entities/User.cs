@@ -6,6 +6,7 @@
         public string? PasswordHash { get; set; }
         public string? Email { get; set; }
         public string Status { get; set; }
+        public string RefreshToken { get; set; }
         public Customer Customer { get; set; }
     }
 }
