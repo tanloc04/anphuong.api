@@ -423,7 +423,6 @@ namespace anphuong.Repository.Migrations
                         .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("RefreshToken")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("RefreshTokenExpiry")
@@ -589,8 +588,7 @@ namespace anphuong.Repository.Migrations
 
             modelBuilder.Entity("anphuong.Core.Domains.Entities.User", b =>
                 {
-                    b.Navigation("Customer")
-                        .IsRequired();
+                    b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("anphuong.Core.Domains.Entities.Variant", b =>
