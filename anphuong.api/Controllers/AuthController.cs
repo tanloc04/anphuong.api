@@ -1,8 +1,11 @@
 ﻿using System.Security.Claims;
+using anphuong.Core.Constants;
 using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.API;
 using anphuong.Core.Domains.DTOs.RequestDTOs.AuthController;
+using anphuong.Core.Domains.Entities;
 using anphuong.Core.Interfaces.Services;
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -50,8 +53,19 @@ namespace anphuong.api.Controllers
             }
 
             var accessToken = _jwtService.GenerateToken(user.Id.ToString(), user.Email);
-            var refreshToken = Guid.NewGuid().ToString();
-            user.RefreshToken = refreshToken;
+            string refreshToken;
+
+            if (user.RefreshToken == null 
+                || user.RefreshTokenExpiry == null 
+                || user.RefreshTokenExpiry <= DateTime.Now)
+            {
+                refreshToken = Guid.NewGuid().ToString();
+                user.RefreshToken = refreshToken;
+                user.RefreshTokenExpiry = DateTime.Now.AddDays(Consts.REFRESHTOKEN_EXPIRED_TIME);
+                await _userService.Update(user);
+            }
+
+            else refreshToken = user.RefreshToken.ToString();
 
             return Ok(new ApiResponseDTO<LoginDTO>()
             {
@@ -184,17 +198,44 @@ namespace anphuong.api.Controllers
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
         //[ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status401Unauthorized)]
         //[ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> checkRefreshToken([FromBody] LoginRequestDTO loginRequest)
+        public async Task<IActionResult> checkRefreshToken([FromBody] LoginDTO loginRequest)
         {
-            var user = await _userService.AuthenticateUserAsync(loginRequest.Email, loginRequest.Password);
+            User? user = new User();
+
+            if (loginRequest.RefreshToken == null)
+            {
+                return Unauthorized(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "No Token"
+                });
+
+            }
+            
+            else if (loginRequest.RefreshToken != null) 
+            {
+                user = await _userService.CheckRefreshToken(loginRequest.RefreshToken);
+
+            }
+
+            if (user.RefreshTokenExpiry <= DateTime.Now)
+            {
+                return Unauthorized(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Token expired! Please login again"
+                });
+            }
+
             if (user == null)
             {
                 return Unauthorized(new ApiResponseDTO<object>
                 {
                     Success = false,
-                    Message = "Invalid email or password."
+                    Message = "Invalid Token"
                 });
             }
+
             if (user.Status.Equals("0"))
             {
                 return StatusCode(StatusCodes.Status403Forbidden, new ApiResponseDTO<object>
@@ -203,19 +244,11 @@ namespace anphuong.api.Controllers
                     Message = "User is not permitted to log in. Account might be deactivated or restricted."
                 });
             }
-
-            var accessToken = _jwtService.GenerateToken(user.Id.ToString(), user.Email);
-            var refreshToken = Guid.NewGuid().ToString();
-            user.RefreshToken = refreshToken;
-
-            return Ok(new ApiResponseDTO<LoginDTO>()
+            var userDTO = user.Adapt<UserDTO>();
+            return Ok(new ApiResponseDTO<UserDTO>()
             {
                 Success = true,
-                Data = new LoginDTO()
-                {
-                    AccessToken = accessToken,
-                    RefreshToken = refreshToken
-                }
+                Data = userDTO
             });
         }
         #endregion

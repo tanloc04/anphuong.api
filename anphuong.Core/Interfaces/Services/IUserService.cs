@@ -18,5 +18,7 @@ namespace anphuong.Core.Interfaces.Services
         Task<(List<UserDTO>, int totalItems)> GetUsersAsync(SearchCondition searchCondition, PageInfoRequestDTO pageInfo);
         Task<bool> DeleteUserAsync(int id);
         Task<bool> ActivateUserAsync(int userId);
+        Task<User?> CheckRefreshToken(string refreshToken);
+        Task<bool> Update(User user);
     }
 }

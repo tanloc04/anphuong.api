@@ -200,5 +200,13 @@ namespace anphuong.Service
         {
             return await _userRepository.ActivateUserAsync(id);
         }
+        public async Task<User?> CheckRefreshToken(string refreshToken)
+        {
+            return await _userRepository.CheckRefreshToken(refreshToken);
+        }
+        public async Task<bool> Update(User user)
+        {
+            return _userRepository.Update(user);
+        }
     }
 }

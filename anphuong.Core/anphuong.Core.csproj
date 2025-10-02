@@ -10,7 +10,6 @@
     <Folder Include="Constants\" />
     <Folder Include="Domains\DTOs\ResponseDTOs\" />
     <Folder Include="Domains\Enums\" />
-    <Folder Include="Interfaces\Repositories\" />
   </ItemGroup>
 
   <ItemGroup>
