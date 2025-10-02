@@ -6,5 +6,6 @@ namespace anphuong.Core.Domains.DTOs
     {
         [JsonPropertyName("token")]
         public string? AccessToken { get; set; }
+        public string? RefreshToken { get; set; }
     }
 }

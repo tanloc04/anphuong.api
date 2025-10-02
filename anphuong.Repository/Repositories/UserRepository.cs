@@ -42,5 +42,9 @@ namespace anphuong.Repository.Repositories
                 return false;
             }
         }
+        //public async Task<User> CheckRefreshToken(Guid refreshToken)
+        //{
+        //    var user = await GetAsync(u => u.Id == refreshToken);
+        //}
     }
 }

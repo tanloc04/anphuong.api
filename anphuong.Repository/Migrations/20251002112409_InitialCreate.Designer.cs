@@ -12,7 +12,7 @@ using anphuong.Repository.Context;
 namespace anphuong.Repository.Migrations
 {
     [DbContext(typeof(anphuongDbContext))]
-    [Migration("20251002111204_InitialCreate")]
+    [Migration("20251002112409_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -428,6 +428,9 @@ namespace anphuong.Repository.Migrations
                     b.Property<string>("RefreshToken")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RefreshTokenExpiry")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Status")
                         .IsRequired()
