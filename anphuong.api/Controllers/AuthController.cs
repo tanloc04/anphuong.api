@@ -53,19 +53,11 @@ namespace anphuong.api.Controllers
             }
 
             var accessToken = _jwtService.GenerateToken(user.Id.ToString(), user.Email);
-            string refreshToken;
 
-            if (user.RefreshToken == null 
-                || user.RefreshTokenExpiry == null 
-                || user.RefreshTokenExpiry <= DateTime.Now)
-            {
-                refreshToken = Guid.NewGuid().ToString();
-                user.RefreshToken = refreshToken;
-                user.RefreshTokenExpiry = DateTime.Now.AddDays(Consts.REFRESHTOKEN_EXPIRED_TIME);
-                await _userService.Update(user);
-            }
-
-            else refreshToken = user.RefreshToken.ToString();
+            var refreshToken = Guid.NewGuid().ToString();
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiry = DateTime.Now.AddDays(Consts.REFRESHTOKEN_EXPIRED_TIME);
+            await _userService.Update(user);
 
             return Ok(new ApiResponseDTO<LoginDTO>()
             {
@@ -244,11 +236,14 @@ namespace anphuong.api.Controllers
                     Message = "User is not permitted to log in. Account might be deactivated or restricted."
                 });
             }
-            var userDTO = user.Adapt<UserDTO>();
-            return Ok(new ApiResponseDTO<UserDTO>()
+            var accessToken = _jwtService.GenerateToken(user.Id.ToString(), user.Email);
+            return Ok(new ApiResponseDTO<LoginDTO>()
             {
                 Success = true,
-                Data = userDTO
+                Data = new LoginDTO()
+                {
+                    AccessToken = accessToken
+                }
             });
         }
         #endregion
