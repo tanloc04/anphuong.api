@@ -68,7 +68,6 @@ namespace anphuong.Repository.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    DetailImageId = table.Column<int>(type: "int", nullable: false),
                     Thumnail = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Image1 = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Image2 = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
@@ -166,9 +165,9 @@ namespace anphuong.Repository.Migrations
                     WidthSize = table.Column<int>(type: "int", nullable: false),
                     HeightSize = table.Column<int>(type: "int", nullable: false),
                     Material = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    DetailImageId = table.Column<int>(type: "int", nullable: false),
-                    CategoryId = table.Column<int>(type: "int", nullable: false),
-                    VariationId = table.Column<int>(type: "int", nullable: false),
+                    DetailImageId = table.Column<int>(type: "int", nullable: true),
+                    CategoryId = table.Column<int>(type: "int", nullable: true),
+                    VariationId = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false)
@@ -316,13 +315,15 @@ namespace anphuong.Repository.Migrations
                 name: "IX_Products_DetailImageId",
                 table: "Products",
                 column: "DetailImageId",
-                unique: true);
+                unique: true,
+                filter: "[DetailImageId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Products_VariationId",
                 table: "Products",
                 column: "VariationId",
-                unique: true);
+                unique: true,
+                filter: "[VariationId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Variants_ColorId",

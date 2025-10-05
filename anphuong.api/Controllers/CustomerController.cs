@@ -109,7 +109,7 @@ namespace anphuong.api.Controllers
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> GetUsers([FromBody] GetUsersRequestDTO request)
+        public async Task<IActionResult> GetUsers([FromBody] SearchUsersRequestDTO request)
         {
             if (!ModelState.IsValid)
             {

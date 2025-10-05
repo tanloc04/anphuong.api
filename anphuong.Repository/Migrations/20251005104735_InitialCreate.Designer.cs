@@ -12,7 +12,7 @@ using anphuong.Repository.Context;
 namespace anphuong.Repository.Migrations
 {
     [DbContext(typeof(anphuongDbContext))]
-    [Migration("20251002114253_InitialCreate")]
+    [Migration("20251005104735_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -170,9 +170,6 @@ namespace anphuong.Repository.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime");
-
-                    b.Property<int>("DetailImageId")
-                        .HasColumnType("int");
 
                     b.Property<string>("Image1")
                         .IsRequired()
@@ -342,7 +339,7 @@ namespace anphuong.Repository.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CategoryId")
+                    b.Property<int?>("CategoryId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
@@ -353,7 +350,7 @@ namespace anphuong.Repository.Migrations
                         .HasMaxLength(600)
                         .HasColumnType("nvarchar(600)");
 
-                    b.Property<int>("DetailImageId")
+                    b.Property<int?>("DetailImageId")
                         .HasColumnType("int");
 
                     b.Property<double>("Discount")
@@ -384,7 +381,7 @@ namespace anphuong.Repository.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime");
 
-                    b.Property<int>("VariationId")
+                    b.Property<int?>("VariationId")
                         .HasColumnType("int");
 
                     b.Property<int>("WidthSize")
@@ -395,10 +392,12 @@ namespace anphuong.Repository.Migrations
                     b.HasIndex("CategoryId");
 
                     b.HasIndex("DetailImageId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[DetailImageId] IS NOT NULL");
 
                     b.HasIndex("VariationId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[VariationId] IS NOT NULL");
 
                     b.ToTable("Products");
                 });
@@ -536,20 +535,17 @@ namespace anphuong.Repository.Migrations
                     b.HasOne("anphuong.Core.Domains.Entities.Category", "Category")
                         .WithMany("Products")
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("anphuong.Core.Domains.Entities.DetailImage", "DetailImage")
                         .WithOne()
                         .HasForeignKey("anphuong.Core.Domains.Entities.Product", "DetailImageId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("anphuong.Core.Domains.Entities.Variant", "Variant")
                         .WithOne("Product")
                         .HasForeignKey("anphuong.Core.Domains.Entities.Product", "VariationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Category");
 

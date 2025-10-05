@@ -2,7 +2,6 @@
 {
     public class DetailImage : Entity
     {
-        public int DetailImageId { get; set; }
         public string Thumnail { get; set; }
         public string Image1 { get; set; }
         public string Image2 { get; set; }

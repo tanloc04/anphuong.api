@@ -1,6 +1,12 @@
-﻿namespace anphuong.Core.Domains.Entities
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace anphuong.Core.Domains.DTOs.RequestDTOs.Product
 {
-    public class Product : Entity
+    public class CreateProductRequestDTO
     {
         public string Name { get; set; }
         public double Price { get; set; }
@@ -11,10 +17,7 @@
         public int HeightSize { get; set; }
         public string Material { get; set; }
         public int? DetailImageId { get; set; }
-        public int? CategoryId { get; set; }
-        public int? VariationId { get; set; }
-        public Variant Variant { get; set; }
-        public DetailImage DetailImage { get; set; }
-        public Category Category { get; set; }
+        public int CategoryId { get; set; }
+        public int VariationId { get; set; }
     }
 }

@@ -30,6 +30,10 @@ namespace anphuong.api.Extensions
             services.AddScoped<IGoogleAuthService, GoogleAuthService>();
             //----------------Email-----------------
             services.AddScoped<IEmailService, EmailService>();
+
+            //----------------Product-----------------
+            services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddScoped<IProductService, ProductService>();
         }
     }
 }

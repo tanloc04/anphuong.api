@@ -120,19 +120,19 @@ namespace anphuong.Repository.Context
                 entity.HasOne(e => e.DetailImage)
                       .WithOne()
                       .HasForeignKey<Product>(e => e.DetailImageId)
-                      .OnDelete(DeleteBehavior.Restrict);
+                      .OnDelete(DeleteBehavior.Restrict).IsRequired(false);
 
                 // Many-to-one relationship with Category
                 entity.HasOne(e => e.Category)
                       .WithMany(c => c.Products)
                       .HasForeignKey(e => e.CategoryId)
-                      .OnDelete(DeleteBehavior.Restrict);
+                      .OnDelete(DeleteBehavior.Restrict).IsRequired(false);
 
                 // One-to-one relationship with Variant
                 entity.HasOne(e => e.Variant)
                       .WithOne(v => v.Product)
                       .HasForeignKey<Product>(e => e.VariationId)
-                      .OnDelete(DeleteBehavior.Restrict);
+                      .OnDelete(DeleteBehavior.Restrict).IsRequired(false);
             });
 
             // Configuring Variant entity
