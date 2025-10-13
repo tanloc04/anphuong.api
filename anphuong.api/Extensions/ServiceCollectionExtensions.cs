@@ -34,6 +34,10 @@ namespace anphuong.api.Extensions
             //----------------Product-----------------
             services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped<IProductService, ProductService>();
+
+            //----------------Category-----------------
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<ICategoryService, CategoryService>();
         }
     }
 }

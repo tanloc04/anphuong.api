@@ -1,9 +1,10 @@
 ﻿using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.API;
+using anphuong.Core.Domains.DTOs.RequestDTOs.Category;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Product;
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 using anphuong.Core.Interfaces.Services;
-using Microsoft.AspNetCore.Authorization;
+using anphuong.Service;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,26 +12,26 @@ namespace anphuong.api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductController : ControllerBase
+    public class CategoryController : ControllerBase
     {
-        private readonly IProductService _productService;
-        private readonly IPaginationService<ProductDTO> _paginationService;
+        private readonly ICategoryService _categoryService;
+        private readonly IPaginationService<CategoryDTO> _paginationService;
 
-        public ProductController(IProductService productService, IPaginationService<ProductDTO> paginationService)
+        public CategoryController(ICategoryService categoryService, IPaginationService<CategoryDTO> paginationService)
         {
-            _productService = productService;
+            _categoryService = categoryService;
             _paginationService = paginationService;
         }
         #region GetAll
         [HttpPost("search")]
-        [ProducesResponseType(typeof(ApiResponseDTO<PagingResponseDTO<ProductDTO>>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAll([FromBody] SearchProductRequestDTO request)
+        [ProducesResponseType(typeof(ApiResponseDTO<PagingResponseDTO<CategoryDTO>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAll([FromBody] SearchCategoryRequestDTO request)
         {
-            var (data, totalItems) = await _productService.GetAll(request);
+            var (data, totalItems) = await _categoryService.GetAll(request);
 
             var paginatedItems = _paginationService.GetPagedData(totalItems, data, request.PageInfo);
 
-            return Ok(new ApiResponseDTO<PagingResponseDTO<ProductDTO>>
+            return Ok(new ApiResponseDTO<PagingResponseDTO<CategoryDTO>>
             {
                 Success = true,
                 Data = paginatedItems
@@ -40,14 +41,14 @@ namespace anphuong.api.Controllers
 
         #region Get
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(ApiResponseDTO<ProductDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponseDTO<CategoryDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Get(int id)
         {
-            var items = await _productService.Get(id);
+            var items = await _categoryService.Get(id);
 
-            return Ok(new ApiResponseDTO<ProductDTO>
+            return Ok(new ApiResponseDTO<CategoryDTO>
             {
                 Success = true,
                 Data = items
@@ -62,9 +63,9 @@ namespace anphuong.api.Controllers
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Create([FromBody] CreateProductRequestDTO request)
+        public async Task<IActionResult> Create([FromBody] CreateCategoryRequestDTO request)
         {
-            await _productService.Create(request);
+            await _categoryService.Create(request);
             return Ok(new ApiResponseDTO<object> { Success = true });
         }
         #endregion
@@ -76,11 +77,11 @@ namespace anphuong.api.Controllers
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateProductRequestDTO request)
+        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateCategoryRequestDTO request)
         {
-            var item = await _productService.Update(id, request);
+            var item = await _categoryService.Update(id, request);
 
-            return Ok(new ApiResponseDTO<ProductDTO>
+            return Ok(new ApiResponseDTO<CategoryDTO>
             {
                 Success = true,
                 Data = item
@@ -96,7 +97,7 @@ namespace anphuong.api.Controllers
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Delete(int id)
         {
-            await _productService.Delete(id);
+            await _categoryService.Delete(id);
             return Ok(new ApiResponseDTO<object> { Success = true });
         }
         #endregion

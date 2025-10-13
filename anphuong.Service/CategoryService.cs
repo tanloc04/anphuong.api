@@ -1,4 +1,5 @@
 ﻿using anphuong.Core.Domains.DTOs;
+using anphuong.Core.Domains.DTOs.RequestDTOs.Category;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Product;
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 using anphuong.Core.Domains.Entities;
@@ -7,7 +8,6 @@ using anphuong.Core.Exceptions;
 using anphuong.Core.Interfaces.Repositories;
 using anphuong.Core.Interfaces.Services;
 using anphuong.Core.Ultilities;
-using anphuong.Repository.Repositories;
 using Mapster;
 using System;
 using System.Collections.Generic;
@@ -18,42 +18,42 @@ using System.Threading.Tasks;
 
 namespace anphuong.Service
 {
-    public class ProductService : IProductService
+    public class CategoryService : ICategoryService
     {
-        private readonly IProductRepository _repository;
+        private readonly ICategoryRepository _repository;
 
-        public ProductService(IProductRepository repository)
+        public CategoryService(ICategoryRepository repository)
         {
             _repository = repository;
         }
 
-        public async Task Create(CreateProductRequestDTO request)
+        public async Task Create(CreateCategoryRequestDTO request)
         {
-            var product = request.Adapt<Product>();
-            await _repository.AddAsync(product);
+            var item = request.Adapt<Category>();
+            await _repository.AddAsync(item);
         }
 
         public async Task Delete(int id)
         {
-            var product = await _repository.GetAsync(id) ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
+            var item = await _repository.GetAsync(id) ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
 
-            product.IsDeleted = true;
-            product.UpdatedAt = DateTime.Now;
+            item.IsDeleted = true;
+            item.UpdatedAt = DateTime.Now;
 
-            if (!_repository.Update(product))
+            if (!_repository.Update(item))
             {
                 throw new BusinessException(ErrorDetails.DEFAULT);
             }
         }
 
-        public async Task<(IEnumerable<ProductDTO>, int totalItems)> GetAll(SearchProductRequestDTO request)
+        public async Task<(IEnumerable<CategoryDTO>, int totalItems)> GetAll(SearchCategoryRequestDTO request)
         {
             // If request or its components are null, create safe defaults
             var searchCondition = request?.SearchCondition ?? new SearchCondition();
             var pageInfo = request?.PageInfo ?? new PageInfoRequestDTO();
 
             // Start with a base filter that is always true
-            Expression<Func<Product, bool>> filter = u => true;
+            Expression<Func<Category, bool>> filter = u => true;
 
             // Only apply keyword filter if keyword exists
             if (!string.IsNullOrEmpty(searchCondition.Keyword))
@@ -69,20 +69,20 @@ namespace anphuong.Service
             filter = ExpressionUtils.AddFilter(filter, u => u.IsDeleted == searchCondition.IsDeleted);
 
             // Query paginated products
-            var products = await _repository.GetWithPaginationAsync(pageInfo, filter);
+            var items = await _repository.GetWithPaginationAsync(pageInfo, filter);
             var totalItems = await _repository.CountAsync(filter);
 
-            return (products.Adapt<IEnumerable<ProductDTO>>(), totalItems);
+            return (items.Adapt<IEnumerable<CategoryDTO>>(), totalItems);
         }
 
-        public async Task<ProductDTO> Get(int id)
+        public async Task<CategoryDTO> Get(int id)
         {
-            var product = await _repository.GetAsync(id) ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
+            var item = await _repository.GetAsync(id) ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
 
-            return product.Adapt<ProductDTO>();
+            return item.Adapt<CategoryDTO>();
         }
 
-        public async Task<ProductDTO> Update(int id, UpdateProductRequestDTO request)
+        public async Task<CategoryDTO> Update(int id, UpdateCategoryRequestDTO request)
         {
             var item = await _repository.GetAsync(id)
                 ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
@@ -130,26 +130,14 @@ namespace anphuong.Service
 
             // Apply updates
             isChanged |= SetIfChanged(request.Name, () => item.Name, i => item.Name = i);
-            isChanged |= SetIfChanged(request.Description, () => item.Description, i => item.Description = i);
-            isChanged |= SetIfChanged(request.Material, () => item.Material, i => item.Material = i);
-
-            isChanged |= SetIfChangedValue(request.Price, () => item.Price, i => item.Price = i);
-            isChanged |= SetIfChangedValue(request.Discount, () => item.Discount, i => item.Discount = i);
-            isChanged |= SetIfChangedValue(request.LongSize, () => item.LongSize, i => item.LongSize = i);
-            isChanged |= SetIfChangedValue(request.WidthSize, () => item.WidthSize, i => item.WidthSize = i);
-            isChanged |= SetIfChangedValue(request.HeightSize, () => item.HeightSize, i => item.HeightSize = i);
-
-            isChanged |= SetIfChangedNullableValue(request.DetailImageId, () => item.DetailImageId, i => item.DetailImageId = i);
-            isChanged |= SetIfChangedNullableValue(request.CategoryId, () => item.CategoryId, i => item.CategoryId = i);
-            isChanged |= SetIfChangedNullableValue(request.VariationId, () => item.VariationId, i => item.VariationId = i);
-
+            isChanged |= SetIfChanged(request.Description, () => item.Description, i => item.Description = i);         
             if (isChanged)
             {
                 item.UpdatedAt = DateTime.UtcNow;
-                if (! _repository.Update(item))
+                if (!_repository.Update(item))
                     throw new BusinessException(ErrorDetails.DEFAULT);
             }
-            var itemDTO = item.Adapt<ProductDTO>();
+            var itemDTO = item.Adapt<CategoryDTO>();
             return itemDTO;
         }
     }

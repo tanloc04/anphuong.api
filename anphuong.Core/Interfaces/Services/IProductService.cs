@@ -23,6 +23,6 @@ namespace anphuong.Core.Interfaces.Services
 
         public Task<ProductDTO> Get(int id);
 
-        public Task Update(int id, UpdateProductRequestDTO request);
+        public Task<ProductDTO> Update(int id, UpdateProductRequestDTO request);
     }
 }
