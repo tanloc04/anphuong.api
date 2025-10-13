@@ -3,6 +3,7 @@ using anphuong.Core.Domains.DTOs.API;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Category;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Product;
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
+using anphuong.Core.Domains.Entities;
 using anphuong.Core.Interfaces.Services;
 using anphuong.Service;
 using Microsoft.AspNetCore.Http;
@@ -65,8 +66,12 @@ namespace anphuong.api.Controllers
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Create([FromBody] CreateCategoryRequestDTO request)
         {
-            await _categoryService.Create(request);
-            return Ok(new ApiResponseDTO<object> { Success = true });
+            var item = await _categoryService.Create(request);
+            return Ok(new ApiResponseDTO<Category>
+            {
+                Success = true,
+                Data = item
+            });
         }
         #endregion
 

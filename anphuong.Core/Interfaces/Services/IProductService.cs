@@ -1,4 +1,5 @@
 ﻿using anphuong.Core.Domains.DTOs;
+using anphuong.Core.Domains.DTOs.RequestDTOs.DetailImage;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Product;
 using anphuong.Core.Domains.Entities;
 using anphuong.Core.Domains.Objects;
@@ -15,7 +16,7 @@ namespace anphuong.Core.Interfaces.Services
 {
     public interface IProductService
     {
-        public Task Create(CreateProductRequestDTO request);
+        public Task<Product> Create(CreateProductRequestDTO request);
 
         public Task Delete(int id);
 

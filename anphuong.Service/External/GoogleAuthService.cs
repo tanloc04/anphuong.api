@@ -1,8 +1,8 @@
-﻿using anphuong.Core.Interfaces.Services;
+﻿using anphuong.Core.Interfaces.Services.External;
 using Google.Apis.Auth;
 using Microsoft.Extensions.Configuration;
 
-namespace anphuong.Service
+namespace anphuong.Service.Extenal
 {
     public class GoogleAuthService : IGoogleAuthService
     {

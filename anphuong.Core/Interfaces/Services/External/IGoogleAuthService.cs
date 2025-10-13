@@ -1,6 +1,6 @@
 ﻿using Google.Apis.Auth;
 
-namespace anphuong.Core.Interfaces.Services
+namespace anphuong.Core.Interfaces.Services.External
 {
     public interface IGoogleAuthService
     {

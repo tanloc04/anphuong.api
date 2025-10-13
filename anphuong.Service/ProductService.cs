@@ -1,4 +1,5 @@
 ﻿using anphuong.Core.Domains.DTOs;
+using anphuong.Core.Domains.DTOs.RequestDTOs.DetailImage;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Product;
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 using anphuong.Core.Domains.Entities;
@@ -6,6 +7,7 @@ using anphuong.Core.Domains.Objects;
 using anphuong.Core.Exceptions;
 using anphuong.Core.Interfaces.Repositories;
 using anphuong.Core.Interfaces.Services;
+using anphuong.Core.Interfaces.Services.External;
 using anphuong.Core.Ultilities;
 using anphuong.Repository.Repositories;
 using Mapster;
@@ -15,32 +17,74 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace anphuong.Service
 {
     public class ProductService : IProductService
     {
         private readonly IProductRepository _repository;
+        private readonly IDetailImageRepository _detailImageRepository;
+        private readonly ICloudinaryService _cloudinaryService;
 
-        public ProductService(IProductRepository repository)
+        public ProductService(IProductRepository repository, 
+            IDetailImageRepository detailImageRepository,
+            ICloudinaryService cloudinaryService)
         {
             _repository = repository;
+            _detailImageRepository = detailImageRepository;
+            _cloudinaryService = cloudinaryService;
         }
 
-        public async Task Create(CreateProductRequestDTO request)
+        public async Task<Product> Create(CreateProductRequestDTO request)
         {
-            var product = request.Adapt<Product>();
+            var detailImageDTO = new DetailImageDTO
+            {
+                Thumbnail = await _cloudinaryService.UploadImageAsync(request.Thumbnail, "anphuong/images/thumbnail"),
+                Image1 = await _cloudinaryService.UploadImageAsync(request.Image1, "anphuong/images"),
+                Image2 = await _cloudinaryService.UploadImageAsync(request.Image2, "anphuong/images"),
+                Image3 = await _cloudinaryService.UploadImageAsync(request.Image3, "anphuong/images"),
+                Image4 = await _cloudinaryService.UploadImageAsync(request.Image4, "anphuong/images")
+            };
+
+            var detailImage = new DetailImage
+            {
+                Thumbnail = detailImageDTO.Thumbnail,
+                Image1 = detailImageDTO.Image1,
+                Image2 = detailImageDTO.Image2,
+                Image3 = detailImageDTO.Image3,
+                Image4 = detailImageDTO.Image4
+            };
+
+            await _detailImageRepository.AddAsync(detailImage);
+
+            var product = new Product
+            {
+                Name = request.Name,
+                Description = request.Description,
+                Price = request.Price,
+                Discount = request.Discount,
+                Material = request.Material,
+                LongSize = request.LongSize,
+                WidthSize = request.WidthSize,
+                HeightSize = request.HeightSize,
+                CategoryId = request.CategoryId,
+                VariationId = request.VariationId,
+                DetailImageId = detailImage.Id
+            };
+
             await _repository.AddAsync(product);
+            return product;
         }
 
         public async Task Delete(int id)
         {
-            var product = await _repository.GetAsync(id) ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
+            var item = await _repository.GetAsync(id) ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
 
-            product.IsDeleted = true;
-            product.UpdatedAt = DateTime.Now;
+            item.IsDeleted = true;
+            item.UpdatedAt = DateTime.Now;
 
-            if (!_repository.Update(product))
+            if (!_repository.Update(item))
             {
                 throw new BusinessException(ErrorDetails.DEFAULT);
             }
@@ -68,18 +112,18 @@ namespace anphuong.Service
             // Only apply deletion filter if specified (default: return non-deleted)
             filter = ExpressionUtils.AddFilter(filter, u => u.IsDeleted == searchCondition.IsDeleted);
 
-            // Query paginated products
-            var products = await _repository.GetWithPaginationAsync(pageInfo, filter);
+            // Query paginated 
+            var items = await _repository.GetWithPaginationAsync(pageInfo, filter);
             var totalItems = await _repository.CountAsync(filter);
 
-            return (products.Adapt<IEnumerable<ProductDTO>>(), totalItems);
+            return (items.Adapt<IEnumerable<ProductDTO>>(), totalItems);
         }
 
         public async Task<ProductDTO> Get(int id)
         {
-            var product = await _repository.GetAsync(id) ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
+            var item = await _repository.GetAsync(id) ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
 
-            return product.Adapt<ProductDTO>();
+            return item.Adapt<ProductDTO>();
         }
 
         public async Task<ProductDTO> Update(int id, UpdateProductRequestDTO request)
@@ -139,7 +183,7 @@ namespace anphuong.Service
             isChanged |= SetIfChangedValue(request.WidthSize, () => item.WidthSize, i => item.WidthSize = i);
             isChanged |= SetIfChangedValue(request.HeightSize, () => item.HeightSize, i => item.HeightSize = i);
 
-            isChanged |= SetIfChangedNullableValue(request.DetailImageId, () => item.DetailImageId, i => item.DetailImageId = i);
+            //isChanged |= SetIfChangedNullableValue(request.DetailImageId, () => item.DetailImageId, i => item.DetailImageId = i);
             isChanged |= SetIfChangedNullableValue(request.CategoryId, () => item.CategoryId, i => item.CategoryId = i);
             isChanged |= SetIfChangedNullableValue(request.VariationId, () => item.VariationId, i => item.VariationId = i);
 

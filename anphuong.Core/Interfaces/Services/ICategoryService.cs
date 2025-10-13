@@ -1,6 +1,7 @@
 ﻿using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Category;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Product;
+using anphuong.Core.Domains.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +12,7 @@ namespace anphuong.Core.Interfaces.Services
 {
     public interface ICategoryService
     {
-        public Task Create(CreateCategoryRequestDTO request);
+        public Task<Category> Create(CreateCategoryRequestDTO request);
 
         public Task Delete(int id);
 

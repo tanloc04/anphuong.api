@@ -191,7 +191,7 @@ namespace anphuong.Repository.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Thumnail")
+                    b.Property<string>("Thumbnail")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");

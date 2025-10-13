@@ -2,11 +2,11 @@
 using System.Security.Claims;
 using System.Text;
 using anphuong.Core.Constants;
-using anphuong.Core.Interfaces.Services;
+using anphuong.Core.Interfaces.Services.External;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
-namespace anphuong.Service
+namespace anphuong.Service.Extenal
 {
     public class JwtService : IJwtService
     {

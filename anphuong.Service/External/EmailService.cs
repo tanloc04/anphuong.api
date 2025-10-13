@@ -1,9 +1,9 @@
 ﻿using anphuong.Core.Constants;
-using anphuong.Core.Interfaces.Services;
+using anphuong.Core.Interfaces.Services.External;
 using MailKit.Net.Smtp;
 using MimeKit;
 
-namespace anphuong.Service
+namespace anphuong.Service.Extenal
 {
     public class EmailService : IEmailService
     {

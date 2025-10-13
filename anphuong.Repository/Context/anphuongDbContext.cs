@@ -165,7 +165,7 @@ namespace anphuong.Repository.Context
             modelBuilder.Entity<DetailImage>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Thumnail).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.Thumbnail).IsRequired().HasMaxLength(200);
                 entity.Property(e => e.Image1).HasMaxLength(200);
                 entity.Property(e => e.Image2).HasMaxLength(200);
                 entity.Property(e => e.Image3).HasMaxLength(200);

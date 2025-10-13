@@ -8,9 +8,12 @@ using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 
 namespace anphuong.Core.Domains.DTOs
 {
-    public class CategoryDTO : DTO
+    public class DetailImageDTO : DTO
     {
-        public string Name { get; set; }
-        public string Description { get; set; }
+        public string Thumbnail { get; set; }
+        public string Image1 { get; set; }
+        public string Image2 { get; set; }
+        public string Image3 { get; set; }
+        public string Image4 { get; set; }
     }
 }

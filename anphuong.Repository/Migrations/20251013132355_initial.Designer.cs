@@ -12,8 +12,8 @@ using anphuong.Repository.Context;
 namespace anphuong.Repository.Migrations
 {
     [DbContext(typeof(anphuongDbContext))]
-    [Migration("20251005104735_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20251013132355_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -194,7 +194,7 @@ namespace anphuong.Repository.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Thumnail")
+                    b.Property<string>("Thumbnail")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");

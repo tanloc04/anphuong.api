@@ -1,8 +1,11 @@
 ﻿using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.API;
+using anphuong.Core.Domains.DTOs.RequestDTOs.DetailImage;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Product;
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
+using anphuong.Core.Domains.Entities;
 using anphuong.Core.Interfaces.Services;
+using anphuong.Core.Interfaces.Services.External;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,11 +18,15 @@ namespace anphuong.api.Controllers
     {
         private readonly IProductService _productService;
         private readonly IPaginationService<ProductDTO> _paginationService;
+        private readonly ICloudinaryService _cloudinaryService;
 
-        public ProductController(IProductService productService, IPaginationService<ProductDTO> paginationService)
+        public ProductController(IProductService productService, 
+            IPaginationService<ProductDTO> paginationService, 
+            ICloudinaryService cloudinaryService)
         {
             _productService = productService;
             _paginationService = paginationService;
+            _cloudinaryService = cloudinaryService;
         }
         #region GetAll
         [HttpPost("search")]
@@ -58,14 +65,18 @@ namespace anphuong.api.Controllers
 
         #region Create
         [HttpPost("create")]
+        [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Create([FromBody] CreateProductRequestDTO request)
+        public async Task<IActionResult> Create([FromForm] CreateProductRequestDTO request)
         {
-            await _productService.Create(request);
-            return Ok(new ApiResponseDTO<object> { Success = true });
+            var item = await _productService.Create(request);
+            return Ok(new ApiResponseDTO<Product> 
+                { Success = true,
+                Data = item
+                });
         }
         #endregion
 
@@ -98,6 +109,19 @@ namespace anphuong.api.Controllers
         {
             await _productService.Delete(id);
             return Ok(new ApiResponseDTO<object> { Success = true });
+        }
+        #endregion
+
+        #region Upload Image
+        [HttpPost("image")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UploadImage([FromForm] UploadImageRequestDTO request)
+        {
+            if (request.File == null || request.File.Length == 0)
+                return BadRequest("No file uploaded.");
+
+            var url = await _cloudinaryService.UploadImageAsync(request.File, "anphuong/images");
+            return Ok(new { imageUrl = url });
         }
         #endregion
     }

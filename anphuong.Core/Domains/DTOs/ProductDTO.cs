@@ -4,18 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 
 namespace anphuong.Core.Domains.DTOs
 {
-    public class ProductDTO
+    public class ProductDTO : DTO
     {
-        public int Id { get; set; }
-
-        [JsonPropertyName("createdAt")]
-        public DateTime CreatedAt { get; set; }
-        [JsonPropertyName("updatedAt")]
-        public DateTime UpdatedAt { get; set; 
-        }
         public string Name { get; set; }
         public double Price { get; set; }
         public double Discount { get; set; }

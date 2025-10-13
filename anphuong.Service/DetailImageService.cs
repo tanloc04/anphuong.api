@@ -1,37 +1,30 @@
-﻿using anphuong.Core.Domains.DTOs;
-using anphuong.Core.Domains.DTOs.RequestDTOs.Category;
-using anphuong.Core.Domains.DTOs.RequestDTOs.Product;
-using anphuong.Core.Domains.DTOs.StandardizedDTOs;
-using anphuong.Core.Domains.Entities;
-using anphuong.Core.Domains.Objects;
-using anphuong.Core.Exceptions;
-using anphuong.Core.Interfaces.Repositories;
-using anphuong.Core.Interfaces.Services;
-using anphuong.Core.Ultilities;
-using Mapster;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using anphuong.Core.Domains.DTOs.RequestDTOs.Product;
+using anphuong.Core.Domains.DTOs.StandardizedDTOs;
+using anphuong.Core.Domains.DTOs;
+using anphuong.Core.Domains.Entities;
+using anphuong.Core.Domains.Objects;
+using anphuong.Core.Exceptions;
+using anphuong.Core.Interfaces.Repositories;
+using anphuong.Core.Ultilities;
+using anphuong.Core.Domains.DTOs.RequestDTOs.DetailImage;
+using Mapster;
+using anphuong.Core.Interfaces.Services;
 
 namespace anphuong.Service
 {
-    public class CategoryService : ICategoryService
+    public class DetailImageService : IDetailImageService
     {
-        private readonly ICategoryRepository _repository;
+        private readonly IDetailImageRepository _repository;
 
-        public CategoryService(ICategoryRepository repository)
+        public DetailImageService(IDetailImageRepository repository)
         {
             _repository = repository;
-        }
-
-        public async Task<Category> Create(CreateCategoryRequestDTO request)
-        {
-            var item = request.Adapt<Category>();
-            await _repository.AddAsync(item);
-            return item;
         }
 
         public async Task Delete(int id)
@@ -47,43 +40,33 @@ namespace anphuong.Service
             }
         }
 
-        public async Task<(IEnumerable<CategoryDTO>, int totalItems)> GetAll(SearchCategoryRequestDTO request)
+        public async Task<(IEnumerable<DetailImageDTO>, int totalItems)> GetAll(SearchDetailImageRequestDTO request)
         {
             // If request or its components are null, create safe defaults
-            var searchCondition = request?.SearchCondition ?? new SearchCondition();
+            var searchCondition = request?.SearchCondition ?? new SearchDetailImageCondition();
             var pageInfo = request?.PageInfo ?? new PageInfoRequestDTO();
 
             // Start with a base filter that is always true
-            Expression<Func<Category, bool>> filter = u => true;
-
-            // Only apply keyword filter if keyword exists
-            if (!string.IsNullOrEmpty(searchCondition.Keyword))
-            {
-                var key = searchCondition.Keyword.ToLower();
-                filter = ExpressionUtils.AddFilter(filter, x =>
-                    x.Name.ToLower().Contains(key) ||
-                    (x.Description != null && x.Description.ToLower().Contains(key))
-                );
-            }
+            Expression<Func<DetailImage, bool>> filter = u => true;    
 
             // Only apply deletion filter if specified (default: return non-deleted)
             filter = ExpressionUtils.AddFilter(filter, u => u.IsDeleted == searchCondition.IsDeleted);
 
-            // Query paginated products
+            // Query paginated 
             var items = await _repository.GetWithPaginationAsync(pageInfo, filter);
             var totalItems = await _repository.CountAsync(filter);
 
-            return (items.Adapt<IEnumerable<CategoryDTO>>(), totalItems);
+            return (items.Adapt<IEnumerable<DetailImageDTO>>(), totalItems);
         }
 
-        public async Task<CategoryDTO> Get(int id)
+        public async Task<DetailImageDTO> Get(int id)
         {
             var item = await _repository.GetAsync(id) ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
 
-            return item.Adapt<CategoryDTO>();
+            return item.Adapt<DetailImageDTO>();
         }
 
-        public async Task<CategoryDTO> Update(int id, UpdateCategoryRequestDTO request)
+        public async Task<DetailImageDTO> Update(int id, UpdateDetailImageRequestDTO request)
         {
             var item = await _repository.GetAsync(id)
                 ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
@@ -130,15 +113,18 @@ namespace anphuong.Service
             }
 
             // Apply updates
-            isChanged |= SetIfChanged(request.Name, () => item.Name, i => item.Name = i);
-            isChanged |= SetIfChanged(request.Description, () => item.Description, i => item.Description = i);         
+            isChanged |= SetIfChanged(request.Thumnail, () => item.Thumbnail, i => item.Thumbnail = i);
+            isChanged |= SetIfChanged(request.Image1, () => item.Image1, i => item.Image1 = i);
+            isChanged |= SetIfChanged(request.Image2, () => item.Image2, i => item.Image2 = i);
+            isChanged |= SetIfChanged(request.Image3, () => item.Image3, i => item.Image3 = i);
+            isChanged |= SetIfChanged(request.Image4, () => item.Image4, i => item.Image4 = i);
             if (isChanged)
             {
                 item.UpdatedAt = DateTime.UtcNow;
                 if (!_repository.Update(item))
                     throw new BusinessException(ErrorDetails.DEFAULT);
             }
-            var itemDTO = item.Adapt<CategoryDTO>();
+            var itemDTO = item.Adapt<DetailImageDTO>();
             return itemDTO;
         }
     }

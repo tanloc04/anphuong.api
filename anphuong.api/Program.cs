@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using anphuong.api.Extensions;
+using anphuong.Core.Domains.DTOs.Config;
 using anphuong.Repository.Context;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -18,6 +19,15 @@ builder.Services.AddCors(o => o.AddPolicy("AllowAll", p =>
 
 builder.Configuration
     .AddEnvironmentVariables();
+
+#region Environment configuration
+builder.Services.Configure<CloudinarySettings>(options =>
+{
+    options.CloudName = Environment.GetEnvironmentVariable("CLOUDINARY_CLOUDNAME");
+    options.ApiKey = Environment.GetEnvironmentVariable("CLOUDINARY_APIKEY");
+    options.ApiSecret = Environment.GetEnvironmentVariable("CLOUDINARY_APISECRET");
+});
+#endregion
 
 #region Jwt configuration 
 var jwtIssuer = builder.Configuration.GetSection("Jwt:Issuer").Get<string>();

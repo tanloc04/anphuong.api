@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace anphuong.Repository.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -68,7 +68,7 @@ namespace anphuong.Repository.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Thumnail = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Thumbnail = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Image1 = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Image2 = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Image3 = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),

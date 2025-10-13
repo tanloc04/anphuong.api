@@ -1,7 +1,9 @@
 ﻿using anphuong.Core.Interfaces.Repositories;
 using anphuong.Core.Interfaces.Services;
+using anphuong.Core.Interfaces.Services.External;
 using anphuong.Repository.Repositories;
 using anphuong.Service;
+using anphuong.Service.Extenal;
 
 namespace anphuong.api.Extensions
 {
@@ -12,11 +14,12 @@ namespace anphuong.api.Extensions
         {
             services.AddHttpContextAccessor();
 
-            //----------------Pagination----------
+            //----------------External----------
             services.AddScoped(typeof(IPaginationService<>), typeof(PaginationService<>));
-
-            //----------------JWT-----------------
             services.AddScoped<IJwtService, JwtService>();
+            services.AddScoped<IGoogleAuthService, GoogleAuthService>();
+            services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<ICloudinaryService, CloudinaryService>();
 
             //----------------User----------------
             services.AddScoped<IUserRepository, UserRepository>();
@@ -26,11 +29,6 @@ namespace anphuong.api.Extensions
             services.AddScoped<ICustomerRepository, CustomerRepository>();
             services.AddScoped<ICustomerService, CustomerService>();
 
-            //----------------Google----------------
-            services.AddScoped<IGoogleAuthService, GoogleAuthService>();
-            //----------------Email-----------------
-            services.AddScoped<IEmailService, EmailService>();
-
             //----------------Product-----------------
             services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped<IProductService, ProductService>();
@@ -38,6 +36,10 @@ namespace anphuong.api.Extensions
             //----------------Category-----------------
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<ICategoryService, CategoryService>();
+
+            //----------------DetailImage-----------------
+            services.AddScoped<IDetailImageRepository, DetailImageRepository>();
+            services.AddScoped<IDetailImageService, DetailImageService>();
         }
     }
 }
