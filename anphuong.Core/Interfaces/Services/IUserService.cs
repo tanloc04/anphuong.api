@@ -11,7 +11,7 @@ namespace anphuong.Core.Interfaces.Services
         Task<bool> IsUserExists(string email);
         Task<int> RegisterAsync(RegisterRequestDTO requestDTO);
         Task TestRegisterAsync(RegisterRequestDTO requestDTO);
-        Task GoogleRegisterAsync(GoogleRegisterRequestDTO requestDTO);
+        Task<UserDTO> GoogleRegisterAsync(GoogleRegisterRequestDTO requestDTO);
         Task<User?> AuthenticateUserAsync(string email, string password);
         Task<UserDTO?> FindByEmailAsync(string email);
         Task<UserDTO?> FindByIdAsync(int id);

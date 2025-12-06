@@ -75,7 +75,7 @@ namespace anphuong.Service
 
             await _customerRepository.AddAsync(newCustomer);
         }
-        public async Task GoogleRegisterAsync(GoogleRegisterRequestDTO requestDTO)
+        public async Task<UserDTO> GoogleRegisterAsync(GoogleRegisterRequestDTO requestDTO)
         {
             var newCustomer = new Customer
             {
@@ -89,6 +89,7 @@ namespace anphuong.Service
             };
 
             await _customerRepository.AddAsync(newCustomer);
+            return newCustomer.User.Adapt<UserDTO>();
         }
 
         public async Task<User?> AuthenticateUserAsync(string email, string password)

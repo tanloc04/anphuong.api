@@ -127,12 +127,9 @@ namespace anphuong.api.Controllers
         #region Google Login
         [HttpPost("google-login")]
         [AllowAnonymous]
-        [ProducesResponseType(typeof(ApiResponseDTO<LoginDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequestDTO request)
         {
-            string idToken = request?.IdToken;
-            if (string.IsNullOrEmpty(idToken))
+            if (string.IsNullOrEmpty(request?.IdToken))
                 return BadRequest(new ApiResponseDTO<object>
                 {
                     Success = false,
@@ -141,14 +138,14 @@ namespace anphuong.api.Controllers
 
             try
             {
-                var payload = await _googleAuthService.VerifyGoogleTokenAsync(idToken);
+                var payload = await _googleAuthService.VerifyGoogleTokenAsync(request.IdToken);
                 var email = payload.Email;
                 var name = payload.Name;
-                var googleId = payload.Subject;
 
-                // 1. Check user exists in DB
+                // check user exists
                 var user = await _userService.FindByEmailAsync(email);
 
+                // if user does not exist -> create new
                 if (user == null)
                 {
                     var registerDTO = new GoogleRegisterRequestDTO
@@ -157,29 +154,31 @@ namespace anphuong.api.Controllers
                         FullName = name,
                         Username = StringGeneratorUtils.GenerateRandomUsername(),
                     };
-                    await _userService.GoogleRegisterAsync(registerDTO);
+
+                    var createdUser = await _userService.GoogleRegisterAsync(registerDTO);                 
+                    user = createdUser;
                 }
 
-                var token = _jwtService.GenerateToken(user.Id.ToString(), user.Email);
-
+                // validate status
                 if (!user.Status.Equals("ACTIVE"))
                 {
                     return StatusCode(StatusCodes.Status403Forbidden, new ApiResponseDTO<object>
                     {
                         Success = false,
-                        Message = "User is not permitted to log in. Account might be deactivated or restricted."
+                        Message = "User is not permitted to log in."
                     });
                 }
 
-                // 3. Generate JWT token
+                // create JWT
+                var token = _jwtService.GenerateToken(user.Id.ToString(), user.Email);
 
-                return Ok(new
+                return Ok(new ApiResponseDTO<LoginDTO>
                 {
                     Success = true,
-                    Data = new LoginDTO() { AccessToken = token }
+                    Data = new LoginDTO { AccessToken = token }
                 });
             }
-            catch (Exception)
+            catch
             {
                 return Unauthorized(new ApiResponseDTO<object>
                 {
