@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Security.Claims;
 using anphuong.Core.Domains.DTOs;
+using anphuong.Core.Domains.DTOs.RequestDTOs.Auth;
 using anphuong.Core.Domains.DTOs.RequestDTOs.AuthController;
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 using anphuong.Core.Domains.Entities;
@@ -68,6 +69,21 @@ namespace anphuong.Service
                     Email = requestDTO.Email,
                     Username = requestDTO.Username,
                     PasswordHash = hashedPassword,
+                    Status = "ACTIVE"
+                }
+            };
+
+            await _customerRepository.AddAsync(newCustomer);
+        }
+        public async Task GoogleRegisterAsync(GoogleRegisterRequestDTO requestDTO)
+        {
+            var newCustomer = new Customer
+            {
+                FullName = requestDTO.FullName,
+                User = new User
+                {
+                    Email = requestDTO.Email,
+                    Username = requestDTO.Username,
                     Status = "ACTIVE"
                 }
             };

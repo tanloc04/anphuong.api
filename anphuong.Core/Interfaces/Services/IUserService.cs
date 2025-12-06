@@ -1,4 +1,5 @@
 ﻿using anphuong.Core.Domains.DTOs;
+using anphuong.Core.Domains.DTOs.RequestDTOs.Auth;
 using anphuong.Core.Domains.DTOs.RequestDTOs.AuthController;
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 using anphuong.Core.Domains.Entities;
@@ -10,6 +11,7 @@ namespace anphuong.Core.Interfaces.Services
         Task<bool> IsUserExists(string email);
         Task<int> RegisterAsync(RegisterRequestDTO requestDTO);
         Task TestRegisterAsync(RegisterRequestDTO requestDTO);
+        Task GoogleRegisterAsync(GoogleRegisterRequestDTO requestDTO);
         Task<User?> AuthenticateUserAsync(string email, string password);
         Task<UserDTO?> FindByEmailAsync(string email);
         Task<UserDTO?> FindByIdAsync(int id);

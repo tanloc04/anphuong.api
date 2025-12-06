@@ -1,11 +1,14 @@
 ﻿using System.Security.Claims;
+using System.Security.Cryptography;
 using anphuong.Core.Constants;
 using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.API;
+using anphuong.Core.Domains.DTOs.RequestDTOs.Auth;
 using anphuong.Core.Domains.DTOs.RequestDTOs.AuthController;
 using anphuong.Core.Domains.Entities;
 using anphuong.Core.Interfaces.Services;
 using anphuong.Core.Interfaces.Services.External;
+using anphuong.Core.Ultilities;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -148,11 +151,13 @@ namespace anphuong.api.Controllers
 
                 if (user == null)
                 {
-                    return Ok(new ApiResponseDTO<string>
+                    var registerDTO = new GoogleRegisterRequestDTO
                     {
-                        Success = true,
-                        Data = email,
-                    });
+                        Email = email,
+                        FullName = name,
+                        Username = StringGeneratorUtils.GenerateRandomUsername(),
+                    };
+                    await _userService.GoogleRegisterAsync(registerDTO);
                 }
 
                 var token = _jwtService.GenerateToken(user.Id.ToString(), user.Email);
@@ -204,8 +209,8 @@ namespace anphuong.api.Controllers
                 });
 
             }
-            
-            else if (loginRequest.RefreshToken != null) 
+
+            else if (loginRequest.RefreshToken != null)
             {
                 user = await _userService.CheckRefreshToken(loginRequest.RefreshToken);
 
