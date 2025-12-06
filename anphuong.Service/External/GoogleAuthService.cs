@@ -1,6 +1,7 @@
 ﻿using anphuong.Core.Interfaces.Services.External;
 using Google.Apis.Auth;
 using Microsoft.Extensions.Configuration;
+using static anphuong.Core.Exceptions.GoogleException;
 
 namespace anphuong.Service.Extenal
 {
@@ -15,15 +16,31 @@ namespace anphuong.Service.Extenal
 
         public async Task<GoogleJsonWebSignature.Payload> VerifyGoogleTokenAsync(string idToken)
         {
-            var settings = new GoogleJsonWebSignature.ValidationSettings()
+            try
             {
-                Audience = new List<string>
+                var settings = new GoogleJsonWebSignature.ValidationSettings()
+                {
+                    Audience = new List<string>
                 {
                     _config["GOOGLE_CLIENT_ID"]
                 }
-            };
+                };
 
-            return await GoogleJsonWebSignature.ValidateAsync(idToken, settings);
+                return await GoogleJsonWebSignature.ValidateAsync(idToken, settings);
+            }
+            catch (InvalidJwtException ex)
+            {
+                if (ex.Message.ToLower().Contains("expired"))
+                {
+                    throw new TokenExpiredException("Google token has expired.");
+                }
+
+                throw new InvalidTokenException("Invalid Google Token.");
+            }
+            catch (Exception)
+            {
+                throw new InvalidTokenException("Invalid Google Token.");
+            }
         }
     }
 }

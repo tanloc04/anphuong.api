@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using System.Numerics;
 using System.Security.Claims;
 using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Auth;
@@ -79,7 +80,9 @@ namespace anphuong.Service
         {
             var newCustomer = new Customer
             {
+                Phone = "",
                 FullName = requestDTO.FullName,
+                CustomerAddress = "",
                 User = new User
                 {
                     Email = requestDTO.Email,

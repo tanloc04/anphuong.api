@@ -12,6 +12,7 @@ using anphuong.Core.Ultilities;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static anphuong.Core.Exceptions.GoogleException;
 
 namespace anphuong.api.Controllers
 {
@@ -138,14 +139,27 @@ namespace anphuong.api.Controllers
 
             try
             {
+                // verify token
                 var payload = await _googleAuthService.VerifyGoogleTokenAsync(request.IdToken);
+
+                // validate expiration
+                var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                if (payload.ExpirationTimeSeconds < now)
+                {
+                    return Unauthorized(new ApiResponseDTO<object>
+                    {
+                        Success = false,
+                        Message = "Google token has expired."
+                    });
+                }
+
                 var email = payload.Email;
                 var name = payload.Name;
 
-                // check user exists
+                // check user exist
                 var user = await _userService.FindByEmailAsync(email);
 
-                // if user does not exist -> create new
+                // if not exist -> register
                 if (user == null)
                 {
                     var registerDTO = new GoogleRegisterRequestDTO
@@ -155,11 +169,10 @@ namespace anphuong.api.Controllers
                         Username = StringGeneratorUtils.GenerateRandomUsername(),
                     };
 
-                    var createdUser = await _userService.GoogleRegisterAsync(registerDTO);                 
-                    user = createdUser;
+                    user = await _userService.GoogleRegisterAsync(registerDTO);
                 }
 
-                // validate status
+                // check status
                 if (!user.Status.Equals("ACTIVE"))
                 {
                     return StatusCode(StatusCodes.Status403Forbidden, new ApiResponseDTO<object>
@@ -178,12 +191,29 @@ namespace anphuong.api.Controllers
                     Data = new LoginDTO { AccessToken = token }
                 });
             }
-            catch
+            catch (TokenExpiredException)
+            {
+                return Unauthorized(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Google token has expired."
+                });
+            }
+            catch (InvalidTokenException)
             {
                 return Unauthorized(new ApiResponseDTO<object>
                 {
                     Success = false,
                     Message = "Invalid Google Token."
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("GOOGLE LOGIN EXCEPTION: " + ex.ToString());
+                return StatusCode(500, new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Server error during Google authentication."
                 });
             }
         }
