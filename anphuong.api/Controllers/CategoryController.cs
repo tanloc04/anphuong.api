@@ -6,6 +6,7 @@ using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 using anphuong.Core.Domains.Entities;
 using anphuong.Core.Interfaces.Services;
 using anphuong.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -59,6 +60,7 @@ namespace anphuong.api.Controllers
         #endregion
 
         #region Create
+        [Authorize(Policy = "AllowSpecificEmail")]
         [HttpPost("create")]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
@@ -76,6 +78,7 @@ namespace anphuong.api.Controllers
         #endregion
 
         #region Update
+        [Authorize(Policy = "AllowSpecificEmail")]
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
@@ -95,6 +98,7 @@ namespace anphuong.api.Controllers
         #endregion
 
         #region Delete
+        [Authorize(Policy = "AllowSpecificEmail")]
         [HttpDelete("{id}")]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]

@@ -62,7 +62,7 @@ namespace anphuong.api.Controllers
         }
 
         #endregion
-
+        [Authorize(Policy = "AllowSpecificEmail")]
         #region Create
         [HttpPost("create")]
         [Consumes("multipart/form-data")]
@@ -81,6 +81,7 @@ namespace anphuong.api.Controllers
         #endregion
 
         #region Update
+        [Authorize(Policy = "AllowSpecificEmail")]
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
@@ -100,6 +101,7 @@ namespace anphuong.api.Controllers
         #endregion
 
         #region Delete
+        [Authorize(Policy = "AllowSpecificEmail")]
         [HttpDelete("{id}")]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
@@ -114,6 +116,7 @@ namespace anphuong.api.Controllers
 
         #region Upload Image
         [HttpPost("image")]
+        [Authorize(Policy = "AllowSpecificEmail")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> UploadImage([FromForm] UploadImageRequestDTO request)
         {
