@@ -19,10 +19,10 @@ namespace anphuong.Core.Domains.DTOs.RequestDTOs.Product
         public int HeightSize { get; set; }
         public int? CategoryId { get; set; }
         public int? VariationId { get; set; }
-        public IFormFile Thumbnail { get; set; }
-        public IFormFile Image1 { get; set; }
-        public IFormFile Image2 { get; set; }
-        public IFormFile Image3 { get; set; }
-        public IFormFile Image4 { get; set; }
+        public string? Thumbnail { get; set; }
+        public string Image1 { get; set; }
+        public string Image2 { get; set; }
+        public string Image3 { get; set; }
+        public string Image4 { get; set; }
     }
 }

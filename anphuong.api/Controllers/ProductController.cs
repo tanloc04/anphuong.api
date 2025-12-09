@@ -60,22 +60,23 @@ namespace anphuong.api.Controllers
                 Data = items
             });
         }
-
         #endregion
+
+
+        #region Create        
         [Authorize(Policy = "AllowSpecificEmail")]
-        #region Create
         [HttpPost("create")]
-        [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Create([FromForm] CreateProductRequestDTO request)
+        public async Task<IActionResult> Create([FromBody] CreateProductRequestDTO request)
         {
             var item = await _productService.Create(request);
             return Ok(new ApiResponseDTO<Product> 
-                { Success = true,
-                Data = item
+                { 
+                    Success = true,
+                    Data = item
                 });
         }
         #endregion
@@ -116,7 +117,7 @@ namespace anphuong.api.Controllers
 
         #region Upload Image
         [HttpPost("image")]
-        [Authorize(Policy = "AllowSpecificEmail")]
+        //[Authorize(Policy = "AllowSpecificEmail")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> UploadImage([FromForm] UploadImageRequestDTO request)
         {

@@ -40,11 +40,11 @@ namespace anphuong.Service
         {
             var detailImageDTO = new DetailImageDTO
             {
-                Thumbnail = await _cloudinaryService.UploadImageAsync(request.Thumbnail, "anphuong/images/thumbnail"),
-                Image1 = await _cloudinaryService.UploadImageAsync(request.Image1, "anphuong/images"),
-                Image2 = await _cloudinaryService.UploadImageAsync(request.Image2, "anphuong/images"),
-                Image3 = await _cloudinaryService.UploadImageAsync(request.Image3, "anphuong/images"),
-                Image4 = await _cloudinaryService.UploadImageAsync(request.Image4, "anphuong/images")
+                Thumbnail = request.Thumbnail,
+                Image1 = request.Image1,
+                Image2 = request.Image2,
+                Image3 = request.Image3,
+                Image4 = request.Image4
             };
 
             var detailImage = new DetailImage
