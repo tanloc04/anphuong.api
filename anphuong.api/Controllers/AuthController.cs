@@ -223,26 +223,26 @@ namespace anphuong.api.Controllers
         [HttpPost("refresh-token")]
         [ProducesResponseType(typeof(ApiResponseDTO<LoginDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
-        //[ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status401Unauthorized)]
-        //[ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> checkRefreshToken([FromBody] LoginDTO loginRequest)
         {
-            User? user = new User();
-
-            if (loginRequest.RefreshToken == null)
+            if (string.IsNullOrEmpty(loginRequest.RefreshToken))
             {
                 return Unauthorized(new ApiResponseDTO<object>
                 {
                     Success = false,
-                    Message = "No Token"
+                    Message = "No Token provided"
                 });
-
             }
 
-            else if (loginRequest.RefreshToken != null)
-            {
-                user = await _userService.CheckRefreshToken(loginRequest.RefreshToken);
+            var user = await _userService.CheckRefreshToken(loginRequest.RefreshToken);
 
+            if (user == null)
+            {
+                return Unauthorized(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Invalid Refresh Token (User not found)"
+                });
             }
 
             if (user.RefreshTokenExpiry <= DateTime.Now)
@@ -254,23 +254,15 @@ namespace anphuong.api.Controllers
                 });
             }
 
-            if (user == null)
-            {
-                return Unauthorized(new ApiResponseDTO<object>
-                {
-                    Success = false,
-                    Message = "Invalid Token"
-                });
-            }
-
             if (user.Status.Equals("0"))
             {
                 return StatusCode(StatusCodes.Status403Forbidden, new ApiResponseDTO<object>
                 {
                     Success = false,
-                    Message = "User is not permitted to log in. Account might be deactivated or restricted."
+                    Message = "User is not permitted to log in. Account might be deactivated."
                 });
             }
+
             var accessToken = _jwtService.GenerateToken(user.Id.ToString(), user.Email);
             return Ok(new ApiResponseDTO<LoginDTO>()
             {
