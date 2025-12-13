@@ -1,13 +1,11 @@
 ﻿using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.API;
-using anphuong.Core.Domains.DTOs.RequestDTOs.DetailImage;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Product;
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 using anphuong.Core.Domains.Entities;
 using anphuong.Core.Interfaces.Services;
 using anphuong.Core.Interfaces.Services.External;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace anphuong.api.Controllers
@@ -20,8 +18,8 @@ namespace anphuong.api.Controllers
         private readonly IPaginationService<ProductDTO> _paginationService;
         private readonly ICloudinaryService _cloudinaryService;
 
-        public ProductController(IProductService productService, 
-            IPaginationService<ProductDTO> paginationService, 
+        public ProductController(IProductService productService,
+            IPaginationService<ProductDTO> paginationService,
             ICloudinaryService cloudinaryService)
         {
             _productService = productService;
@@ -73,11 +71,11 @@ namespace anphuong.api.Controllers
         public async Task<IActionResult> Create([FromBody] CreateProductRequestDTO request)
         {
             var item = await _productService.Create(request);
-            return Ok(new ApiResponseDTO<Product> 
-                { 
-                    Success = true,
-                    Data = item
-                });
+            return Ok(new ApiResponseDTO<Product>
+            {
+                Success = true,
+                Data = item
+            });
         }
         #endregion
 

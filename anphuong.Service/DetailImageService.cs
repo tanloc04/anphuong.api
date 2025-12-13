@@ -1,20 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
-using anphuong.Core.Domains.DTOs.RequestDTOs.Product;
-using anphuong.Core.Domains.DTOs.StandardizedDTOs;
+﻿using System.Linq.Expressions;
 using anphuong.Core.Domains.DTOs;
+using anphuong.Core.Domains.DTOs.RequestDTOs.DetailImage;
+using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 using anphuong.Core.Domains.Entities;
 using anphuong.Core.Domains.Objects;
 using anphuong.Core.Exceptions;
 using anphuong.Core.Interfaces.Repositories;
-using anphuong.Core.Ultilities;
-using anphuong.Core.Domains.DTOs.RequestDTOs.DetailImage;
-using Mapster;
 using anphuong.Core.Interfaces.Services;
+using anphuong.Core.Ultilities;
+using Mapster;
 
 namespace anphuong.Service
 {
@@ -47,7 +41,7 @@ namespace anphuong.Service
             var pageInfo = request?.PageInfo ?? new PageInfoRequestDTO();
 
             // Start with a base filter that is always true
-            Expression<Func<DetailImage, bool>> filter = u => true;    
+            Expression<Func<DetailImage, bool>> filter = u => true;
 
             // Only apply deletion filter if specified (default: return non-deleted)
             filter = ExpressionUtils.AddFilter(filter, u => u.IsDeleted == searchCondition.IsDeleted);

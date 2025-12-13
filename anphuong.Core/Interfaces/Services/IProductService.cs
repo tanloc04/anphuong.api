@@ -1,16 +1,6 @@
 ﻿using anphuong.Core.Domains.DTOs;
-using anphuong.Core.Domains.DTOs.RequestDTOs.DetailImage;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Product;
 using anphuong.Core.Domains.Entities;
-using anphuong.Core.Domains.Objects;
-using anphuong.Core.Exceptions;
-using anphuong.Core.Ultilities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace anphuong.Core.Interfaces.Services
 {

@@ -1,6 +1,6 @@
-﻿using anphuong.Core.Domains.DTOs;
+﻿using System.Linq.Expressions;
+using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Category;
-using anphuong.Core.Domains.DTOs.RequestDTOs.Product;
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 using anphuong.Core.Domains.Entities;
 using anphuong.Core.Domains.Objects;
@@ -9,12 +9,6 @@ using anphuong.Core.Interfaces.Repositories;
 using anphuong.Core.Interfaces.Services;
 using anphuong.Core.Ultilities;
 using Mapster;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace anphuong.Service
 {
@@ -131,7 +125,7 @@ namespace anphuong.Service
 
             // Apply updates
             isChanged |= SetIfChanged(request.Name, () => item.Name, i => item.Name = i);
-            isChanged |= SetIfChanged(request.Description, () => item.Description, i => item.Description = i);         
+            isChanged |= SetIfChanged(request.Description, () => item.Description, i => item.Description = i);
             if (isChanged)
             {
                 item.UpdatedAt = DateTime.UtcNow;

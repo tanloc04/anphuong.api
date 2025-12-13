@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-
-namespace anphuong.Core.Domains.DTOs.RequestDTOs.Product
+﻿namespace anphuong.Core.Domains.DTOs.RequestDTOs.Product
 {
     public class CreateProductRequestDTO
     {

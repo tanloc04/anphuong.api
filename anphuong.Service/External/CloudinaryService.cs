@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using anphuong.Core.Domains.DTOs.Config;
+﻿using anphuong.Core.Domains.DTOs.Config;
 using anphuong.Core.Interfaces.Services.External;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;

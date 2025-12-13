@@ -19,14 +19,14 @@ namespace anphuong.Core.Domains.Objects
         }
 
         //Common
-        public static readonly ErrorDetails DEFAULT = 
+        public static readonly ErrorDetails DEFAULT =
             new(HttpStatusCode.InternalServerError, "An error occurred while processing your request.");
         public static readonly ErrorDetails CAN_NOT_DELETE_YOURSELF =
-            new (HttpStatusCode.Forbidden, "Cannot delete yourself");
-        public static readonly ErrorDetails INVALID_ID = 
-            new (HttpStatusCode.BadRequest, "Invalid id");
+            new(HttpStatusCode.Forbidden, "Cannot delete yourself");
+        public static readonly ErrorDetails INVALID_ID =
+            new(HttpStatusCode.BadRequest, "Invalid id");
         public static readonly ErrorDetails ID_NOT_FOUND =
-            new (HttpStatusCode.NotFound, "Id not found");
+            new(HttpStatusCode.NotFound, "Id not found");
 
         public HttpStatusCode StatusCode { get; set; }
         public string Message { get; set; } = string.Empty;

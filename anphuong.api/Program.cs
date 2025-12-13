@@ -176,9 +176,9 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "An Phuong API v1");
     });
 }
-app.UseRouting();  
+app.UseRouting();
 
-app.UseCors("AllowAll");   
+app.UseCors("AllowAll");
 
 app.UseAuthentication();
 

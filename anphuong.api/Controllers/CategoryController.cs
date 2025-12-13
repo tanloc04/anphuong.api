@@ -1,13 +1,10 @@
 ﻿using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.API;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Category;
-using anphuong.Core.Domains.DTOs.RequestDTOs.Product;
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 using anphuong.Core.Domains.Entities;
 using anphuong.Core.Interfaces.Services;
-using anphuong.Service;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace anphuong.api.Controllers

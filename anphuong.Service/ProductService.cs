@@ -1,5 +1,5 @@
-﻿using anphuong.Core.Domains.DTOs;
-using anphuong.Core.Domains.DTOs.RequestDTOs.DetailImage;
+﻿using System.Linq.Expressions;
+using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Product;
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 using anphuong.Core.Domains.Entities;
@@ -9,15 +9,7 @@ using anphuong.Core.Interfaces.Repositories;
 using anphuong.Core.Interfaces.Services;
 using anphuong.Core.Interfaces.Services.External;
 using anphuong.Core.Ultilities;
-using anphuong.Repository.Repositories;
 using Mapster;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace anphuong.Service
 {
@@ -27,7 +19,7 @@ namespace anphuong.Service
         private readonly IDetailImageRepository _detailImageRepository;
         private readonly ICloudinaryService _cloudinaryService;
 
-        public ProductService(IProductRepository repository, 
+        public ProductService(IProductRepository repository,
             IDetailImageRepository detailImageRepository,
             ICloudinaryService cloudinaryService)
         {
@@ -186,15 +178,15 @@ namespace anphuong.Service
             isChanged |= SetIfChangedValue(request.Discount, () => item.Discount, i => item.Discount = i);
             isChanged |= SetIfChangedValue(request.LongSize, () => item.LongSize, i => item.LongSize = i);
             isChanged |= SetIfChangedValue(request.WidthSize, () => item.WidthSize, i => item.WidthSize = i);
-            isChanged |= SetIfChangedValue(request.HeightSize, () => item.HeightSize, i => item.HeightSize = i);    
-            
+            isChanged |= SetIfChangedValue(request.HeightSize, () => item.HeightSize, i => item.HeightSize = i);
+
             isChanged |= SetIfChangedNullableValue(request.CategoryId, () => item.CategoryId, i => item.CategoryId = i);
             isChanged |= SetIfChangedNullableValue(request.VariationId, () => item.VariationId, i => item.VariationId = i);
 
             if (isChanged)
             {
                 item.UpdatedAt = DateTime.UtcNow;
-                if (! _repository.Update(item))
+                if (!_repository.Update(item))
                     throw new BusinessException(ErrorDetails.DEFAULT);
             }
             var itemDTO = item.Adapt<ProductDTO>();

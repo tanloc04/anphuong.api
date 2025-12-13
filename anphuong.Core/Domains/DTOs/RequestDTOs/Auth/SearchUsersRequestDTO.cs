@@ -5,5 +5,5 @@ namespace anphuong.Core.Domains.DTOs.RequestDTOs.AuthController
     public class SearchUsersRequestDTO : SearchRequestDTO
     {
 
-    } 
+    }
 }
