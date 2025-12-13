@@ -17,11 +17,11 @@ namespace anphuong.Core.Domains.DTOs.RequestDTOs.Product
         public int? WidthSize { get; set; }
         public int? HeightSize { get; set; }
         public string? Material { get; set; }
-        public IFormFile Thumnail { get; set; }
-        public IFormFile? Image1 { get; set; }
-        public IFormFile? Image2 { get; set; }
-        public IFormFile? Image3 { get; set; }
-        public IFormFile? Image4 { get; set; }
+        public string? Thumnail { get; set; }
+        public string? Image1 { get; set; }
+        public string? Image2 { get; set; }
+        public string? Image3 { get; set; }
+        public string? Image4 { get; set; }
         public int? CategoryId { get; set; }
         public int? VariationId { get; set; }
     }

@@ -176,14 +176,18 @@ namespace anphuong.Service
             isChanged |= SetIfChanged(request.Name, () => item.Name, i => item.Name = i);
             isChanged |= SetIfChanged(request.Description, () => item.Description, i => item.Description = i);
             isChanged |= SetIfChanged(request.Material, () => item.Material, i => item.Material = i);
+            isChanged |= SetIfChanged(request.Thumnail, () => item.DetailImage.Thumbnail, i => item.DetailImage.Thumbnail = i);
+            isChanged |= SetIfChanged(request.Image1, () => item.DetailImage.Image1, i => item.DetailImage.Image1 = i);
+            isChanged |= SetIfChanged(request.Image2, () => item.DetailImage.Image2, i => item.DetailImage.Image2 = i);
+            isChanged |= SetIfChanged(request.Image3, () => item.DetailImage.Image3, i => item.DetailImage.Image3 = i);
+            isChanged |= SetIfChanged(request.Image4, () => item.DetailImage.Image4, i => item.DetailImage.Image4 = i);
 
             isChanged |= SetIfChangedValue(request.Price, () => item.Price, i => item.Price = i);
             isChanged |= SetIfChangedValue(request.Discount, () => item.Discount, i => item.Discount = i);
             isChanged |= SetIfChangedValue(request.LongSize, () => item.LongSize, i => item.LongSize = i);
             isChanged |= SetIfChangedValue(request.WidthSize, () => item.WidthSize, i => item.WidthSize = i);
-            isChanged |= SetIfChangedValue(request.HeightSize, () => item.HeightSize, i => item.HeightSize = i);
-
-            //isChanged |= SetIfChangedNullableValue(request.DetailImageId, () => item.DetailImageId, i => item.DetailImageId = i);
+            isChanged |= SetIfChangedValue(request.HeightSize, () => item.HeightSize, i => item.HeightSize = i);    
+            
             isChanged |= SetIfChangedNullableValue(request.CategoryId, () => item.CategoryId, i => item.CategoryId = i);
             isChanged |= SetIfChangedNullableValue(request.VariationId, () => item.VariationId, i => item.VariationId = i);
 
