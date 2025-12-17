@@ -12,8 +12,9 @@ namespace anphuong.Core.Domains.DTOs
         public int WidthSize { get; set; }
         public int HeightSize { get; set; }
         public string Material { get; set; }
-        public int DetailImageId { get; set; }
+        public int? DetailImageId { get; set; }
         public int CategoryId { get; set; }
         public int VariationId { get; set; }
+        public DetailImageDTO DetailImage { get; set; }
     }
 }

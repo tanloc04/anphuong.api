@@ -3,6 +3,7 @@ using anphuong.Core.Domains.DTOs.API;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Product;
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 using anphuong.Core.Domains.Entities;
+using anphuong.Core.Exceptions;
 using anphuong.Core.Interfaces.Services;
 using anphuong.Core.Interfaces.Services.External;
 using Microsoft.AspNetCore.Authorization;
@@ -50,16 +51,26 @@ namespace anphuong.api.Controllers
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Get(int id)
         {
-            var items = await _productService.Get(id);
-
-            return Ok(new ApiResponseDTO<ProductDTO>
+            try
             {
-                Success = true,
-                Data = items
-            });
+                var item = await _productService.Get(id);
+
+                return Ok(new ApiResponseDTO<ProductDTO>
+                {
+                    Success = true,
+                    Data = item
+                });
+            }
+            catch (BusinessException ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
         }
         #endregion
-
 
         #region Create        
         [Authorize(Policy = "AllowSpecificEmail")]
@@ -80,7 +91,7 @@ namespace anphuong.api.Controllers
         #endregion
 
         #region Update
-        [Authorize(Policy = "AllowSpecificEmail")]
+        //[Authorize(Policy = "AllowSpecificEmail")]
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]

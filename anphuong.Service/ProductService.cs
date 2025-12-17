@@ -92,7 +92,7 @@ namespace anphuong.Service
             Expression<Func<Product, bool>> filter = u => true;
 
             // Only apply keyword filter if keyword exists
-            if (!string.IsNullOrEmpty(searchCondition.Keyword))
+            if (!string.IsNullOrEmpty(searchCondition.Keyword))ss
             {
                 var key = searchCondition.Keyword.ToLower();
                 filter = ExpressionUtils.AddFilter(filter, x =>
@@ -105,7 +105,7 @@ namespace anphuong.Service
             filter = ExpressionUtils.AddFilter(filter, u => u.IsDeleted == searchCondition.IsDeleted);
 
             // Query paginated 
-            var items = await _repository.GetWithPaginationAsync(pageInfo, filter);
+            var items = await _repository.GetWithPaginationAsync(pageInfo, filter, "DetailImage");
             var totalItems = await _repository.CountAsync(filter);
 
             return (items.Adapt<IEnumerable<ProductDTO>>(), totalItems);
@@ -113,7 +113,8 @@ namespace anphuong.Service
 
         public async Task<ProductDTO> Get(int id)
         {
-            var item = await _repository.GetAsync(id) ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
+            var item = await _repository.GetAsync(id, "DetailImage")
+                ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
 
             return item.Adapt<ProductDTO>();
         }

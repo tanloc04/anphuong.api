@@ -117,10 +117,11 @@ namespace anphuong.Repository.Context
                 entity.Property(e => e.IsDeleted).IsRequired();
 
                 // One-to-one relationship with DetailImage
-                entity.HasOne(e => e.DetailImage)
-                      .WithOne()
-                      .HasForeignKey<Product>(e => e.DetailImageId)
-                      .OnDelete(DeleteBehavior.Restrict).IsRequired(false);
+                entity.HasOne(p => p.DetailImage)
+                      .WithOne(d => d.Product) 
+                      .HasForeignKey<Product>(p => p.DetailImageId)
+                      .OnDelete(DeleteBehavior.Restrict)
+                      .IsRequired(false);
 
                 // Many-to-one relationship with Category
                 entity.HasOne(e => e.Category)

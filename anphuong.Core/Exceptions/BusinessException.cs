@@ -1,18 +1,18 @@
-﻿using anphuong.Core.Domains.Objects;
+﻿using System.Net;
+using anphuong.Core.Domains.Objects;
 
 namespace anphuong.Core.Exceptions
 {
     public class BusinessException : Exception
     {
-        public ErrorDetails Error { get; set; } = null!;
+        public ErrorDetails Error { get; }
+
+        public HttpStatusCode StatusCode => Error.StatusCode;
 
         public BusinessException(ErrorDetails error)
+            : base(error.Message)
         {
             Error = error;
-        }
-        public BusinessException()
-        {
-
         }
     }
 }
