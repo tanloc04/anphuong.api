@@ -1,9 +1,13 @@
-﻿using anphuong.Core.Domains.DTOs.ResponseDTOs.Product;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 
-namespace anphuong.Core.Domains.DTOs
+namespace anphuong.Core.Domains.DTOs.ResponseDTOs.Product
 {
-    public class ProductDTO : DTO
+    public class ProductListResponseDTO : DTO
     {
         public string Name { get; set; }
         public double Price { get; set; }
@@ -13,10 +17,8 @@ namespace anphuong.Core.Domains.DTOs
         public int WidthSize { get; set; }
         public int HeightSize { get; set; }
         public string Material { get; set; }
-        public int DetailImageId { get; set; }
+        public string Thumbnail { get; set; }
         public int CategoryId { get; set; }
-        public int VariationId { get; set; }
-        public ProductDetailImageDTO DetailImage { get; set; }
-        public ProductCategoryDTO Category { get; set; }
+        public int? VariationId { get; set; }
     }
 }

@@ -105,7 +105,7 @@ namespace anphuong.Service
             filter = ExpressionUtils.AddFilter(filter, u => u.IsDeleted == searchCondition.IsDeleted);
 
             // Query paginated 
-            var items = await _repository.GetWithPaginationAsync(pageInfo, filter, "DetailImage");
+            var items = await _repository.GetWithPaginationAsync(pageInfo, filter, "DetailImage,Category");
             var totalItems = await _repository.CountAsync(filter);
 
             return (items.Adapt<IEnumerable<ProductDTO>>(), totalItems);
@@ -113,7 +113,7 @@ namespace anphuong.Service
 
         public async Task<ProductDTO> Get(int id)
         {
-            var item = await _repository.GetAsync(id, "DetailImage")
+            var item = await _repository.GetAsync(id, "DetailImage,Category")
                 ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
 
             return item.Adapt<ProductDTO>();
@@ -180,8 +180,8 @@ namespace anphuong.Service
             isChanged |= SetIfChangedValue(request.LongSize, () => item.LongSize, i => item.LongSize = i);
             isChanged |= SetIfChangedValue(request.WidthSize, () => item.WidthSize, i => item.WidthSize = i);
             isChanged |= SetIfChangedValue(request.HeightSize, () => item.HeightSize, i => item.HeightSize = i);
+            isChanged |= SetIfChangedValue(request.CategoryId, () => item.CategoryId, i => item.CategoryId = i);
 
-            isChanged |= SetIfChangedNullableValue(request.CategoryId, () => item.CategoryId, i => item.CategoryId = i);
             isChanged |= SetIfChangedNullableValue(request.VariationId, () => item.VariationId, i => item.VariationId = i);
 
             if (isChanged)

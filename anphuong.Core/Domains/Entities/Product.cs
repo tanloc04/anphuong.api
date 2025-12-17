@@ -11,7 +11,7 @@
         public int HeightSize { get; set; }
         public string Material { get; set; }
         public int? DetailImageId { get; set; }
-        public int? CategoryId { get; set; }
+        public int CategoryId { get; set; }
         public int? VariationId { get; set; }
         public Variant Variant { get; set; }
         public DetailImage DetailImage { get; set; }
