@@ -92,7 +92,7 @@ namespace anphuong.Service
             Expression<Func<Product, bool>> filter = u => true;
 
             // Only apply keyword filter if keyword exists
-            if (!string.IsNullOrEmpty(searchCondition.Keyword))ss
+            if (!string.IsNullOrEmpty(searchCondition.Keyword))
             {
                 var key = searchCondition.Keyword.ToLower();
                 filter = ExpressionUtils.AddFilter(filter, x =>
@@ -121,7 +121,7 @@ namespace anphuong.Service
 
         public async Task<ProductDTO> Update(int id, UpdateProductRequestDTO request)
         {
-            var item = await _repository.GetAsync(id)
+            var item = await _repository.GetAsync(id, "DetailImage")
                 ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
 
             bool isChanged = false;
@@ -169,11 +169,11 @@ namespace anphuong.Service
             isChanged |= SetIfChanged(request.Name, () => item.Name, i => item.Name = i);
             isChanged |= SetIfChanged(request.Description, () => item.Description, i => item.Description = i);
             isChanged |= SetIfChanged(request.Material, () => item.Material, i => item.Material = i);
-            isChanged |= SetIfChanged(request.Thumnail, () => item.DetailImage.Thumbnail, i => item.DetailImage.Thumbnail = i);
-            isChanged |= SetIfChanged(request.Image1, () => item.DetailImage.Image1, i => item.DetailImage.Image1 = i);
-            isChanged |= SetIfChanged(request.Image2, () => item.DetailImage.Image2, i => item.DetailImage.Image2 = i);
-            isChanged |= SetIfChanged(request.Image3, () => item.DetailImage.Image3, i => item.DetailImage.Image3 = i);
-            isChanged |= SetIfChanged(request.Image4, () => item.DetailImage.Image4, i => item.DetailImage.Image4 = i);
+            isChanged |= SetIfChanged(request.DetailImage.Thumbnail, () => item.DetailImage.Thumbnail, i => item.DetailImage.Thumbnail = i);
+            isChanged |= SetIfChanged(request.DetailImage.Image1, () => item.DetailImage.Image1, i => item.DetailImage.Image1 = i);
+            isChanged |= SetIfChanged(request.DetailImage.Image2, () => item.DetailImage.Image2, i => item.DetailImage.Image2 = i);
+            isChanged |= SetIfChanged(request.DetailImage.Image3, () => item.DetailImage.Image3, i => item.DetailImage.Image3 = i);
+            isChanged |= SetIfChanged(request.DetailImage.Image4, () => item.DetailImage.Image4, i => item.DetailImage.Image4 = i);
 
             isChanged |= SetIfChangedValue(request.Price, () => item.Price, i => item.Price = i);
             isChanged |= SetIfChangedValue(request.Discount, () => item.Discount, i => item.Discount = i);

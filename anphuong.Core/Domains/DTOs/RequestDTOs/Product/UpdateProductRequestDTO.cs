@@ -1,4 +1,6 @@
-﻿namespace anphuong.Core.Domains.DTOs.RequestDTOs.Product
+﻿using anphuong.Core.Domains.DTOs.RequestDTOs.DetailImage;
+
+namespace anphuong.Core.Domains.DTOs.RequestDTOs.Product
 {
     public class UpdateProductRequestDTO
     {
@@ -10,11 +12,8 @@
         public int? WidthSize { get; set; }
         public int? HeightSize { get; set; }
         public string? Material { get; set; }
-        public string? Thumnail { get; set; }
-        public string? Image1 { get; set; }
-        public string? Image2 { get; set; }
-        public string? Image3 { get; set; }
-        public string? Image4 { get; set; }
+        public UpdateDetailImageRequestDTO? DetailImage { get; set; }
+        public int? DetailImageId { get; set; }
         public int? CategoryId { get; set; }
         public int? VariationId { get; set; }
     }

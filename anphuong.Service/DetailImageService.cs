@@ -107,7 +107,7 @@ namespace anphuong.Service
             }
 
             // Apply updates
-            isChanged |= SetIfChanged(request.Thumnail, () => item.Thumbnail, i => item.Thumbnail = i);
+            isChanged |= SetIfChanged(request.Thumbnail, () => item.Thumbnail, i => item.Thumbnail = i);
             isChanged |= SetIfChanged(request.Image1, () => item.Image1, i => item.Image1 = i);
             isChanged |= SetIfChanged(request.Image2, () => item.Image2, i => item.Image2 = i);
             isChanged |= SetIfChanged(request.Image3, () => item.Image3, i => item.Image3 = i);
