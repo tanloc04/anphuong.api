@@ -16,5 +16,6 @@
         public Variant Variant { get; set; }
         public DetailImage DetailImage { get; set; }
         public Category Category { get; set; }
+        public Inventory Inventory { get; set; }
     }
 }

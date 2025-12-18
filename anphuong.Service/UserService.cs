@@ -3,7 +3,6 @@ using System.Security.Claims;
 using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Auth;
 using anphuong.Core.Domains.DTOs.RequestDTOs.AuthController;
-using anphuong.Core.Domains.DTOs.RequestDTOs.Category;
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 using anphuong.Core.Domains.Entities;
 using anphuong.Core.Domains.Objects;

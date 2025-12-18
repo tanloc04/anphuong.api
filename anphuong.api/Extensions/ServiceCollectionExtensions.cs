@@ -40,6 +40,14 @@ namespace anphuong.api.Extensions
             //----------------DetailImage-----------------
             services.AddScoped<IDetailImageRepository, DetailImageRepository>();
             services.AddScoped<IDetailImageService, DetailImageService>();
+
+            //----------------Order-----------------
+            services.AddScoped<IOrderRepository, OrderRepository>();
+            services.AddScoped<IOrderService, OrderService>();
+
+            //----------------Inventory-----------------
+            services.AddScoped<IInventoryRepository, InventoryRepository>();
+
         }
     }
 }

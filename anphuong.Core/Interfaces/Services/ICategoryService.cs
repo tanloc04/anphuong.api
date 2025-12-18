@@ -1,7 +1,5 @@
 ﻿using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Category;
-using anphuong.Core.Domains.DTOs.RequestDTOs.Product;
-using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 using anphuong.Core.Domains.Entities;
 
 namespace anphuong.Core.Interfaces.Services

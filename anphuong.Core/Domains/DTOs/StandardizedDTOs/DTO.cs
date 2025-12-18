@@ -5,14 +5,19 @@ namespace anphuong.Core.Domains.DTOs.StandardizedDTOs
     public class DTO
     {
         [JsonPropertyOrder(-100)]
-        public string Id { get; set; }
+        public int Id { get; set; }
 
         [JsonPropertyName("createdAt")]
         [JsonPropertyOrder(100)]
         public DateTime CreatedAt { get; set; }
 
         [JsonPropertyName("updatedAt")]
-        [JsonPropertyOrder(200)]
+        [JsonPropertyOrder(101)]
         public DateTime UpdatedAt { get; set; }
+
+        [JsonPropertyName("isDeleted")]
+        [JsonPropertyOrder(102)]
+        public bool IsDeleted { get; set; }
+
     }
 }

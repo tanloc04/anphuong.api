@@ -1,6 +1,6 @@
 ﻿using anphuong.Core.Domains.DTOs.RequestDTOs.DetailImage;
 
-namespace anphuong.Core.Domains.DTOs.RequestDTOs.Product
+namespace anphuong.Core.Domains.DTOs.RequestDTOs.Products
 {
     public class UpdateProductRequestDTO
     {
@@ -16,5 +16,7 @@ namespace anphuong.Core.Domains.DTOs.RequestDTOs.Product
         public int? DetailImageId { get; set; }
         public int? CategoryId { get; set; }
         public int? VariationId { get; set; }
+        public int? Stock { get; set; }
+
     }
 }

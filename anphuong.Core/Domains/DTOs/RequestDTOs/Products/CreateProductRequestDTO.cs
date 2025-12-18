@@ -1,4 +1,4 @@
-﻿namespace anphuong.Core.Domains.DTOs.RequestDTOs.Product
+﻿namespace anphuong.Core.Domains.DTOs.RequestDTOs.Products
 {
     public class CreateProductRequestDTO
     {
@@ -17,5 +17,6 @@
         public string Image2 { get; set; }
         public string Image3 { get; set; }
         public string Image4 { get; set; }
+        public int Stock { get; set; }
     }
 }

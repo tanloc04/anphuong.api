@@ -118,7 +118,7 @@ namespace anphuong.Repository.Context
 
                 // One-to-one relationship with DetailImage
                 entity.HasOne(p => p.DetailImage)
-                      .WithOne(d => d.Product) 
+                      .WithOne(d => d.Product)
                       .HasForeignKey<Product>(p => p.DetailImageId)
                       .OnDelete(DeleteBehavior.Restrict)
                       .IsRequired(false);
@@ -134,6 +134,12 @@ namespace anphuong.Repository.Context
                       .WithOne(v => v.Product)
                       .HasForeignKey<Product>(e => e.VariationId)
                       .OnDelete(DeleteBehavior.Restrict).IsRequired(false);
+
+                entity.HasOne(p => p.Inventory)
+                    .WithOne(i => i.Product)
+                    .HasForeignKey<Inventory>(i => i.ProductId)
+                    .OnDelete(DeleteBehavior.Restrict).IsRequired(false);
+
             });
 
             // Configuring Variant entity
@@ -187,8 +193,8 @@ namespace anphuong.Repository.Context
 
                 // One-to-one relationship with Product
                 entity.HasOne(e => e.Product)
-                      .WithMany()
-                      .HasForeignKey(e => e.ProductId)
+                      .WithOne(p => p.Inventory)
+                      .HasForeignKey<Inventory>(i => i.ProductId)
                       .OnDelete(DeleteBehavior.Restrict);
             });
 

@@ -1,8 +1,7 @@
 ﻿using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.API;
-using anphuong.Core.Domains.DTOs.RequestDTOs.Product;
+using anphuong.Core.Domains.DTOs.RequestDTOs.Products;
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
-using anphuong.Core.Domains.Entities;
 using anphuong.Core.Exceptions;
 using anphuong.Core.Interfaces.Services;
 using anphuong.Core.Interfaces.Services.External;
@@ -73,7 +72,7 @@ namespace anphuong.api.Controllers
         #endregion
 
         #region Create        
-        [Authorize(Policy = "AllowSpecificEmail")]
+        //[Authorize(Policy = "AllowSpecificEmail")]
         [HttpPost("create")]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
@@ -81,12 +80,23 @@ namespace anphuong.api.Controllers
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Create([FromBody] CreateProductRequestDTO request)
         {
-            var item = await _productService.Create(request);
-            return Ok(new ApiResponseDTO<Product>
+            try
             {
-                Success = true,
-                Data = item
-            });
+                var item = await _productService.Create(request);
+                return Ok(new ApiResponseDTO<ProductDTO>
+                {
+                    Success = true,
+                    Data = item
+                });
+            }
+            catch (BusinessException ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
         }
         #endregion
 
@@ -124,18 +134,18 @@ namespace anphuong.api.Controllers
         }
         #endregion
 
-        #region Upload Image
-        [HttpPost("image")]
-        //[Authorize(Policy = "AllowSpecificEmail")]
-        [Consumes("multipart/form-data")]
-        public async Task<IActionResult> UploadImage([FromForm] UploadImageRequestDTO request)
-        {
-            if (request.File == null || request.File.Length == 0)
-                return BadRequest("No file uploaded.");
+        //#region Upload Image
+        //[HttpPost("image")]
+        ////[Authorize(Policy = "AllowSpecificEmail")]
+        //[Consumes("multipart/form-data")]
+        //public async Task<IActionResult> UploadImage([FromForm] UploadImageRequestDTO request)
+        //{
+        //    if (request.File == null || request.File.Length == 0)
+        //        return BadRequest("No file uploaded.");
 
-            var url = await _cloudinaryService.UploadImageAsync(request.File, "anphuong/images");
-            return Ok(new { imageUrl = url });
-        }
-        #endregion
+        //    var url = await _cloudinaryService.UploadImageAsync(request.File, "anphuong/images");
+        //    return Ok(new { imageUrl = url });
+        //}
+        //#endregion
     }
 }

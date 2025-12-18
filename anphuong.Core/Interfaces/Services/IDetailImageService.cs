@@ -1,6 +1,5 @@
 ﻿using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.RequestDTOs.DetailImage;
-using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 
 namespace anphuong.Core.Interfaces.Services
 {

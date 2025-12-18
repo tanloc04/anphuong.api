@@ -1,13 +1,13 @@
 ﻿using System.Linq.Expressions;
 using anphuong.Core.Domains.DTOs;
-using anphuong.Core.Domains.DTOs.RequestDTOs.Product;
+using anphuong.Core.Domains.DTOs.RequestDTOs.Products;
+using anphuong.Core.Domains.DTOs.ResponseDTOs.Product;
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 using anphuong.Core.Domains.Entities;
 using anphuong.Core.Domains.Objects;
 using anphuong.Core.Exceptions;
 using anphuong.Core.Interfaces.Repositories;
 using anphuong.Core.Interfaces.Services;
-using anphuong.Core.Interfaces.Services.External;
 using anphuong.Core.Ultilities;
 using Mapster;
 
@@ -16,57 +16,48 @@ namespace anphuong.Service
     public class ProductService : IProductService
     {
         private readonly IProductRepository _repository;
-        private readonly IDetailImageRepository _detailImageRepository;
-        private readonly ICloudinaryService _cloudinaryService;
 
-        public ProductService(IProductRepository repository,
-            IDetailImageRepository detailImageRepository,
-            ICloudinaryService cloudinaryService)
+        public ProductService(IProductRepository repository)
         {
             _repository = repository;
-            _detailImageRepository = detailImageRepository;
-            _cloudinaryService = cloudinaryService;
         }
 
-        public async Task<Product> Create(CreateProductRequestDTO request)
+        public async Task<ProductDTO> Create(CreateProductRequestDTO request)
         {
-            var detailImageDTO = new DetailImageDTO
+            var product = await _repository.CreateFullProductAsync(request);
+
+            var productDTO = new ProductDTO
             {
-                Thumbnail = request.Thumbnail,
-                Image1 = request.Image1,
-                Image2 = request.Image2,
-                Image3 = request.Image3,
-                Image4 = request.Image4
+                Id = product.Id,
+                Name = product.Name,
+                Description = product.Description,
+                Price = product.Price,
+                Discount = product.Discount,
+                Material = product.Material,
+                LongSize = product.LongSize,
+                WidthSize = product.WidthSize,
+                HeightSize = product.HeightSize,
+                CategoryId = product.CategoryId,
+                VariationId = product.VariationId,
+                CreatedAt = product.CreatedAt,
+                UpdatedAt = product.UpdatedAt,
+                IsDeleted = product.IsDeleted,
+                DetailImage = new ProductDetailImageDTO
+                {
+                    Thumbnail = product.DetailImage.Thumbnail,
+                    Image1 = product.DetailImage.Image1,
+                    Image2 = product.DetailImage.Image2,
+                    Image3 = product.DetailImage.Image3,
+                    Image4 = product.DetailImage.Image4
+                },
+                Category = new ProductCategoryDTO
+                {
+                    Id = product.Category?.Id ?? 0,
+                    Name = product.Category?.Name ?? string.Empty
+                }
             };
 
-            var detailImage = new DetailImage
-            {
-                Thumbnail = detailImageDTO.Thumbnail,
-                Image1 = detailImageDTO.Image1,
-                Image2 = detailImageDTO.Image2,
-                Image3 = detailImageDTO.Image3,
-                Image4 = detailImageDTO.Image4
-            };
-
-            await _detailImageRepository.AddAsync(detailImage);
-
-            var product = new Product
-            {
-                Name = request.Name,
-                Description = request.Description,
-                Price = request.Price,
-                Discount = request.Discount,
-                Material = request.Material,
-                LongSize = request.LongSize,
-                WidthSize = request.WidthSize,
-                HeightSize = request.HeightSize,
-                CategoryId = request.CategoryId,
-                VariationId = request.VariationId,
-                DetailImageId = detailImage.Id
-            };
-
-            await _repository.AddAsync(product);
-            return product;
+            return productDTO;
         }
 
         public async Task Delete(int id)
@@ -82,7 +73,7 @@ namespace anphuong.Service
             }
         }
 
-        public async Task<(IEnumerable<ProductDTO>, int totalItems)> GetAll(SearchRequestDTO<SearchProductCondition> request)
+        public async Task<(IEnumerable<ProductDTO>, int totalItems)> GetAll(SearchProductsRequestDTO request)
         {
             // If request or its components are null, create safe defaults
             var searchCondition = request?.SearchCondition ?? new SearchProductCondition();
@@ -105,18 +96,28 @@ namespace anphuong.Service
             filter = ExpressionUtils.AddFilter(filter, u => u.IsDeleted == searchCondition.IsDeleted);
 
             // Query paginated 
-            var items = await _repository.GetWithPaginationAsync(pageInfo, filter, "DetailImage,Category");
+            var items = await _repository.GetWithPaginationAsync(pageInfo, filter, "DetailImage,Category,Inventory");
             var totalItems = await _repository.CountAsync(filter);
 
-            return (items.Adapt<IEnumerable<ProductDTO>>(), totalItems);
+            var productDTOs = new List<ProductDTO>();
+            foreach (var product in items)
+            {
+                var dto = product.Adapt<ProductDTO>();
+                dto.Stock = product.Inventory?.QuantityInStock ?? 0;
+                productDTOs.Add(dto);
+            }
+
+            return (productDTOs, totalItems);
         }
 
         public async Task<ProductDTO> Get(int id)
         {
-            var item = await _repository.GetAsync(id, "DetailImage,Category")
+            var item = await _repository.GetAsync(id, "DetailImage,Category,Inventory")
                 ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
 
-            return item.Adapt<ProductDTO>();
+            var productDTO = item.Adapt<ProductDTO>();
+            productDTO.Stock = item.Inventory.QuantityInStock;
+            return productDTO;
         }
 
         public async Task<ProductDTO> Update(int id, UpdateProductRequestDTO request)
