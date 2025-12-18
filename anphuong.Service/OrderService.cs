@@ -141,31 +141,74 @@ namespace anphuong.Service
             }
         }
 
-        public async Task<(IEnumerable<OrderDTO>, int totalItems)> GetAll(SearchOrderRequestDTO request)
+        public async Task<(IEnumerable<OrderDTO> Orders, double TotalPrice, int TotalItems)> GetAll(
+            SearchOrderRequestDTO request)
         {
-            // If request or its components are null, create safe defaults
             var searchCondition = request?.SearchCondition ?? new SearchOrderCondition();
             var pageInfo = request?.PageInfo ?? new PageInfoRequestDTO();
 
-            // Start with a base filter that is always true
             Expression<Func<Order, bool>> filter = u => true;
 
-            // Only apply deletion filter if specified (default: return non-deleted)
             filter = ExpressionUtils.AddFilter(filter, u => u.IsDeleted == searchCondition.IsDeleted);
 
-            // Query paginated 
-            var items = await _repository.GetWithPaginationAsync(pageInfo, filter, "OrderDetails.Product.DetailImage");
+            if (!string.IsNullOrWhiteSpace(searchCondition.Status) &&
+                int.TryParse(searchCondition.Status, out int statusValue))
+            {
+                filter = ExpressionUtils.AddFilter(filter, u => u.Status == statusValue);
+            }
+
+            if (!string.IsNullOrWhiteSpace(searchCondition.Keyword))
+            {
+                filter = ExpressionUtils.AddFilter(filter, u =>
+                    u.Customer.FullName.Contains(searchCondition.Keyword));
+            }
+
+            if (searchCondition.FromDate.HasValue)
+            {
+                filter = ExpressionUtils.AddFilter(filter, u => u.CreatedAt >= searchCondition.FromDate.Value);
+            }
+
+            if (searchCondition.ToDate.HasValue)
+            {
+                filter = ExpressionUtils.AddFilter(filter, u => u.CreatedAt <= searchCondition.ToDate.Value);
+            }
+
+            var items = await _repository.GetWithPaginationAsync(pageInfo, filter, "OrderDetails.Product.DetailImage,Customer.User");
+
             var totalItems = await _repository.CountAsync(filter);
 
-            return (items.Adapt<IEnumerable<OrderDTO>>(), totalItems);
+            double totalPrice = 0;
+
+            if (searchCondition.isTotalPrice.HasValue && searchCondition.isTotalPrice.Value)
+            {
+                totalPrice = items.Sum(o => o.TotalPrice);
+            }
+
+            TypeAdapterConfig<OrderDetail, OrderDetailDTO>.NewConfig()
+                    .Map(dest => dest.Thumbnail, src => src.Product.DetailImage!.Thumbnail);
+            TypeAdapterConfig<Customer, CustomerDTO>.NewConfig()
+                  .Map(dest => dest.Fullname, src => src.FullName)
+                  .Map(dest => dest.Phone, src => src.Phone)
+                  .Map(dest => dest.CustomerAddress, src => src.CustomerAddress)
+                  .Map(dest => dest.Email, src => src.User.Email);
+
+            var ordersDto = items.Adapt<IEnumerable<OrderDTO>>();
+
+            return (ordersDto, totalPrice, totalItems);
         }
 
         public async Task<OrderDTO> Get(int id)
         {
             var item = await _repository.GetAsync(
-             id, "OrderDetails.Product.DetailImage"
+             id, "OrderDetails.Product.DetailImage,Customer.User"
             ) ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
-
+            TypeAdapterConfig<OrderDetail, OrderDetailDTO>.NewConfig()
+                .Map(dest => dest.Thumbnail, src => src.Product.DetailImage!.Thumbnail);
+            TypeAdapterConfig<Customer, CustomerDTO>.NewConfig()
+              .Map(dest => dest.Fullname, src => src.FullName)
+              .Map(dest => dest.Phone, src => src.Phone)
+              .Map(dest => dest.CustomerAddress, src => src.CustomerAddress)
+              .Map(dest => dest.Email, src => src.User.Email);
             return item.Adapt<OrderDTO>();
         }
 

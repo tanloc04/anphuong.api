@@ -137,10 +137,8 @@ namespace anphuong.api.Controllers
 
             try
             {
-                // verify token
                 var payload = await _googleAuthService.VerifyGoogleTokenAsync(request.IdToken);
 
-                // validate expiration
                 var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                 if (payload.ExpirationTimeSeconds < now)
                 {
@@ -154,10 +152,8 @@ namespace anphuong.api.Controllers
                 var email = payload.Email;
                 var name = payload.Name;
 
-                // check user exist
                 var user = await _userService.FindByEmailAsync(email);
 
-                // if not exist -> register
                 if (user == null)
                 {
                     var registerDTO = new GoogleRegisterRequestDTO
@@ -170,7 +166,6 @@ namespace anphuong.api.Controllers
                     user = await _userService.GoogleRegisterAsync(registerDTO);
                 }
 
-                // check status
                 if (!user.Status.Equals("ACTIVE"))
                 {
                     return StatusCode(StatusCodes.Status403Forbidden, new ApiResponseDTO<object>
@@ -180,7 +175,6 @@ namespace anphuong.api.Controllers
                     });
                 }
 
-                // create JWT
                 var token = _jwtService.GenerateToken(user.Id.ToString(), user.Email);
 
                 return Ok(new ApiResponseDTO<LoginDTO>

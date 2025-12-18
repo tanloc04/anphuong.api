@@ -9,7 +9,7 @@ namespace anphuong.Core.Interfaces.Services
 
         public Task Delete(int id);
 
-        public Task<(IEnumerable<OrderDTO>, int totalItems)> GetAll(SearchOrderRequestDTO request);
+        public Task<(IEnumerable<OrderDTO> Orders, double TotalPrice, int TotalItems)> GetAll(SearchOrderRequestDTO request);
 
         public Task<OrderDTO> Get(int id);
 

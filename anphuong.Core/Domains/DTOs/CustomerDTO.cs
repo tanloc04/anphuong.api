@@ -7,6 +7,6 @@ namespace anphuong.Core.Domains.DTOs
         public string? Fullname { get; set; }
         public string? Phone { get; set; }
         public string? CustomerAddress { get; set; }
-
+        public string? Email { get; set; }
     }
 }
