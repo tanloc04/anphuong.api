@@ -41,10 +41,10 @@ namespace anphuong.Service
             }
         }
 
-        public async Task<(IEnumerable<CategoryDTO>, int totalItems)> GetAll(SearchCategoryRequestDTO request)
+        public async Task<(IEnumerable<CategoryDTO>, int totalItems)> GetAll(SearchCategoriesRequestDTO request)
         {
             // If request or its components are null, create safe defaults
-            var searchCondition = request?.SearchCondition ?? new SearchCondition();
+            var searchCondition = request?.SearchCondition ?? new SearchCategoriesCondition();
             var pageInfo = request?.PageInfo ?? new PageInfoRequestDTO();
 
             // Start with a base filter that is always true

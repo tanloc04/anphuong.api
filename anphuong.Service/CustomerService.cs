@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using anphuong.Core.Domains.DTOs;
+using anphuong.Core.Domains.DTOs.RequestDTOs.AuthController;
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 using anphuong.Core.Domains.Entities;
 using anphuong.Core.Interfaces.Repositories;
@@ -48,15 +49,13 @@ namespace anphuong.Service
             return (await _customerRepository.GetAllAsync()).Select(c => c.Adapt<CustomerDTO>()).ToList();
         }
 
-        public async Task<(List<CustomerUserDTO>, int totalItems)> GetCustomerUserDTOsAsync(
-            SearchCondition searchCondition,
-            PageInfoRequestDTO pageInfo)
+        public async Task<(List<CustomerUserDTO>, int totalItems)> GetCustomerUserDTOsAsync(SearchUsersRequestDTO request)
         {
             Expression<Func<Customer, bool>> filter = c => true;
 
-            if (!string.IsNullOrEmpty(searchCondition.Keyword))
+            if (!string.IsNullOrEmpty(request.SearchCondition.Keyword))
             {
-                string keyword = searchCondition.Keyword.ToLower();
+                string keyword = request.SearchCondition.Keyword.ToLower();
                 filter = AddFilter(filter, c =>
                     (c.FullName != null && c.FullName.ToLower().Contains(keyword)) ||
                     (c.Phone != null && c.Phone.ToLower().Contains(keyword)) ||
@@ -65,14 +64,14 @@ namespace anphuong.Service
                 );
             }
 
-            if (!string.IsNullOrEmpty(searchCondition.Status))
+            if (!string.IsNullOrEmpty(request.SearchCondition.Status))
             {
-                filter = AddFilter(filter, c => c.User != null && c.User.Status == searchCondition.Status);
+                filter = AddFilter(filter, c => c.User != null && c.User.Status == request.SearchCondition.Status);
             }
 
-            filter = AddFilter(filter, c => c.IsDeleted == searchCondition.IsDeleted);
+            filter = AddFilter(filter, c => c.IsDeleted == request.SearchCondition.IsDeleted);
 
-            var customers = await _customerRepository.GetWithPaginationAsync(pageInfo, filter, includeProperties: "User");
+            var customers = await _customerRepository.GetWithPaginationAsync(request.PageInfo, filter, includeProperties: "User");
 
             int totalItems = await _customerRepository.CountAsync(filter);
 

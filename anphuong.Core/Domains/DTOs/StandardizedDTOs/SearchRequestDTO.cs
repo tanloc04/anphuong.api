@@ -2,17 +2,10 @@
 
 namespace anphuong.Core.Domains.DTOs.StandardizedDTOs
 {
-    public class SearchRequestDTO
+    public class SearchRequestDTO<TCondition>
     {
-        public SearchCondition? SearchCondition { get; set; } = null!;
-
-        public PageInfoRequestDTO PageInfo { get; set; } = new()!;
-    }
-    public class SearchCondition
-    {
-        public string? Keyword { get; set; }
-        public string? Status { get; set; }
-        public bool IsDeleted { get; set; } = false;
+        public TCondition SearchCondition { get; set; } = default!;
+        public PageInfoRequestDTO PageInfo { get; set; } = new();
     }
     public class PageInfoRequestDTO
     {

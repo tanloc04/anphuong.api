@@ -1,4 +1,5 @@
 ﻿using anphuong.Core.Domains.DTOs;
+using anphuong.Core.Domains.DTOs.RequestDTOs.AuthController;
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 using anphuong.Core.Domains.Entities;
 
@@ -11,8 +12,7 @@ namespace anphuong.Core.Interfaces.Services
         public Task<List<CustomerDTO>> GetCustomerDTOs();
 
         public Task<(List<CustomerUserDTO>, int totalItems)> GetCustomerUserDTOsAsync(
-            SearchCondition searchCondition,
-            PageInfoRequestDTO pageInfo);
+            SearchUsersRequestDTO request);
 
         public Task<CustomerDTO> GetCustomerDTO(int id);
 

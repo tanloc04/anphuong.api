@@ -30,7 +30,7 @@ namespace anphuong.api.Controllers
         #region GetAll
         [HttpPost("search")]
         [ProducesResponseType(typeof(ApiResponseDTO<PagingResponseDTO<ProductDTO>>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAll([FromBody] SearchProductRequestDTO request)
+        public async Task<IActionResult> GetAll([FromBody] SearchProductsRequestDTO request)
         {
             var (data, totalItems) = await _productService.GetAll(request);
 

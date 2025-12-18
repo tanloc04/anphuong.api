@@ -1,16 +1,16 @@
 ﻿using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 
-namespace anphuong.Core.Domains.DTOs.RequestDTOs.AuthController
+namespace anphuong.Core.Domains.DTOs.RequestDTOs.Category
 {
-    public class SearchUsersCondition
+    public class SearchCategoriesCondition
     {
         public string? Keyword { get; set; }
         public string? Status { get; set; }
         public bool IsDeleted { get; set; } = false;
     }
 
-    public class SearchUsersRequestDTO
-        : SearchRequestDTO<SearchUsersCondition>
+    public class SearchCategoriesRequestDTO
+        : SearchRequestDTO<SearchCategoriesCondition>
     {
     }
 }

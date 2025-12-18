@@ -127,10 +127,10 @@ namespace anphuong.api.Controllers
             }
 
             // Ensure non-null values for searchCondition and pageInfo
-            var searchCondition = request.SearchCondition ?? new SearchCondition();
+            var searchCondition = request.SearchCondition ?? new SearchUsersCondition();
             var pageInfo = request.PageInfo ?? new PageInfoRequestDTO();
 
-            var (data, totalItems) = await _customerService.GetCustomerUserDTOsAsync(searchCondition, pageInfo);
+            var (data, totalItems) = await _customerService.GetCustomerUserDTOsAsync(request);
 
             var paginatedUsers = _paginationService.GetPagedData(totalItems, data, pageInfo);
             return Ok(new ApiResponseDTO<PagingResponseDTO<CustomerUserDTO>>

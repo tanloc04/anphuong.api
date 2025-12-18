@@ -1,6 +1,7 @@
 ﻿using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Auth;
 using anphuong.Core.Domains.DTOs.RequestDTOs.AuthController;
+using anphuong.Core.Domains.DTOs.RequestDTOs.Product;
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 using anphuong.Core.Domains.Entities;
 
@@ -17,7 +18,7 @@ namespace anphuong.Core.Interfaces.Services
         Task<UserDTO?> FindByIdAsync(int id);
         Task<bool> UpdatePassword(UserDTO user, string password);
         Task<bool> VerifyPassword(UserDTO user, string oldPassword);
-        Task<(List<UserDTO>, int totalItems)> GetUsersAsync(SearchCondition searchCondition, PageInfoRequestDTO pageInfo);
+        Task<(IEnumerable<UserDTO>, int totalItems)> GetUsersAsync(SearchUsersRequestDTO request);
         Task<bool> DeleteUserAsync(int id);
         Task<bool> ActivateUserAsync(int userId);
         Task<User?> CheckRefreshToken(string refreshToken);

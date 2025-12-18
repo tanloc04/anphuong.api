@@ -24,7 +24,7 @@ namespace anphuong.api.Controllers
         #region GetAll
         [HttpPost("search")]
         [ProducesResponseType(typeof(ApiResponseDTO<PagingResponseDTO<CategoryDTO>>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAll([FromBody] SearchCategoryRequestDTO request)
+        public async Task<IActionResult> GetAll([FromBody] SearchCategoriesRequestDTO request)
         {
             var (data, totalItems) = await _categoryService.GetAll(request);
 

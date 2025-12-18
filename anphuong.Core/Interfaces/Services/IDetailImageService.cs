@@ -1,5 +1,6 @@
 ﻿using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.RequestDTOs.DetailImage;
+using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 
 namespace anphuong.Core.Interfaces.Services
 {
@@ -7,7 +8,7 @@ namespace anphuong.Core.Interfaces.Services
     {
         public Task Delete(int id);
 
-        public Task<(IEnumerable<DetailImageDTO>, int totalItems)> GetAll(SearchDetailImageRequestDTO request);
+        public Task<(IEnumerable<DetailImageDTO>, int totalItems)> GetAll(SearchDetailImagesRequestDTO request);
 
         public Task<DetailImageDTO> Get(int id);
 

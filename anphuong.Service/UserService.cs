@@ -3,6 +3,7 @@ using System.Security.Claims;
 using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Auth;
 using anphuong.Core.Domains.DTOs.RequestDTOs.AuthController;
+using anphuong.Core.Domains.DTOs.RequestDTOs.Category;
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 using anphuong.Core.Domains.Entities;
 using anphuong.Core.Domains.Objects;
@@ -10,6 +11,7 @@ using anphuong.Core.Exceptions;
 using anphuong.Core.Interfaces.Repositories;
 using anphuong.Core.Interfaces.Services;
 using anphuong.Core.Interfaces.Services.External;
+using anphuong.Core.Ultilities;
 using Mapster;
 using Microsoft.AspNetCore.Http;
 
@@ -19,7 +21,7 @@ namespace anphuong.Service
     public class UserService : IUserService
     {
 
-        private readonly IUserRepository _userRepository;
+        private readonly IUserRepository _repository;
         private readonly ICustomerRepository _customerRepository;
         private readonly IJwtService _jwtService;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -27,7 +29,7 @@ namespace anphuong.Service
         public UserService(IUserRepository userRepository, ICustomerRepository customerRepository,
             IJwtService jwtService, IHttpContextAccessor httpContextAccessor)
         {
-            _userRepository = userRepository;
+            _repository = userRepository;
             _customerRepository = customerRepository;
             _jwtService = jwtService;
             _httpContextAccessor = httpContextAccessor;
@@ -96,7 +98,7 @@ namespace anphuong.Service
 
         public async Task<User?> AuthenticateUserAsync(string email, string password)
         {
-            var user = await _userRepository.GetAsync(user => user.Email == email);
+            var user = await _repository.GetAsync(user => user.Email == email);
             if (user == null)
             {
                 // User with the given email doesn't exist
@@ -113,13 +115,13 @@ namespace anphuong.Service
 
         public async Task<bool> IsUserExists(string email)
         {
-            var user = await _userRepository.GetAsync(user => user.Email == email);
+            var user = await _repository.GetAsync(user => user.Email == email);
             return user != null;
         }
 
         public async Task<UserDTO?> FindByEmailAsync(string email)
         {
-            var user = await _userRepository.GetAsync(user => user.Email == email);
+            var user = await _repository.GetAsync(user => user.Email == email);
             if (user == null)
             {
                 return null;
@@ -129,19 +131,19 @@ namespace anphuong.Service
 
         public async Task<bool> UpdatePassword(UserDTO userDTO, string password)
         {
-            var user = await _userRepository.GetAsync(userDTO.Id);
+            var user = await _repository.GetAsync(userDTO.Id);
             if (user == null)
             {
                 return false;
             }
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(password); // Update with a hashed password
             user.UpdatedAt = DateTime.Now;
-            return _userRepository.Update(user);
+            return _repository.Update(user);
         }
 
         public async Task<UserDTO?> FindByIdAsync(int id)
         {
-            var user = await _userRepository.GetAsync(id);
+            var user = await _repository.GetAsync(id);
             if (user == null)
             {
                 return null;
@@ -151,7 +153,7 @@ namespace anphuong.Service
 
         public async Task<bool> VerifyPassword(UserDTO userDTO, string oldPassword)
         {
-            var user = await _userRepository.GetAsync(userDTO.Id);
+            var user = await _repository.GetAsync(userDTO.Id);
             if (user == null)
             {
                 return false;
@@ -159,45 +161,57 @@ namespace anphuong.Service
             return BCrypt.Net.BCrypt.Verify(oldPassword, user.PasswordHash);
         }
 
-        public async Task<(List<UserDTO>, int totalItems)> GetUsersAsync(SearchCondition searchCondition, PageInfoRequestDTO pageInfo)
+        //public async Task<(List<UserDTO>, int totalItems)> GetUsersAsync(SearchUsersRequestDTO request)
+        //{
+        //    // Start with a base filter that is always true
+        //    Expression<Func<User, bool>> filter = u => true;
+
+        //    // Apply filters dynamically
+        //    if (!string.IsNullOrEmpty(SearchUsersCondition.Keyword))
+        //    {
+        //        string keyword = SearchUsersCondition.Keyword.ToLower();
+        //        filter = AddFilter(filter, u =>
+        //            (u.Username != null && u.Username.ToLower().Contains(keyword)) ||
+        //            u.Email.ToLower().Contains(keyword));
+        //    }
+
+        //    filter = AddFilter(filter, u => u.Status == searchCondition.Status && u.IsDeleted == searchCondition.IsDeleted);
+
+        //    var users = await _repository.GetWithPaginationAsync(pageInfo, filter);
+        //    int totalItems = await _repository.CountAsync(filter);
+
+        //    List<UserDTO> userDTOs = users.Select(user => user.Adapt<UserDTO>()).ToList();
+
+        //    return (userDTOs, totalItems);
+        //}
+
+        public async Task<(IEnumerable<UserDTO>, int totalItems)> GetUsersAsync(SearchUsersRequestDTO request)
         {
+            // If request or its components are null, create safe defaults
+            var searchCondition = request?.SearchCondition ?? new SearchUsersCondition();
+            var pageInfo = request?.PageInfo ?? new PageInfoRequestDTO();
+
             // Start with a base filter that is always true
             Expression<Func<User, bool>> filter = u => true;
 
-            // Apply filters dynamically
+            // Only apply keyword filter if keyword exists
             if (!string.IsNullOrEmpty(searchCondition.Keyword))
             {
-                string keyword = searchCondition.Keyword.ToLower();
-                filter = AddFilter(filter, u =>
-                    (u.Username != null && u.Username.ToLower().Contains(keyword)) ||
-                    u.Email.ToLower().Contains(keyword));
+                var key = searchCondition.Keyword.ToLower();
+                filter = ExpressionUtils.AddFilter(filter, x =>
+                    x.Username.ToLower().Contains(key) ||
+                    x.Email.ToLower().Contains(key)
+                );
             }
 
-            filter = AddFilter(filter, u => u.Status == searchCondition.Status && u.IsDeleted == searchCondition.IsDeleted);
+            // Only apply deletion filter if specified (default: return non-deleted)
+            filter = ExpressionUtils.AddFilter(filter, u => u.IsDeleted == searchCondition.IsDeleted);
 
-            var users = await _userRepository.GetWithPaginationAsync(pageInfo, filter);
-            int totalItems = await _userRepository.CountAsync(filter);
+            // Query paginated products
+            var items = await _repository.GetWithPaginationAsync(pageInfo, filter);
+            var totalItems = await _repository.CountAsync(filter);
 
-            List<UserDTO> userDTOs = users.Select(user => user.Adapt<UserDTO>()).ToList();
-
-            return (userDTOs, totalItems);
-        }
-
-        private Expression<Func<User, bool>> AddFilter(
-            Expression<Func<User, bool>> existingFilter,
-            Expression<Func<User, bool>> newFilter)
-        {
-            var parameter = Expression.Parameter(typeof(User), "u");
-
-            var combined = Expression.Lambda<Func<User, bool>>(
-                Expression.AndAlso(
-                    Expression.Invoke(existingFilter, parameter),
-                    Expression.Invoke(newFilter, parameter)
-                ),
-                parameter
-            );
-
-            return combined;
+            return (items.Adapt<IEnumerable<UserDTO>>(), totalItems);
         }
 
         public async Task<bool> DeleteUserAsync(int id)
@@ -210,23 +224,23 @@ namespace anphuong.Service
             }
             if (parsedId == id) throw new BusinessException(ErrorDetails.CAN_NOT_DELETE_YOURSELF);
 
-            var user = await _userRepository.GetAsync(id);
+            var user = await _repository.GetAsync(id);
             if (user == null) return false; // User not found
             user.IsDeleted = true;
-            return _userRepository.Update(user);
+            return _repository.Update(user);
         }
 
         public async Task<bool> ActivateUserAsync(int id)
         {
-            return await _userRepository.ActivateUserAsync(id);
+            return await _repository.ActivateUserAsync(id);
         }
         public async Task<User?> CheckRefreshToken(string refreshToken)
         {
-            return await _userRepository.CheckRefreshToken(refreshToken);
+            return await _repository.CheckRefreshToken(refreshToken);
         }
         public async Task<bool> Update(User user)
         {
-            return _userRepository.Update(user);
+            return _repository.Update(user);
         }
     }
 }
