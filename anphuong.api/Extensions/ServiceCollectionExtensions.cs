@@ -48,6 +48,9 @@ namespace anphuong.api.Extensions
             //----------------Inventory-----------------
             services.AddScoped<IInventoryRepository, InventoryRepository>();
 
+            //----------------Color-----------------
+            services.AddScoped<IColorRepository, ColorRepository>();
+            services.AddScoped<IColorService, ColorService>();
         }
     }
 }
