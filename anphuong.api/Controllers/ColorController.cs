@@ -2,7 +2,6 @@
 using anphuong.Core.Domains.DTOs.API;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Color;
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
-using anphuong.Core.Domains.Entities;
 using anphuong.Core.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

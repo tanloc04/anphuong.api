@@ -51,6 +51,10 @@ namespace anphuong.api.Extensions
             //----------------Color-----------------
             services.AddScoped<IColorRepository, ColorRepository>();
             services.AddScoped<IColorService, ColorService>();
+
+            //----------------Variant-----------------
+            services.AddScoped<IVariantRepository, VariantRepository>();
+            services.AddScoped<IVariantService, VariantService>();
         }
     }
 }
