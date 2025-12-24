@@ -45,8 +45,8 @@ namespace anphuong.Core.Ultilities
                Trạng thái: {status}<br/>
                Ngày giao hàng dự kiến: {order.ShippingDate:yyyy-MM-dd}</p>";
 
-                // Table header
-                string tableHeader = @"
+            // Table header
+            string tableHeader = @"
             <table style='width:100%;border-collapse:collapse;'>
                 <thead>
                     <tr>
@@ -59,16 +59,16 @@ namespace anphuong.Core.Ultilities
                 </thead>
                 <tbody>";
 
-                // Table rows
-                string tableRows = "";
-                foreach (var item in order.OrderDetails)
-                {
-                    string imageUrl = !string.IsNullOrEmpty(item.Thumbnail)
-                        ? item.Thumbnail
-                        : "https://via.placeholder.com/80";
-                    double price = item.Quantity > 0 ? item.SubTotalPrice / item.Quantity : 0;
+            // Table rows
+            string tableRows = "";
+            foreach (var item in order.OrderDetails)
+            {
+                string imageUrl = !string.IsNullOrEmpty(item.Thumbnail)
+                    ? item.Thumbnail
+                    : "https://via.placeholder.com/80";
+                double price = item.Quantity > 0 ? item.SubTotalPrice / item.Quantity : 0;
 
-                    tableRows += $@"
+                tableRows += $@"
                 <tr>
                     <td style='border:1px solid #ddd;padding:8px;text-align:center;'>
                         <img src='{imageUrl}' width='80' height='80'/>
@@ -78,10 +78,10 @@ namespace anphuong.Core.Ultilities
                     <td style='border:1px solid #ddd;padding:8px;text-align:center;'>{item.Quantity}</td>
                     <td style='border:1px solid #ddd;padding:8px;text-align:right;'>{item.SubTotalPrice:N0}</td>
                 </tr>";
-                }
+            }
 
-                // Total row
-                tableRows += $@"
+            // Total row
+            tableRows += $@"
             <tr>
                 <td colspan='4' style='border:1px solid #ddd;padding:8px;text-align:right;font-weight:bold;'>Giá Trị đơn hàng</td>
                 <td style='border:1px solid #ddd;padding:8px;text-align:right;font-weight:bold;'>{order.TotalPrice:N0}</td>
@@ -92,14 +92,14 @@ namespace anphuong.Core.Ultilities
             return header + tableHeader + tableRows + tableFooter;
         }
 
-        public string GenerateRevenueReportHtml(IEnumerable<OrderDTO> orders, 
+        public string GenerateRevenueReportHtml(IEnumerable<OrderDTO> orders,
             DateTime? fromDate, DateTime? toDate, double? totalRevenue)
         {
             string header = $@"
             <h2>Báo Cáo Doanh Thu</h2>
             <p>Từ Ngày: {fromDate:dd-MM-yyyy} &nbsp;&nbsp; Đến Ngày: {toDate:dd-MM-yyyy}</p>";
 
-                string tableHeader = @"
+            string tableHeader = @"
             <table style='width:100%; border-collapse: collapse;'>
                 <thead>
                     <tr style='background-color:#f2f2f2;'>
@@ -111,28 +111,28 @@ namespace anphuong.Core.Ultilities
                 </thead>
                 <tbody>";
 
-                string tableRows = "";
+            string tableRows = "";
 
-                foreach (var order in orders)
+            foreach (var order in orders)
+            {
+                string statusText = order.Status switch
                 {
-                    string statusText = order.Status switch
-                    {
-                        0 => "Bị hủy",
-                        1 => "Đang xử lý",
-                        2 => "Hoàn thành",
-                        _ => "Đang xử lý"
-                    };
+                    0 => "Bị hủy",
+                    1 => "Đang xử lý",
+                    2 => "Hoàn thành",
+                    _ => "Đang xử lý"
+                };
 
-                    tableRows += $@"
+                tableRows += $@"
                 <tr>
                     <td style='border:1px solid #ddd; padding:8px; text-align:center'>{statusText}</td>
                     <td style='border:1px solid #ddd; padding:8px; text-align:right;'>{order.TotalPrice:N0}</td>
                     <td style='border:1px solid #ddd; padding:8px; text-align:center'>{order.CreatedAt:dd-MM-yyyy HH:mm}</td>
                     <td style='border:1px solid #ddd; padding:8px; text-align:center'>{order.UpdatedAt:dd-MM-yyyy HH:mm}</td>
                 </tr>";
-                }
+            }
 
-                tableRows += $@"
+            tableRows += $@"
             <tr style='font-weight:bold; background-color:#f9f9f9;'>
                 <td colspan='1' style='border:1px solid #ddd; padding:8px; text-align:center;'>Tổng Doanh Thu</td>
                 <td colspan='3' style='border:1px solid #ddd; padding:8px; text-align:center;'>{totalRevenue:N0}</td>

@@ -72,7 +72,7 @@ namespace anphuong.api.Controllers
         #endregion
 
         #region Create        
-        //[Authorize(Policy = "AllowSpecificEmail")]
+        [Authorize(Policy = "AllowSpecificEmail")]
         [HttpPost("create")]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
@@ -101,7 +101,7 @@ namespace anphuong.api.Controllers
         #endregion
 
         #region Update
-        //[Authorize(Policy = "AllowSpecificEmail")]
+        [Authorize(Policy = "AllowSpecificEmail")]
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]

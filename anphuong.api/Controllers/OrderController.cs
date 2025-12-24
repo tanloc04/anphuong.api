@@ -31,7 +31,7 @@ namespace anphuong.api.Controllers
         [ProducesResponseType(typeof(ApiResponseDTO<PagingResponseDTO<OrderDTO>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll([FromBody] SearchOrderRequestDTO request)
         {
-            var (data,totalPrice, totalItems) = await _service.GetAll(request);
+            var (data, totalPrice, totalItems) = await _service.GetAll(request);
 
             var paginatedItems = _paginationService.GetPagedData(totalItems, data, request.PageInfo);
 
@@ -159,7 +159,7 @@ namespace anphuong.api.Controllers
                 var generator = new StringGeneratorUtils();
                 string htmlBody = generator.GenerateOrderEmailHtml(item);
 
-                await _emailService.SendEmailAsync(item.Customer?.Email ?? 
+                await _emailService.SendEmailAsync(item.Customer?.Email ??
                     "customer@example.com",
                     "Hóa Đơn Nội Thất An Phương",
                     htmlBody);
@@ -195,10 +195,10 @@ namespace anphuong.api.Controllers
             try
             {
                 var (data, totalPrice, totalItems) = await _service.GetAll(request);
-                
+
                 var generator = new StringGeneratorUtils();
-                string htmlBody = generator.GenerateRevenueReportHtml(data, 
-                    request.SearchCondition.FromDate, 
+                string htmlBody = generator.GenerateRevenueReportHtml(data,
+                    request.SearchCondition.FromDate,
                     request.SearchCondition.ToDate, totalPrice);
 
                 await _emailService.SendEmailAsync(
