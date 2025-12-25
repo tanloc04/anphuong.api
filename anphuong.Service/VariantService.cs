@@ -49,6 +49,12 @@ namespace anphuong.Service
             // Start with a base filter that is always true
             Expression<Func<Variant, bool>> filter = u => true;
 
+            // Only apply keyword filter if keyword exists
+            if (searchCondition.ProductId.HasValue)
+            {
+                var searchId = searchCondition.ProductId.Value;
+                filter = ExpressionUtils.AddFilter(filter, x => x.ProductId == searchId);
+            }
             // Only apply deletion filter if specified (default: return non-deleted)
             filter = ExpressionUtils.AddFilter(filter, u => u.IsDeleted == searchCondition.IsDeleted);
 
