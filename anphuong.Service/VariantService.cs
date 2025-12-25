@@ -59,7 +59,7 @@ namespace anphuong.Service
             filter = ExpressionUtils.AddFilter(filter, u => u.IsDeleted == searchCondition.IsDeleted);
 
             // Query paginated 
-            var items = await _repository.GetWithPaginationAsync(pageInfo, filter);
+            var items = await _repository.GetWithPaginationAsync(pageInfo, filter, "Color,Product");
             var totalItems = await _repository.CountAsync(filter);
 
             return (items.Adapt<IEnumerable<VariantDTO>>(), totalItems);

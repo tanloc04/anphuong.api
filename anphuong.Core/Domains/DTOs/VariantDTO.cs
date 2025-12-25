@@ -1,4 +1,5 @@
-﻿using anphuong.Core.Domains.DTOs.StandardizedDTOs;
+﻿using anphuong.Core.Domains.DTOs.ResponseDTOs.Color;
+using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 using anphuong.Core.Domains.Entities;
 
 namespace anphuong.Core.Domains.DTOs
@@ -7,7 +8,7 @@ namespace anphuong.Core.Domains.DTOs
     {
         public int ColorId { get; set; }
         public int ProductId { get; set; }
-        public Color Color { get; set; }
-        public ProductDTO Product { get; set; }
+        public ColorNameDTO Color { get; set; }
+        //public ProductDTO Product { get; set; }
     }
 }

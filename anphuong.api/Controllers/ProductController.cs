@@ -1,6 +1,7 @@
 ﻿using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.API;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Products;
+using anphuong.Core.Domains.DTOs.ResponseDTOs.Product;
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 using anphuong.Core.Exceptions;
 using anphuong.Core.Interfaces.Services;
@@ -28,7 +29,7 @@ namespace anphuong.api.Controllers
         }
         #region GetAll
         [HttpPost("search")]
-        [ProducesResponseType(typeof(ApiResponseDTO<PagingResponseDTO<ProductDTO>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponseDTO<PagingResponseDTO<ProductListResponseDTO>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll([FromBody] SearchProductsRequestDTO request)
         {
             var (data, totalItems) = await _productService.GetAll(request);
