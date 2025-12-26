@@ -215,19 +215,24 @@ namespace anphuong.api.Controllers
             try
             {
                 var (data, totalPrice, totalItems) = await _service.GetAll(request);
-
-                var generator = new StringGeneratorUtils();
-                string htmlBody = generator.GenerateRevenueReportHtml(data,
-                    request.SearchCondition.FromDate,
-                    request.SearchCondition.ToDate, totalPrice);
+                //var generator = new StringGeneratorUtils();
+                //string htmlBody = generator.GenerateRevenueReportHtml(data,
+                //    request.SearchCondition.FromDate,
+                //    request.SearchCondition.ToDate, totalPrice);
                 //await _emailService.SendEmailAsync(
                 //    "tanloc040403@gmail.com",
                 //    "Báo Cáo Doanh Thu Nội Thất An Phương",
                 //    htmlBody);
-                return Ok(new ApiResponseDTO<IEnumerable<OrderDTO>>
+                var result = new
+                {
+                    Orders = data,
+                    TotalPrice = totalPrice,
+                    TotalItems = totalItems
+                };
+                return Ok(new ApiResponseDTO<object>
                 {
                     Success = true,
-                    Data = data
+                    Data = result, 
                 });
             }
             catch (BusinessException ex)
