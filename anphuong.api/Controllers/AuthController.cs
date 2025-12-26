@@ -140,7 +140,7 @@ namespace anphuong.api.Controllers
             try
             {
                 var payload = await _googleAuthService.VerifyGoogleTokenAsync(request.IdToken);
-
+                string refreshToken;
                 var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                 if (payload.ExpirationTimeSeconds < now)
                 {
@@ -166,8 +166,7 @@ namespace anphuong.api.Controllers
                     };
 
                     user = await _userService.GoogleRegisterAsync(registerDTO);
-
-                    var refreshToken = Guid.NewGuid().ToString();
+                    refreshToken = Guid.NewGuid().ToString();
                     user.RefreshToken = refreshToken;
                     user.RefreshTokenExpiry = DateTime.Now.AddDays(Consts.REFRESHTOKEN_EXPIRED_TIME);
                     await _userService.Update(user.Adapt<User>());
@@ -187,7 +186,11 @@ namespace anphuong.api.Controllers
                 return Ok(new ApiResponseDTO<LoginDTO>
                 {
                     Success = true,
-                    Data = new LoginDTO { AccessToken = token }
+                    Data = new LoginDTO 
+                    { 
+                        AccessToken = token, 
+                        RefreshToken = user.RefreshToken
+                    }
                 });
             }
             catch (TokenExpiredException)
