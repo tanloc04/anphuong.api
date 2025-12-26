@@ -185,7 +185,7 @@ namespace anphuong.api.Controllers
 
         #region Revenue Report      
         //[Authorize(Policy = "AllowSpecificEmail")]
-        [HttpPost("revune")]
+        [HttpPost("revenue")]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status404NotFound)]
