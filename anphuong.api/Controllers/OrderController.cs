@@ -192,6 +192,26 @@ namespace anphuong.api.Controllers
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> RevuneReport([FromBody] SearchOrderRequestDTO request)
         {
+            //try
+            //{
+            //    var (data, totalPrice, totalItems) = await _service.GetAll(request);
+
+            //    var generator = new StringGeneratorUtils();
+            //    string htmlBody = generator.GenerateRevenueReportHtml(data,
+            //        request.SearchCondition.FromDate,
+            //        request.SearchCondition.ToDate, totalPrice);
+
+            //    await _emailService.SendEmailAsync(
+            //        "tanloc040403@gmail.com",
+            //        "Báo Cáo Doanh Thu Nội Thất An Phương",
+            //        htmlBody);
+
+            //    return Ok(new ApiResponseDTO<OrderDTO>
+            //    {
+            //        Success = true,
+            //        Message = "An email have been sent!"
+            //    });
+            //}            
             try
             {
                 var (data, totalPrice, totalItems) = await _service.GetAll(request);
@@ -200,16 +220,14 @@ namespace anphuong.api.Controllers
                 string htmlBody = generator.GenerateRevenueReportHtml(data,
                     request.SearchCondition.FromDate,
                     request.SearchCondition.ToDate, totalPrice);
-
-                await _emailService.SendEmailAsync(
-                    "tanloc040403@gmail.com",
-                    "Báo Cáo Doanh Thu Nội Thất An Phương",
-                    htmlBody);
-
-                return Ok(new ApiResponseDTO<OrderDTO>
+                //await _emailService.SendEmailAsync(
+                //    "tanloc040403@gmail.com",
+                //    "Báo Cáo Doanh Thu Nội Thất An Phương",
+                //    htmlBody);
+                return Ok(new ApiResponseDTO<IEnumerable<OrderDTO>>
                 {
                     Success = true,
-                    Message = "An email have been sent!"
+                    Data = data
                 });
             }
             catch (BusinessException ex)
