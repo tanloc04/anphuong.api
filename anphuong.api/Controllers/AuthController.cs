@@ -165,11 +165,9 @@ namespace anphuong.api.Controllers
                         Username = StringGeneratorUtils.GenerateRandomUsername(),
                     };
 
-                    user = await _userService.GoogleRegisterAsync(registerDTO);
-                    refreshToken = Guid.NewGuid().ToString();
-                    user.RefreshToken = refreshToken;
-                    user.RefreshTokenExpiry = DateTime.Now.AddDays(Consts.REFRESHTOKEN_EXPIRED_TIME);
-                    await _userService.Update(user.Adapt<User>());
+                    var userDTO = await _userService.GoogleRegisterAsync(registerDTO);
+                    user = userDTO.Adapt<User>();
+                    
                 }
 
                 if (!user.Status.Equals("ACTIVE"))
@@ -182,7 +180,11 @@ namespace anphuong.api.Controllers
                 }
 
                 var token = _jwtService.GenerateToken(user.Id.ToString(), user.Email);
+                refreshToken = Guid.NewGuid().ToString();
+                user.RefreshToken = refreshToken;
+                user.RefreshTokenExpiry = DateTime.Now.AddDays(Consts.REFRESHTOKEN_EXPIRED_TIME);
 
+                await _userService.Update(user);
                 return Ok(new ApiResponseDTO<LoginDTO>
                 {
                     Success = true,

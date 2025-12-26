@@ -118,14 +118,14 @@ namespace anphuong.Service
             return user != null;
         }
 
-        public async Task<UserDTO?> FindByEmailAsync(string email)
+        public async Task<User?> FindByEmailAsync(string email)
         {
             var user = await _repository.GetAsync(user => user.Email == email);
             if (user == null)
             {
                 return null;
             }
-            return user.Adapt<UserDTO>();
+            return user;
         }
 
         public async Task<bool> UpdatePassword(UserDTO userDTO, string password)

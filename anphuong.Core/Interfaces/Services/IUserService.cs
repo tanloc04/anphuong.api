@@ -12,7 +12,7 @@ namespace anphuong.Core.Interfaces.Services
         Task TestRegisterAsync(RegisterRequestDTO requestDTO);
         Task<UserDTO> GoogleRegisterAsync(GoogleRegisterRequestDTO requestDTO);
         Task<User?> AuthenticateUserAsync(string email, string password);
-        Task<UserDTO?> FindByEmailAsync(string email);
+        Task<User?> FindByEmailAsync(string email);
         Task<UserDTO?> FindByIdAsync(int id);
         Task<bool> UpdatePassword(UserDTO user, string password);
         Task<bool> VerifyPassword(UserDTO user, string oldPassword);
