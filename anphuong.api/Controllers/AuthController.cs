@@ -165,8 +165,7 @@ namespace anphuong.api.Controllers
                         Username = StringGeneratorUtils.GenerateRandomUsername(),
                     };
 
-                    var userDTO = await _userService.GoogleRegisterAsync(registerDTO);
-                    user = userDTO.Adapt<User>();
+                    user = await _userService.GoogleRegisterAsync(registerDTO);
                     
                 }
 
