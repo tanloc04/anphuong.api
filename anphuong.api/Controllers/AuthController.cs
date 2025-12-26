@@ -4,9 +4,11 @@ using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.API;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Auth;
 using anphuong.Core.Domains.DTOs.RequestDTOs.AuthController;
+using anphuong.Core.Domains.Entities;
 using anphuong.Core.Interfaces.Services;
 using anphuong.Core.Interfaces.Services.External;
 using anphuong.Core.Ultilities;
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using static anphuong.Core.Exceptions.GoogleException;
@@ -164,6 +166,11 @@ namespace anphuong.api.Controllers
                     };
 
                     user = await _userService.GoogleRegisterAsync(registerDTO);
+
+                    var refreshToken = Guid.NewGuid().ToString();
+                    user.RefreshToken = refreshToken;
+                    user.RefreshTokenExpiry = DateTime.Now.AddDays(Consts.REFRESHTOKEN_EXPIRED_TIME);
+                    await _userService.Update(user.Adapt<User>());
                 }
 
                 if (!user.Status.Equals("ACTIVE"))

@@ -13,5 +13,7 @@ namespace anphuong.Core.Domains.DTOs
         public string? Email { get; set; }
         public string? Username { get; set; }
         public string? Status { get; set; }
+        public string? RefreshToken { get; set; }
+        public DateTime? RefreshTokenExpiry { get; set; }
     }
 }
