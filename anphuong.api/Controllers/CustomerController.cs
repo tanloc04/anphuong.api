@@ -67,24 +67,35 @@ namespace anphuong.api.Controllers
                     Message = "Email already exists"
                 });
             }
-
-            var id = await _userService.RegisterAsync(registerRequest);
-            var baseConfirmAccountEndpoint = Environment.GetEnvironmentVariable("CONFIRM_ACCOUNT_ENDPOINT")
-            ?? throw new InvalidOperationException("CONFIRM_ACCOUNT_ENDPOINT environment variable is not set.");
-
-            string confirmAccountEndpoint = baseConfirmAccountEndpoint + id;
-
-            await _emailService.SendEmailAsync(
-                registerRequest.Email,
-                "Confirm Your An Phuong Account",
-                "Click here to confirm your account: " + confirmAccountEndpoint
-            );
-
-            return StatusCode(StatusCodes.Status201Created, new ApiResponseDTO<object>
+            try
             {
-                Success = true,
-                Message = "Email have sent to your"
-            });
+                var id = await _userService.RegisterAsync(registerRequest);
+                var baseConfirmAccountEndpoint = Environment.GetEnvironmentVariable("CONFIRM_ACCOUNT_ENDPOINT")
+                ?? throw new InvalidOperationException("CONFIRM_ACCOUNT_ENDPOINT environment variable is not set.");
+
+                string confirmAccountEndpoint = baseConfirmAccountEndpoint + id;
+
+                await _emailService.SendEmailAsync(
+                    registerRequest.Email,
+                    "Confirm Your An Phuong Account",
+                    "Click here to confirm your account: " + confirmAccountEndpoint
+                );
+
+                return StatusCode(StatusCodes.Status201Created, new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Message = "Email have sent to your"
+                });
+            }
+            catch (Exception ex) 
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Message = ex.ToString()
+                });
+            }
+
         }
         #endregion
 
