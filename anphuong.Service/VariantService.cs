@@ -79,48 +79,9 @@ namespace anphuong.Service
 
             bool isChanged = false;
 
-            // Reference-type (string) helper
-            bool SetIfChanged<T>(T? newValue, Func<T?> getter, Action<T?> setter)
-            {
-                var oldValue = getter();
-                if (newValue != null && !Equals(oldValue, newValue))
-                {
-                    setter(newValue);
-                    return true;
-                }
-                return false;
-            }
-
-            // Non-nullable value-type helper (for product.Price, etc.)
-            bool SetIfChangedValue<T>(T? newValue, Func<T> getter, Action<T> setter) where T : struct
-            {
-                if (newValue.HasValue && !EqualityComparer<T>.Default.Equals(getter(), newValue.Value))
-                {
-                    setter(newValue.Value);
-                    return true;
-                }
-                return false;
-            }
-
-            // Nullable-target value-type helper (for product.DetailImageId, product.CategoryId, product.VariationId)
-            bool SetIfChangedNullableValue<T>(T? newValue, Func<T?> getter, Action<T?> setter) where T : struct
-            {
-                var oldValue = getter();
-                if (newValue.HasValue)
-                {
-                    // update if old is null or different
-                    if (!oldValue.HasValue || !EqualityComparer<T>.Default.Equals(oldValue.Value, newValue.Value))
-                    {
-                        setter(newValue); // set nullable
-                        return true;
-                    }
-                }
-                return false;
-            }
-
             // Apply updates
-            isChanged |= SetIfChangedValue(request.ProductId, () => item.ProductId, i => item.ProductId = i);
-            isChanged |= SetIfChangedValue(request.ColorId, () => item.ColorId, i => item.ColorId = i);
+            isChanged |= GenericHelperUtils.SetIfChangedValue(request.ProductId, () => item.ProductId, i => item.ProductId = i);
+            isChanged |= GenericHelperUtils.SetIfChangedValue(request.ColorId, () => item.ColorId, i => item.ColorId = i);
             if (isChanged)
             {
                 item.UpdatedAt = DateTime.UtcNow;

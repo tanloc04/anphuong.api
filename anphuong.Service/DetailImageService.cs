@@ -67,51 +67,12 @@ namespace anphuong.Service
 
             bool isChanged = false;
 
-            // Reference-type (string) helper
-            bool SetIfChanged<T>(T? newValue, Func<T?> getter, Action<T?> setter)
-            {
-                var oldValue = getter();
-                if (newValue != null && !Equals(oldValue, newValue))
-                {
-                    setter(newValue);
-                    return true;
-                }
-                return false;
-            }
-
-            // Non-nullable value-type helper (for product.Price, etc.)
-            bool SetIfChangedValue<T>(T? newValue, Func<T> getter, Action<T> setter) where T : struct
-            {
-                if (newValue.HasValue && !EqualityComparer<T>.Default.Equals(getter(), newValue.Value))
-                {
-                    setter(newValue.Value);
-                    return true;
-                }
-                return false;
-            }
-
-            // Nullable-target value-type helper (for product.DetailImageId, product.CategoryId, product.VariationId)
-            bool SetIfChangedNullableValue<T>(T? newValue, Func<T?> getter, Action<T?> setter) where T : struct
-            {
-                var oldValue = getter();
-                if (newValue.HasValue)
-                {
-                    // update if old is null or different
-                    if (!oldValue.HasValue || !EqualityComparer<T>.Default.Equals(oldValue.Value, newValue.Value))
-                    {
-                        setter(newValue); // set nullable
-                        return true;
-                    }
-                }
-                return false;
-            }
-
             // Apply updates
-            isChanged |= SetIfChanged(request.Thumbnail, () => item.Thumbnail, i => item.Thumbnail = i);
-            isChanged |= SetIfChanged(request.Image1, () => item.Image1, i => item.Image1 = i);
-            isChanged |= SetIfChanged(request.Image2, () => item.Image2, i => item.Image2 = i);
-            isChanged |= SetIfChanged(request.Image3, () => item.Image3, i => item.Image3 = i);
-            isChanged |= SetIfChanged(request.Image4, () => item.Image4, i => item.Image4 = i);
+            isChanged |= GenericHelperUtils.SetIfChanged(request.Thumbnail, () => item.Thumbnail, i => item.Thumbnail = i);
+            isChanged |= GenericHelperUtils.SetIfChanged(request.Image1, () => item.Image1, i => item.Image1 = i);
+            isChanged |= GenericHelperUtils.SetIfChanged(request.Image2, () => item.Image2, i => item.Image2 = i);
+            isChanged |= GenericHelperUtils.SetIfChanged(request.Image3, () => item.Image3, i => item.Image3 = i);
+            isChanged |= GenericHelperUtils.SetIfChanged(request.Image4, () => item.Image4, i => item.Image4 = i);
             if (isChanged)
             {
                 item.UpdatedAt = DateTime.UtcNow;

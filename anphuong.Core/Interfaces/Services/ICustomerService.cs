@@ -1,5 +1,6 @@
 ﻿using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.RequestDTOs.AuthController;
+using anphuong.Core.Domains.DTOs.RequestDTOs.Customer;
 using anphuong.Core.Domains.Entities;
 
 namespace anphuong.Core.Interfaces.Services
@@ -16,5 +17,9 @@ namespace anphuong.Core.Interfaces.Services
         public Task<CustomerDTO> GetCustomerDTO(int id);
 
         public Task<CustomerUserDTO?> GetCustomerUserDTO(int id);
+
+        public Task<CustomerDTO> Update(int id, UpdateCustomerRequestDTO request);
+
+        public Task Delete(int id);
     }
 }
