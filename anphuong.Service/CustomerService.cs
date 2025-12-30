@@ -1,21 +1,25 @@
 ﻿using System.Linq.Expressions;
 using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.RequestDTOs.AuthController;
+using anphuong.Core.Domains.DTOs.RequestDTOs.Customer;
 using anphuong.Core.Domains.Entities;
+using anphuong.Core.Domains.Objects;
+using anphuong.Core.Exceptions;
 using anphuong.Core.Interfaces.Repositories;
 using anphuong.Core.Interfaces.Services;
+using anphuong.Core.Ultilities;
 using Mapster;
 
 namespace anphuong.Service
 {
     public class CustomerService : ICustomerService
     {
-        private readonly ICustomerRepository _customerRepository;
+        private readonly ICustomerRepository _repository;
         private readonly IUserRepository _userRepository;
-        public CustomerService(ICustomerRepository customerRepository,
+        public CustomerService(ICustomerRepository repository,
             IUserRepository userRepository)
         {
-            _customerRepository = customerRepository;
+            _repository = repository;
             _userRepository = userRepository;
         }
 
@@ -38,14 +42,14 @@ namespace anphuong.Service
         public async Task<Customer> Create(CustomerDTO customerDTO)
         {
             var customerEntity = customerDTO.Adapt<Customer>();
-            await _customerRepository.AddAsync(customerEntity);
+            await _repository.AddAsync(customerEntity);
 
             return customerEntity;
         }
 
         public async Task<List<CustomerDTO>> GetCustomerDTOs()
         {
-            return (await _customerRepository.GetAllAsync()).Select(c => c.Adapt<CustomerDTO>()).ToList();
+            return (await _repository.GetAllAsync()).Select(c => c.Adapt<CustomerDTO>()).ToList();
         }
 
         public async Task<(List<CustomerUserDTO>, int totalItems)> GetCustomerUserDTOsAsync(SearchUsersRequestDTO request)
@@ -70,9 +74,9 @@ namespace anphuong.Service
 
             filter = AddFilter(filter, c => c.IsDeleted == request.SearchCondition.IsDeleted);
 
-            var customers = await _customerRepository.GetWithPaginationAsync(request.PageInfo, filter, includeProperties: "User");
+            var customers = await _repository.GetWithPaginationAsync(request.PageInfo, filter, includeProperties: "User");
 
-            int totalItems = await _customerRepository.CountAsync(filter);
+            int totalItems = await _repository.CountAsync(filter);
 
             var customerDTOs = customers.Select(c => new CustomerUserDTO
             {
@@ -94,7 +98,7 @@ namespace anphuong.Service
 
         public async Task<CustomerDTO> GetCustomerDTO(int id)
         {
-            var customer = await _customerRepository.GetAsync(id);
+            var customer = await _repository.GetAsync(id);
 
             if (customer == null)
                 return null!;
@@ -104,7 +108,7 @@ namespace anphuong.Service
 
         public async Task<CustomerUserDTO?> GetCustomerUserDTO(int id)
         {
-            var customer = await _customerRepository.GetAsync(id, includeProperties: "User");
+            var customer = await _repository.GetAsync(id, includeProperties: "User");
 
             if (customer == null) return null;
 
@@ -124,5 +128,39 @@ namespace anphuong.Service
 
             return dto;
         }
-    }
+        public async Task<CustomerDTO> Update(int id, UpdateCustomerRequestDTO request)
+        {
+            var item = await _repository.GetAsync(id) 
+                ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
+
+            bool isChanged = false;
+        
+            // Apply updates
+            isChanged |= GenericHelperUtils.SetIfChanged(request.Fullname, () => item.FullName, i => item.FullName = i);
+            isChanged |= GenericHelperUtils.SetIfChanged(request.Phone, () => item.Phone, i => item.Phone = i);
+            isChanged |= GenericHelperUtils.SetIfChanged(request.CustomerAddress, () => item.CustomerAddress, i => item.CustomerAddress = i);
+            if (isChanged)
+            {
+                item.UpdatedAt = DateTime.UtcNow;
+                if (!_repository.Update(item))
+                    throw new BusinessException(ErrorDetails.DEFAULT);
+            }
+            var itemDTO = item.Adapt<CustomerDTO>();
+            return itemDTO;
+        }
+        public async Task Delete(int id)
+        {
+            var customer = await _repository.GetAsync(id) ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
+            var user = await _userRepository.GetAsync(customer.User.Id);
+            customer.IsDeleted = true;
+            customer.UpdatedAt = DateTime.Now;
+            user.IsDeleted = true;
+            user.UpdatedAt = DateTime.Now;  
+
+            if (!_repository.Update(customer) && !_userRepository.Update(user))
+            {
+                throw new BusinessException(ErrorDetails.DEFAULT);
+            }
+        }
+    }  
 }

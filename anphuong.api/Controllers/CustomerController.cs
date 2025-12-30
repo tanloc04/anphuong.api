@@ -1,9 +1,12 @@
 ﻿using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.API;
 using anphuong.Core.Domains.DTOs.RequestDTOs.AuthController;
+using anphuong.Core.Domains.DTOs.RequestDTOs.Customer;
+using anphuong.Core.Domains.DTOs.RequestDTOs.Products;
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 using anphuong.Core.Interfaces.Services;
 using anphuong.Core.Interfaces.Services.External;
+using anphuong.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -180,6 +183,40 @@ namespace anphuong.api.Controllers
             await _emailService.SendEmailAsync(email, "Xác Nhận Tài Khoản An Phương", htmlBody);
 
             return Ok(new { Success = true, Message = "Email has been sent." });
+        }
+        #endregion
+
+        #region Update
+        [Authorize(Policy = "AllowSpecificEmail")]
+        [HttpPut("{id}")]
+        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateCustomerRequestDTO request)
+        {
+            var item = await _customerService.Update(id, request);
+
+            return Ok(new ApiResponseDTO<CustomerDTO>
+            {
+                Success = true,
+                Data = item
+            });
+        }
+        #endregion
+
+        #region Delete
+        [Authorize(Policy = "AllowSpecificEmail")]
+        [HttpDelete("{id}")]
+        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> Delete(int id)
+        {
+            await _customerService.Delete(id);
+            return Ok(new ApiResponseDTO<object> { Success = true });
         }
         #endregion
     }
