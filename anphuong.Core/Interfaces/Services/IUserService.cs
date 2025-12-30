@@ -14,12 +14,13 @@ namespace anphuong.Core.Interfaces.Services
         Task<User?> AuthenticateUserAsync(string email, string password);
         Task<User?> FindByEmailAsync(string email);
         Task<UserDTO?> FindByIdAsync(int id);
-        Task<bool> UpdatePassword(UserDTO user, string password);
+        Task<(bool Success, string Message)> UpdatePassword(ChangePasswordRequestDTO request);
         Task<bool> VerifyPassword(UserDTO user, string oldPassword);
         Task<(IEnumerable<UserDTO>, int totalItems)> GetUsersAsync(SearchUsersRequestDTO request);
         Task<bool> DeleteUserAsync(int id);
         Task<bool> ActivateUserAsync(int userId);
         Task<User?> CheckRefreshToken(string refreshToken);
         Task<bool> Update(User user);
+        Task<bool> UserExist(int id);
     }
 }

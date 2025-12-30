@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using System.Security.Cryptography;
 using anphuong.Core.Constants;
 using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.API;
@@ -8,6 +9,7 @@ using anphuong.Core.Domains.Entities;
 using anphuong.Core.Interfaces.Services;
 using anphuong.Core.Interfaces.Services.External;
 using anphuong.Core.Ultilities;
+using anphuong.Repository.Repositories;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -57,7 +59,6 @@ namespace anphuong.api.Controllers
             }
 
             var accessToken = _jwtService.GenerateToken(user.Id.ToString(), user.Email);
-
             var refreshToken = Guid.NewGuid().ToString();
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiry = DateTime.Now.AddDays(Consts.REFRESHTOKEN_EXPIRED_TIME);
@@ -274,6 +275,33 @@ namespace anphuong.api.Controllers
                 {
                     AccessToken = accessToken
                 }
+            });
+        }
+        #endregion
+
+        #region Change Password
+        [HttpPost("password")]
+        [ProducesResponseType(typeof(ApiResponseDTO<LoginDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status401Unauthorized)]
+        //[ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDTO request)
+        {
+            var (success, message) = await _userService.UpdatePassword(request);
+
+            if (!success)
+            {
+                return BadRequest(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = message
+                });
+            }
+
+            return Ok(new ApiResponseDTO<object>
+            {
+                Success = true,
+                Message = message
             });
         }
         #endregion

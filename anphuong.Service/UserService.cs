@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Security.Claims;
 using anphuong.Core.Domains.DTOs;
+using anphuong.Core.Domains.DTOs.API;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Auth;
 using anphuong.Core.Domains.DTOs.RequestDTOs.AuthController;
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
@@ -11,6 +12,7 @@ using anphuong.Core.Interfaces.Repositories;
 using anphuong.Core.Interfaces.Services;
 using anphuong.Core.Interfaces.Services.External;
 using anphuong.Core.Ultilities;
+using anphuong.Repository.Repositories;
 using Mapster;
 using Microsoft.AspNetCore.Http;
 
@@ -128,16 +130,27 @@ namespace anphuong.Service
             return user;
         }
 
-        public async Task<bool> UpdatePassword(UserDTO userDTO, string password)
+        public async Task<(bool Success, string Message)> UpdatePassword(ChangePasswordRequestDTO request)
         {
-            var user = await _repository.GetAsync(userDTO.Id);
+            if (!await UserExist(request.Id))
+                return (false, "User does not exist.");
+
+            if (request.Password == request.OldPassword)
+                return (false, "New password must be different from old password.");
+
+            var user = await _repository.GetAsync(request.Id);
             if (user == null)
-            {
-                return false;
-            }
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(password); // Update with a hashed password
-            user.UpdatedAt = DateTime.Now;
-            return _repository.Update(user);
+                return (false, "User not found.");
+
+            if (!BCrypt.Net.BCrypt.Verify(request.OldPassword, user.PasswordHash))
+                return (false, "Invalid old password.");
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+            user.UpdatedAt = DateTime.UtcNow;
+
+            return _repository.Update(user)
+                ? (true, "Password updated successfully.")
+                : (false, "Failed to update password.");
         }
 
         public async Task<UserDTO?> FindByIdAsync(int id)
@@ -240,6 +253,10 @@ namespace anphuong.Service
         public async Task<bool> Update(User user)
         {
             return _repository.Update(user);
+        }
+        public async Task<bool> UserExist(int id)
+        {
+            return await _repository.ExistsAsync(u => u.Id == id);
         }
     }
 }

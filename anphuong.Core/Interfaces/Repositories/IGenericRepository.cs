@@ -22,5 +22,7 @@ namespace anphuong.Core.Interfaces.Repositories
         bool UpdateRange(IEnumerable<T> entities);
 
         bool Delete(params T[] entities);
+
+        Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate,CancellationToken cancellationToken = default);
     }
 }

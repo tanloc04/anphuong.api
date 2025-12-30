@@ -153,5 +153,10 @@ namespace anphuong.Repository.Repositories
             _context.Update(entity);
             await _context.SaveChangesAsync();
         }
+        public async Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
+        {
+            return await _set.Where(x => !x.IsDeleted)
+                .AnyAsync(predicate, cancellationToken);
+        }
     }
 }
