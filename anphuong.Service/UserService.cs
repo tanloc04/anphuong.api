@@ -153,14 +153,30 @@ namespace anphuong.Service
                 : (false, "Failed to update password.");
         }
 
-        public async Task<UserDTO?> FindByIdAsync(int id)
+        public async Task<CustomerUserDTO?> FindByIdAsync(int id)
         {
-            var user = await _repository.GetAsync(id);
+            var user = await _repository.GetAsync(id, includeProperties:"Customer");
             if (user == null)
             {
                 return null;
             }
-            return user.Adapt<UserDTO>();
+            if (user == null) return null;
+
+            var dto = new CustomerUserDTO
+            {
+                Id = user.Id,
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt,
+                IsDeleted = user.IsDeleted,
+                Fullname = user.Customer.FullName,
+                Phone = user.Customer.Phone,
+                CustomerAddress = user.Customer.CustomerAddress,
+                Username = user.Username,
+                Email = user.Email,
+                Status = user.Status
+            };
+
+            return dto;
         }
 
         public async Task<bool> VerifyPassword(UserDTO userDTO, string oldPassword)

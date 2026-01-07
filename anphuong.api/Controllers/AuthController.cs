@@ -79,7 +79,7 @@ namespace anphuong.api.Controllers
         #region Get Current User
         [Authorize]
         [HttpGet]
-        [ProducesResponseType(typeof(ApiResponseDTO<UserDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponseDTO<CustomerUserDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetCurrentUser()
@@ -118,7 +118,7 @@ namespace anphuong.api.Controllers
 
             var userDTO = await _userService.FindByIdAsync(intId);
             userDTO.Email = email ?? string.Empty;
-            return Ok(new ApiResponseDTO<UserDTO>
+            return Ok(new ApiResponseDTO<CustomerUserDTO>
             {
                 Success = true,
                 Data = userDTO
