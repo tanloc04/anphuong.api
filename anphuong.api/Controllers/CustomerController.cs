@@ -187,7 +187,7 @@ namespace anphuong.api.Controllers
         #endregion
 
         #region Update
-        [Authorize(Policy = "AllowSpecificEmail")]
+        [Authorize]
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]

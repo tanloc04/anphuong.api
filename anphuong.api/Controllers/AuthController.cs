@@ -280,6 +280,7 @@ namespace anphuong.api.Controllers
         #endregion
 
         #region Change Password
+        [Authorize]
         [HttpPost("password")]
         [ProducesResponseType(typeof(ApiResponseDTO<LoginDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
