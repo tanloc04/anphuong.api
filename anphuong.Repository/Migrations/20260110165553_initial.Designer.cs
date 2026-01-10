@@ -12,7 +12,7 @@ using anphuong.Repository.Context;
 namespace anphuong.Repository.Migrations
 {
     [DbContext(typeof(anphuongDbContext))]
-    [Migration("20251013132355_initial")]
+    [Migration("20260110165553_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -232,7 +232,8 @@ namespace anphuong.Repository.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("ProductId")
+                        .IsUnique();
 
                     b.ToTable("Inventories");
                 });
@@ -294,7 +295,6 @@ namespace anphuong.Repository.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("CustomizeMaterial")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -339,7 +339,7 @@ namespace anphuong.Repository.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("CategoryId")
+                    b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
@@ -471,6 +471,11 @@ namespace anphuong.Repository.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime");
 
+                    b.Property<string>("VariantImage")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ColorId");
@@ -492,8 +497,8 @@ namespace anphuong.Repository.Migrations
             modelBuilder.Entity("anphuong.Core.Domains.Entities.Inventory", b =>
                 {
                     b.HasOne("anphuong.Core.Domains.Entities.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
+                        .WithOne("Inventory")
+                        .HasForeignKey("anphuong.Core.Domains.Entities.Inventory", "ProductId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -538,7 +543,7 @@ namespace anphuong.Repository.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("anphuong.Core.Domains.Entities.DetailImage", "DetailImage")
-                        .WithOne()
+                        .WithOne("Product")
                         .HasForeignKey("anphuong.Core.Domains.Entities.Product", "DetailImageId")
                         .OnDelete(DeleteBehavior.Restrict);
 
@@ -580,9 +585,21 @@ namespace anphuong.Repository.Migrations
                     b.Navigation("Orders");
                 });
 
+            modelBuilder.Entity("anphuong.Core.Domains.Entities.DetailImage", b =>
+                {
+                    b.Navigation("Product")
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("anphuong.Core.Domains.Entities.Order", b =>
                 {
                     b.Navigation("OrderDetails");
+                });
+
+            modelBuilder.Entity("anphuong.Core.Domains.Entities.Product", b =>
+                {
+                    b.Navigation("Inventory")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("anphuong.Core.Domains.Entities.User", b =>

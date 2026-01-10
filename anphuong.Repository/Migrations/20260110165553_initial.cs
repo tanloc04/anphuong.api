@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -110,6 +111,7 @@ namespace anphuong.Repository.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ColorId = table.Column<int>(type: "int", nullable: false),
                     ProductId = table.Column<int>(type: "int", nullable: false),
+                    VariantImage = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false)
@@ -165,7 +167,7 @@ namespace anphuong.Repository.Migrations
                     HeightSize = table.Column<int>(type: "int", nullable: false),
                     Material = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     DetailImageId = table.Column<int>(type: "int", nullable: true),
-                    CategoryId = table.Column<int>(type: "int", nullable: true),
+                    CategoryId = table.Column<int>(type: "int", nullable: false),
                     VariationId = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime", nullable: false),
@@ -253,7 +255,7 @@ namespace anphuong.Repository.Migrations
                     CustomizeHeight = table.Column<int>(type: "int", nullable: false),
                     CustomizeWidth = table.Column<int>(type: "int", nullable: false),
                     CustomizeLong = table.Column<int>(type: "int", nullable: false),
-                    CustomizeMaterial = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    CustomizeMaterial = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     SubTotalPrice = table.Column<double>(type: "float", nullable: false),
                     ProductId = table.Column<int>(type: "int", nullable: false),
@@ -288,7 +290,8 @@ namespace anphuong.Repository.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Inventories_ProductId",
                 table: "Inventories",
-                column: "ProductId");
+                column: "ProductId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderDetails_OrderId",

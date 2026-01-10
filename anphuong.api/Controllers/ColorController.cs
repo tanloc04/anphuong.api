@@ -54,7 +54,7 @@ namespace anphuong.api.Controllers
         #endregion
 
         #region Create
-        [Authorize]
+        [Authorize(Policy = "AllowSpecificEmail")]
         [HttpPost("create")]
         [ProducesResponseType(typeof(ApiResponseDTO<ColorDTO>), StatusCodes.Status201Created)]
         public async Task<IActionResult> Create([FromBody] CreateColorRequestDTO request)

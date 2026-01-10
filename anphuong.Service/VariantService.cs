@@ -59,7 +59,7 @@ namespace anphuong.Service
             filter = ExpressionUtils.AddFilter(filter, u => u.IsDeleted == searchCondition.IsDeleted);
 
             // Query paginated 
-            var items = await _repository.GetWithPaginationAsync(pageInfo, filter, "Color,Product");
+            var items = await _repository.GetWithPaginationAsync(pageInfo, filter, "Color,Product,VariantImage");
             var totalItems = await _repository.CountAsync(filter);
 
             return (items.Adapt<IEnumerable<VariantDTO>>(), totalItems);
@@ -74,7 +74,7 @@ namespace anphuong.Service
 
         public async Task<VariantDTO> Update(int id, UpdateVariantRequestDTO request)
         {
-            var item = await _repository.GetAsync(id)
+            var item = await _repository.GetAsync(id, "VariantImage")
                 ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
 
             bool isChanged = false;
@@ -82,6 +82,8 @@ namespace anphuong.Service
             // Apply updates
             isChanged |= GenericHelperUtils.SetIfChangedValue(request.ProductId, () => item.ProductId, i => item.ProductId = i);
             isChanged |= GenericHelperUtils.SetIfChangedValue(request.ColorId, () => item.ColorId, i => item.ColorId = i);
+
+            isChanged |= GenericHelperUtils.SetIfChanged(request.VariantImage, () => item.VariantImage, i => item.VariantImage = i);
             if (isChanged)
             {
                 item.UpdatedAt = DateTime.UtcNow;

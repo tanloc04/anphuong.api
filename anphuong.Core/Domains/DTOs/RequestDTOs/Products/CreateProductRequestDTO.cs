@@ -11,7 +11,6 @@
         public int WidthSize { get; set; }
         public int HeightSize { get; set; }
         public int CategoryId { get; set; }
-        public int? VariationId { get; set; }
         public string? Thumbnail { get; set; }
         public string Image1 { get; set; }
         public string Image2 { get; set; }

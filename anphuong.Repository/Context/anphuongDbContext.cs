@@ -19,7 +19,6 @@ namespace anphuong.Repository.Context
         public DbSet<DetailImage> DetailImages { get; set; }
         public DbSet<Inventory> Inventories { get; set; }
         public DbSet<Variant> Variants { get; set; }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Configuring User entity
@@ -135,26 +134,23 @@ namespace anphuong.Repository.Context
                       .HasForeignKey<Product>(e => e.VariationId)
                       .OnDelete(DeleteBehavior.Restrict).IsRequired(false);
 
-                entity.HasOne(p => p.Inventory)
-                    .WithOne(i => i.Product)
-                    .HasForeignKey<Inventory>(i => i.ProductId)
-                    .OnDelete(DeleteBehavior.Restrict).IsRequired(false);
-
             });
 
             // Configuring Variant entity
             modelBuilder.Entity<Variant>(entity =>
             {
                 entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.VariantImage).HasMaxLength(200);
                 entity.Property(e => e.CreatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.UpdatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.IsDeleted).IsRequired();
 
-                // Many-to-one relationship with Color
                 entity.HasOne(e => e.Color)
                       .WithMany(c => c.Variants)
                       .HasForeignKey(e => e.ColorId)
                       .OnDelete(DeleteBehavior.Restrict);
+               
             });
 
             // Configuring Color entity
@@ -207,7 +203,7 @@ namespace anphuong.Repository.Context
                 entity.Property(e => e.CreatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.UpdatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.IsDeleted).IsRequired();
-            });
+            });        
 
             // Configuring Behavior entity
             modelBuilder.Entity<Behavior>(entity =>

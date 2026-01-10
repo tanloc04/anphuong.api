@@ -8,6 +8,8 @@ namespace anphuong.Core.Domains.DTOs
     {
         public int ColorId { get; set; }
         public int ProductId { get; set; }
+        public int VariantImageId { get; set; }
+        public VariantImageDTO VariantImage { get; set; }
         public ColorNameDTO Color { get; set; }
         //public ProductDTO Product { get; set; }
     }
