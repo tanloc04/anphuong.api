@@ -1,0 +1,52 @@
+﻿version: '3.4'
+
+services:
+  anphuong.db:
+    image: mcr.microsoft.com/mssql/server:2025-latest 
+    container_name: anphuong_db
+    user: root 
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Loc@12345! 
+    ports:
+      - "1434:1433" 
+    volumes:
+      - sql_data_new:/var/opt/mssql/data
+
+  anphuong.api:
+    image: ${DOCKER_REGISTRY-}anphuongapi
+    container_name: anphuong_api
+    build:
+      context: .
+      dockerfile: anphuong.api/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+
+      - ConnectionStrings__DefaultConnection=Server=anphuong_db;Database=AnPhuongFurniture;User Id=sa;Password=Loc@12345!;TrustServerCertificate=True;
+      - ConnectionStrings__AnPhuongFurnitureDb=Server=anphuong_db;Database=AnPhuongFurniture;User Id=sa;Password=Loc@12345!;TrustServerCertificate=True;
+      - DB_CONNECTION=Server=anphuong_db;Database=AnPhuongFurniture;User Id=sa;Password=Loc@12345!;TrustServerCertificate=True;
+
+      - Jwt__Key=zDmmXpTGSmq42A3jvmb6RSyquLhJjwLl
+      - Jwt__Issuer=http://localhost:5000
+      - Jwt__Audience=http://localhost:5000
+      - Authentication__Google__ClientId=1019604719049-i0na91bgcgaiddk7kim6ck12qotuj38s.apps.googleusercontent.com
+      - GOOGLE_CLIENT_ID=1019604719049-i0na91bgcgaiddk7kim6ck12qotuj38s.apps.googleusercontent.com
+
+      - ALLOWED_EMAILS=tanloc040403@gmail.com
+      - SMTP_SERVER=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USER=thanhtien23233@gmail.com
+      - SMTP_PASSWORD=lhvylttcoopukixy
+      - CONFIRM_ACCOUNT_ENDPOINT=http://localhost:5273/api/Customer/account-confirmation/
+      - CLOUDINARY_APIKEY=437992284675156
+      - CLOUDINARY_APISECRET=L3UYboF4ZW960-t1_dpsut5quD4
+      - CLOUDINARY_CLOUDNAME=dfniy6iy3
+      
+    ports:
+      - "8080"
+      - "5000:8080"
+    depends_on:
+      - anphuong.db
+
+volumes:
+  sql_data_new:
