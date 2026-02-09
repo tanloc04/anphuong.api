@@ -38,10 +38,9 @@ namespace anphuong.api.Controllers
         {
             var cookieOptions = new CookieOptions
             {
-
                 HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None, 
+                Secure = false,
+                SameSite = SameSiteMode.Lax, 
                 Expires = DateTime.UtcNow.AddDays(Consts.REFRESHTOKEN_EXPIRED_TIME)
             };
 
@@ -247,12 +246,13 @@ namespace anphuong.api.Controllers
 
         #region Refresh Token
         [HttpPost("refresh-token")]
-        [ProducesResponseType(typeof(ApiResponseDTO<LoginResponseDTO>), StatusCodes.Status200OK)]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(ApiResponseDTO<LoginDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> checkRefreshToken([FromBody] LoginDTO loginRequest)
+        public async Task<IActionResult> CheckRefreshToken([FromBody] LoginDTO? loginRequest)
         {
-            // Logic mới: Ưu tiên lấy Refresh Token từ Cookie nếu Body không có (Optional)
-            var refreshTokenToCheck = loginRequest.RefreshToken;
+            var refreshTokenToCheck = loginRequest?.RefreshToken;
+
             if (string.IsNullOrEmpty(refreshTokenToCheck))
             {
                 Request.Cookies.TryGetValue("refreshToken", out refreshTokenToCheck);
@@ -271,10 +271,13 @@ namespace anphuong.api.Controllers
 
             if (user == null)
             {
+                Response.Cookies.Delete("accessToken");
+                Response.Cookies.Delete("refreshToken");
+
                 return Unauthorized(new ApiResponseDTO<object>
                 {
                     Success = false,
-                    Message = "Invalid Refresh Token (User not found)"
+                    Message = "Invalid Refresh Token"
                 });
             }
 
@@ -298,9 +301,6 @@ namespace anphuong.api.Controllers
 
             var accessToken = _jwtService.GenerateToken(user.Id.ToString(), user.Email);
 
-            // --- GỌI HÀM SET COOKIE TẠI ĐÂY ---
-            // Lưu ý: Có thể bạn muốn tạo Refresh Token mới mỗi lần refresh (Rotation)
-            // Nếu giữ nguyên refresh token cũ thì chỉ cần update access token cookie
             SetTokenCookies(accessToken, user.RefreshToken);
 
             return Ok(new ApiResponseDTO<LoginDTO>()
@@ -309,7 +309,7 @@ namespace anphuong.api.Controllers
                 Data = new LoginDTO()
                 {
                     AccessToken = accessToken,
-                    // RefreshToken = user.RefreshToken // Có thể trả về hoặc không tuỳ client
+                    RefreshToken = user.RefreshToken
                 }
             });
         }
