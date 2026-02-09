@@ -205,7 +205,6 @@ namespace anphuong.api.Controllers
 
                 await _userService.Update(user);
 
-                // --- GỌI HÀM SET COOKIE TẠI ĐÂY ---
                 SetTokenCookies(token, refreshToken);
 
                 return Ok(new ApiResponseDTO<LoginResponseDTO>
