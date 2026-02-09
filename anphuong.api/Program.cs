@@ -26,10 +26,11 @@ builder.Configuration.AddEnvironmentVariables();
 // bạn SẼ KHÔNG THỂ dùng AllowAnyOrigin(). Lúc đó phải đổi sang WithOrigins("http://domain-fe.com").
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", p =>
-        p.AllowAnyOrigin()
+    options.AddPolicy("AllowReactApp", p =>
+        p.WithOrigins("http://localhost:5173")
          .AllowAnyHeader()
-         .AllowAnyMethod());
+         .AllowAnyMethod()
+         .AllowCredentials());
 });
 #endregion
 
@@ -207,8 +208,18 @@ if (app.Environment.IsDevelopment())
 
 app.UseRouting();
 
+app.Use(async (context, next) =>
+{
+    var token = context.Request.Cookies["accessToken"];
+    if (!string.IsNullOrEmpty(token))
+    {
+        context.Request.Headers.Append("Authorization", "Bearer " + token);
+    }
+    await next();
+});
+
 // CORS phải đặt giữa Routing và Authentication
-app.UseCors("AllowAll");
+app.UseCors("AllowReactApp");
 
 app.UseAuthentication(); // Xác thực (Ai đang đăng nhập? Check Header/Cookie)
 app.UseAuthorization();  // Phân quyền (Có được phép vào không?)
