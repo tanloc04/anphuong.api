@@ -33,32 +33,19 @@ namespace anphuong.api.Controllers
             _googleAuthService = googleAuthService;
         }
 
-        // --- NEW HELPER METHOD ---
-        // Hàm này dùng để set cookie, tránh lặp code
         private void SetTokenCookies(string accessToken, string refreshToken)
         {
             var cookieOptions = new CookieOptions
             {
-                // HttpOnly: True -> JavaScript phía client KHÔNG thể đọc được cookie này.
-                // Giúp chống lại tấn công XSS (Cross-Site Scripting).
+
                 HttpOnly = true,
-
-                // Secure: True -> Chỉ gửi cookie qua kết nối HTTPS.
-                // Nếu chạy localhost không có https thì tạm thời set là false, nhưng prod bắt buộc true.
                 Secure = true,
-
-                // SameSite: Strict hoặc Lax. None thì cần Secure=true.
-                // Strict: Cookie chỉ được gửi trong cùng site.
-                SameSite = SameSiteMode.None, // Thường dùng None nếu FE và BE khác domain, cần Secure=true
-
-                // Thời gian hết hạn của Cookie (nên khớp với thời gian hết hạn của token)
+                SameSite = SameSiteMode.None, 
                 Expires = DateTime.UtcNow.AddDays(Consts.REFRESHTOKEN_EXPIRED_TIME)
             };
 
-            // Lưu Access Token
             Response.Cookies.Append("accessToken", accessToken, cookieOptions);
 
-            // Lưu Refresh Token (có thể cấu hình thời gian sống lâu hơn accessToken nếu muốn)
             Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
         }
 
@@ -92,7 +79,6 @@ namespace anphuong.api.Controllers
             user.RefreshTokenExpiry = DateTime.Now.AddDays(Consts.REFRESHTOKEN_EXPIRED_TIME);
             await _userService.Update(user);
 
-            // --- GỌI HÀM SET COOKIE TẠI ĐÂY ---
             SetTokenCookies(accessToken, refreshToken);
 
             return Ok(new ApiResponseDTO<LoginDTO>()
