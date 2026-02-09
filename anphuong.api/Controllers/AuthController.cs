@@ -24,6 +24,7 @@ namespace anphuong.api.Controllers
         private readonly IJwtService _jwtService;
         private readonly IUserService _userService;
         private readonly IGoogleAuthService _googleAuthService;
+
         public AuthController(IJwtService jwtService, IUserService userService,
             IGoogleAuthService googleAuthService)
         {
@@ -32,12 +33,39 @@ namespace anphuong.api.Controllers
             _googleAuthService = googleAuthService;
         }
 
+        // --- NEW HELPER METHOD ---
+        // Hàm này dùng để set cookie, tránh lặp code
+        private void SetTokenCookies(string accessToken, string refreshToken)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                // HttpOnly: True -> JavaScript phía client KHÔNG thể đọc được cookie này.
+                // Giúp chống lại tấn công XSS (Cross-Site Scripting).
+                HttpOnly = true,
+
+                // Secure: True -> Chỉ gửi cookie qua kết nối HTTPS.
+                // Nếu chạy localhost không có https thì tạm thời set là false, nhưng prod bắt buộc true.
+                Secure = true,
+
+                // SameSite: Strict hoặc Lax. None thì cần Secure=true.
+                // Strict: Cookie chỉ được gửi trong cùng site.
+                SameSite = SameSiteMode.None, // Thường dùng None nếu FE và BE khác domain, cần Secure=true
+
+                // Thời gian hết hạn của Cookie (nên khớp với thời gian hết hạn của token)
+                Expires = DateTime.UtcNow.AddDays(Consts.REFRESHTOKEN_EXPIRED_TIME)
+            };
+
+            // Lưu Access Token
+            Response.Cookies.Append("accessToken", accessToken, cookieOptions);
+
+            // Lưu Refresh Token (có thể cấu hình thời gian sống lâu hơn accessToken nếu muốn)
+            Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
+        }
+
         #region Login
         [HttpPost("login")]
         [ProducesResponseType(typeof(ApiResponseDTO<LoginDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
-        //[ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status401Unauthorized)]
-        //[ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> Login([FromBody] LoginRequestDTO loginRequest)
         {
             var user = await _userService.AuthenticateUserAsync(loginRequest.Email, loginRequest.Password);
@@ -63,6 +91,9 @@ namespace anphuong.api.Controllers
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiry = DateTime.Now.AddDays(Consts.REFRESHTOKEN_EXPIRED_TIME);
             await _userService.Update(user);
+
+            // --- GỌI HÀM SET COOKIE TẠI ĐÂY ---
+            SetTokenCookies(accessToken, refreshToken);
 
             return Ok(new ApiResponseDTO<LoginDTO>()
             {
@@ -167,7 +198,7 @@ namespace anphuong.api.Controllers
                     };
 
                     user = await _userService.GoogleRegisterAsync(registerDTO);
-                    
+
                 }
 
                 if (!user.Status.Equals("ACTIVE"))
@@ -185,12 +216,16 @@ namespace anphuong.api.Controllers
                 user.RefreshTokenExpiry = DateTime.Now.AddDays(Consts.REFRESHTOKEN_EXPIRED_TIME);
 
                 await _userService.Update(user);
+
+                // --- GỌI HÀM SET COOKIE TẠI ĐÂY ---
+                SetTokenCookies(token, refreshToken);
+
                 return Ok(new ApiResponseDTO<LoginDTO>
                 {
                     Success = true,
-                    Data = new LoginDTO 
-                    { 
-                        AccessToken = token, 
+                    Data = new LoginDTO
+                    {
+                        AccessToken = token,
                         RefreshToken = user.RefreshToken
                     }
                 });
@@ -229,7 +264,14 @@ namespace anphuong.api.Controllers
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> checkRefreshToken([FromBody] LoginDTO loginRequest)
         {
-            if (string.IsNullOrEmpty(loginRequest.RefreshToken))
+            // Logic mới: Ưu tiên lấy Refresh Token từ Cookie nếu Body không có (Optional)
+            var refreshTokenToCheck = loginRequest.RefreshToken;
+            if (string.IsNullOrEmpty(refreshTokenToCheck))
+            {
+                Request.Cookies.TryGetValue("refreshToken", out refreshTokenToCheck);
+            }
+
+            if (string.IsNullOrEmpty(refreshTokenToCheck))
             {
                 return Unauthorized(new ApiResponseDTO<object>
                 {
@@ -238,7 +280,7 @@ namespace anphuong.api.Controllers
                 });
             }
 
-            var user = await _userService.CheckRefreshToken(loginRequest.RefreshToken);
+            var user = await _userService.CheckRefreshToken(refreshTokenToCheck);
 
             if (user == null)
             {
@@ -268,14 +310,30 @@ namespace anphuong.api.Controllers
             }
 
             var accessToken = _jwtService.GenerateToken(user.Id.ToString(), user.Email);
+
+            // --- GỌI HÀM SET COOKIE TẠI ĐÂY ---
+            // Lưu ý: Có thể bạn muốn tạo Refresh Token mới mỗi lần refresh (Rotation)
+            // Nếu giữ nguyên refresh token cũ thì chỉ cần update access token cookie
+            SetTokenCookies(accessToken, user.RefreshToken);
+
             return Ok(new ApiResponseDTO<LoginDTO>()
             {
                 Success = true,
                 Data = new LoginDTO()
                 {
-                    AccessToken = accessToken
+                    AccessToken = accessToken,
+                    // RefreshToken = user.RefreshToken // Có thể trả về hoặc không tuỳ client
                 }
             });
+        }
+
+        // Thêm API Logout để xóa Cookie
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            Response.Cookies.Delete("accessToken");
+            Response.Cookies.Delete("refreshToken");
+            return Ok(new ApiResponseDTO<object> { Success = true, Message = "Logged out successfully" });
         }
         #endregion
 
@@ -284,8 +342,6 @@ namespace anphuong.api.Controllers
         [HttpPost("password")]
         [ProducesResponseType(typeof(ApiResponseDTO<LoginDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
-        //[ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status401Unauthorized)]
-        //[ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDTO request)
         {
             var (success, message) = await _userService.UpdatePassword(request);
