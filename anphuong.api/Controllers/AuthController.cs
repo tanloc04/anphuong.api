@@ -5,6 +5,7 @@ using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.API;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Auth;
 using anphuong.Core.Domains.DTOs.RequestDTOs.AuthController;
+using anphuong.Core.Domains.DTOs.ResponseDTOs;
 using anphuong.Core.Domains.Entities;
 using anphuong.Core.Interfaces.Services;
 using anphuong.Core.Interfaces.Services.External;
@@ -51,7 +52,7 @@ namespace anphuong.api.Controllers
 
         #region Login
         [HttpPost("login")]
-        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponseDTO<LoginResponseDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Login([FromBody] LoginRequestDTO loginRequest)
         {
@@ -78,13 +79,18 @@ namespace anphuong.api.Controllers
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiry = DateTime.Now.AddDays(Consts.REFRESHTOKEN_EXPIRED_TIME);
             await _userService.Update(user);
+   
+            LoginResponseDTO loginResponse = new LoginResponseDTO
+            {
+                Email = user.Email,
+                Username = user.Username
+            };
 
             SetTokenCookies(accessToken, refreshToken);
-
-            return StatusCode(StatusCodes.Status200OK, new ApiResponseDTO<object>
+            return Ok(new ApiResponseDTO<LoginResponseDTO>
             {
                 Success = true,
-                Message = "User logged in successfully."
+                Data = loginResponse
             });
         }
         #endregion
@@ -242,7 +248,7 @@ namespace anphuong.api.Controllers
 
         #region Refresh Token
         [HttpPost("refresh-token")]
-        [ProducesResponseType(typeof(ApiResponseDTO<LoginDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponseDTO<LoginResponseDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> checkRefreshToken([FromBody] LoginDTO loginRequest)
         {
