@@ -208,13 +208,13 @@ namespace anphuong.api.Controllers
                 // --- GỌI HÀM SET COOKIE TẠI ĐÂY ---
                 SetTokenCookies(token, refreshToken);
 
-                return Ok(new ApiResponseDTO<LoginDTO>
+                return Ok(new ApiResponseDTO<LoginResponseDTO>
                 {
                     Success = true,
-                    Data = new LoginDTO
+                    Data = new LoginResponseDTO
                     {
-                        AccessToken = token,
-                        RefreshToken = user.RefreshToken
+                        Email = user.Email,
+                        Username = user.Username
                     }
                 });
             }
