@@ -313,6 +313,13 @@ namespace anphuong.api.Controllers
         [HttpPost("logout")]
         public IActionResult Logout()
         {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+            };
+
             Response.Cookies.Delete("accessToken");
             Response.Cookies.Delete("refreshToken");
             return Ok(new ApiResponseDTO<object> { Success = true, Message = "Logged out successfully" });
