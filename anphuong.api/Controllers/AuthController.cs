@@ -51,7 +51,7 @@ namespace anphuong.api.Controllers
 
         #region Login
         [HttpPost("login")]
-        [ProducesResponseType(typeof(ApiResponseDTO<LoginDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Login([FromBody] LoginRequestDTO loginRequest)
         {
@@ -81,14 +81,10 @@ namespace anphuong.api.Controllers
 
             SetTokenCookies(accessToken, refreshToken);
 
-            return Ok(new ApiResponseDTO<LoginDTO>()
+            return StatusCode(StatusCodes.Status200OK, new ApiResponseDTO<object>
             {
                 Success = true,
-                Data = new LoginDTO()
-                {
-                    AccessToken = accessToken,
-                    RefreshToken = refreshToken
-                }
+                Message = "User logged in successfully."
             });
         }
         #endregion
