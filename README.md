@@ -50,41 +50,41 @@ To run this project locally, ensure you have the .NET SDK installed and a runnin
    git clone [https://github.com/tanloc04/anphuong.api.git](https://github.com/tanloc04/anphuong.api.git)
    ```
 2. Navigate to the API project directory:
-  ```bash
-  cd anphuong.api
-  ```
+     ```bash
+     cd anphuong.api
+     ```
 3. Create a .env file that follow this template: 
-  ```bash
-  # Database Settings
-  ConnectionStrings__AnPhuongFurnitureDb=Server=localhost;Database=AnPhuongFurniture;User Id=sa;Password=your_sql_password;TrustServerCertificate=True
-  DB_CONNECTION=Server=localhost;Database=AnPhuongFurniture;User Id=sa;Password=your_sql_password;TrustServerCertificate=True
-  
-  # JWT Configuration
-  Jwt__Key=your_jwt_secret_key_here
-  Jwt__Issuer=http://localhost:7230
-  Jwt__Audience=http://localhost:7230
-  
-  # OAuth & Third-party Integrations
-  GOOGLE_CLIENT_ID=your_google_client_id
-  ALLOWED_EMAILS=your_admin_email
-  AN_PHUONG_ICON=https://your-domain.com/path-to-your-logo.jpg
-  
-  # SMTP Email Settings
-  SMTP_SERVER=smtp.gmail.com
-  SMTP_PORT=587
-  SMTP_USER=your_email@gmail.com
-  SMTP_PASSWORD=your_app_password
-  
-  # API Endpoints
-  CONFIRM_ACCOUNT_ENDPOINT=http://localhost:5273/api/Customer/account-confirmation/
-  
-  # Cloudinary Settings
-  CLOUDINARY_APIKEY=your_cloudinary_api_key
-  CLOUDINARY_APISECRET=your_cloudinary_api_secret
-  CLOUDINARY_CLOUDNAME=your_cloudinary_cloud_name
-  ```
+     ```bash
+     # Database Settings
+     ConnectionStrings__AnPhuongFurnitureDb=Server=localhost;Database=AnPhuongFurniture;User Id=sa;Password=your_sql_password;TrustServerCertificate=True
+     DB_CONNECTION=Server=localhost;Database=AnPhuongFurniture;User Id=sa;Password=your_sql_password;TrustServerCertificate=True
+     
+     # JWT Configuration
+     Jwt__Key=your_jwt_secret_key_here
+     Jwt__Issuer=http://localhost:7230
+     Jwt__Audience=http://localhost:7230
+     
+     # OAuth & Third-party Integrations
+     GOOGLE_CLIENT_ID=your_google_client_id
+     ALLOWED_EMAILS=your_admin_email
+     AN_PHUONG_ICON=https://your-domain.com/path-to-your-logo.jpg
+     
+     # SMTP Email Settings
+     SMTP_SERVER=smtp.gmail.com
+     SMTP_PORT=587
+     SMTP_USER=your_email@gmail.com
+     SMTP_PASSWORD=your_app_password
+     
+     # API Endpoints
+     CONFIRM_ACCOUNT_ENDPOINT=http://localhost:5273/api/Customer/account-confirmation/
+     
+     # Cloudinary Settings
+     CLOUDINARY_APIKEY=your_cloudinary_api_key
+     CLOUDINARY_APISECRET=your_cloudinary_api_secret
+     CLOUDINARY_CLOUDNAME=your_cloudinary_cloud_name
+     ```
 4. Restore dependencies and run the application:
-  ```bash
-  dotnet restore
-  dotnet run
-  ```
+     ```bash
+     dotnet restore
+     dotnet run
+     ```
