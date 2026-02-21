@@ -38,7 +38,7 @@ The solution is structured into distinct layers to promote separation of concern
 
 ## Related Resources
 
-* **Frontend Repository:** [tanloc04/anphuong.api](https://github.com/tanloc04/anphuong.web)
+* **Frontend Repository:** [tanloc04/anphuong.web](https://github.com/tanloc04/anphuong.web)
 * **System Documentation:** The detailed system architecture, activity diagrams, and ERD (PDF) can be found in the `docs` folder of this repository: [AnPhuongDocument.pdf](https://github.com/tanloc04/anphuong.api/blob/main/docs/AnPhuongDocument.pdf)
 
 ## Local Setup Instructions
