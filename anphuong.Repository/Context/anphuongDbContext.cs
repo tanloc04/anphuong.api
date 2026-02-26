@@ -16,6 +16,7 @@ namespace anphuong.Repository.Context
         public DbSet<Category> Categories { get; set; }
         public DbSet<Behavior> Behaviors { get; set; }
         public DbSet<Color> Colors { get; set; }
+        public DbSet<Material> Materials { get; set; }
         public DbSet<DetailImage> DetailImages { get; set; }
         public DbSet<Inventory> Inventories { get; set; }
         public DbSet<Variant> Variants { get; set; }
@@ -28,16 +29,11 @@ namespace anphuong.Repository.Context
                 entity.Property(e => e.Username).IsRequired().HasMaxLength(30);
                 entity.Property(e => e.PasswordHash).HasMaxLength(256);
                 entity.Property(e => e.Email).HasMaxLength(100);
-                entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.Status).IsRequired().HasMaxLength(20);
                 entity.Property(e => e.CreatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.UpdatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.IsDeleted).IsRequired();
-
-                // One-to-one relationship with Customer
-                entity.HasOne(e => e.Customer)
-                      .WithOne(c => c.User)
-                      .HasForeignKey<Customer>(c => c.UserId)
-                      .OnDelete(DeleteBehavior.Cascade);
+             
             });
 
             // Configuring Customer entity
@@ -46,7 +42,7 @@ namespace anphuong.Repository.Context
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.FullName).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.Phone).HasMaxLength(20);
-                entity.Property(e => e.CustomerAddress).HasMaxLength(300);
+                entity.Property(e => e.Address).HasMaxLength(300);
                 entity.Property(e => e.CreatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.UpdatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.IsDeleted).IsRequired();
@@ -56,6 +52,13 @@ namespace anphuong.Repository.Context
                       .WithOne(o => o.Customer)
                       .HasForeignKey(o => o.CustomerId)
                       .OnDelete(DeleteBehavior.Restrict);
+
+                // One-to-one relationship with User
+                entity.HasOne(c => c.User)
+                      .WithOne() // User type does not declare a Customer navigation in provided signatures
+                      .HasForeignKey<Customer>(c => c.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
             });
 
             // Configuring Order entity
@@ -81,21 +84,18 @@ namespace anphuong.Repository.Context
             modelBuilder.Entity<OrderDetail>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.IsCustomize).IsRequired();
-                entity.Property(e => e.CustomizeHeight).IsRequired();
-                entity.Property(e => e.CustomizeWidth).IsRequired();
-                entity.Property(e => e.CustomizeLong).IsRequired();
-                entity.Property(e => e.CustomizeMaterial).HasMaxLength(100);
+                
                 entity.Property(e => e.Quantity).IsRequired();
-                entity.Property(e => e.SubTotalPrice).IsRequired().HasColumnType("float");
+                entity.Property(e => e.UnitPrice).IsRequired().HasColumnType("float");
+                entity.Property(e => e.SubTotal).IsRequired().HasColumnType("float");
                 entity.Property(e => e.CreatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.UpdatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.IsDeleted).IsRequired();
 
-                // Many-to-one relationship with Product
-                entity.HasOne(e => e.Product)
+                // Many-to-one relationship with Variant
+                entity.HasOne(e => e.Variant)
                       .WithMany()
-                      .HasForeignKey(e => e.ProductId)
+                      .HasForeignKey(e => e.VariantId)
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
@@ -110,28 +110,15 @@ namespace anphuong.Repository.Context
                 entity.Property(e => e.LongSize).IsRequired();
                 entity.Property(e => e.WidthSize).IsRequired();
                 entity.Property(e => e.HeightSize).IsRequired();
-                entity.Property(e => e.Material).HasMaxLength(100);
+                entity.Property(e => e.isCustomize).IsRequired();
                 entity.Property(e => e.CreatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.UpdatedAt).IsRequired().HasColumnType("datetime");
-                entity.Property(e => e.IsDeleted).IsRequired();
-
-                // One-to-one relationship with DetailImage
-                entity.HasOne(p => p.DetailImage)
-                      .WithOne(d => d.Product)
-                      .HasForeignKey<Product>(p => p.DetailImageId)
-                      .OnDelete(DeleteBehavior.Restrict)
-                      .IsRequired(false);
+                entity.Property(e => e.IsDeleted).IsRequired();           
 
                 // Many-to-one relationship with Category
                 entity.HasOne(e => e.Category)
                       .WithMany(c => c.Products)
                       .HasForeignKey(e => e.CategoryId)
-                      .OnDelete(DeleteBehavior.Restrict).IsRequired(false);
-
-                // One-to-one relationship with Variant
-                entity.HasOne(e => e.Variant)
-                      .WithOne(v => v.Product)
-                      .HasForeignKey<Product>(e => e.VariationId)
                       .OnDelete(DeleteBehavior.Restrict).IsRequired(false);
 
             });
@@ -146,11 +133,23 @@ namespace anphuong.Repository.Context
                 entity.Property(e => e.UpdatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.IsDeleted).IsRequired();
 
+                // Many-to-one relationship with Color
                 entity.HasOne(e => e.Color)
                       .WithMany(c => c.Variants)
                       .HasForeignKey(e => e.ColorId)
                       .OnDelete(DeleteBehavior.Restrict);
-               
+
+                // Many-to-one relationship with Product
+                entity.HasOne(e => e.Product)
+                 .WithMany(p => p.Variants)
+                 .HasForeignKey(e => e.ProductId)
+                 .OnDelete(DeleteBehavior.Restrict);
+
+                // Many-to-one relationship with Material
+                entity.HasOne(e => e.Material)
+                 .WithMany(p => p.Variants)
+                 .HasForeignKey(e => e.MaterialId)
+                 .OnDelete(DeleteBehavior.Restrict);
             });
 
             // Configuring Color entity
@@ -168,14 +167,20 @@ namespace anphuong.Repository.Context
             modelBuilder.Entity<DetailImage>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Thumbnail).IsRequired().HasMaxLength(200);
-                entity.Property(e => e.Image1).HasMaxLength(200);
-                entity.Property(e => e.Image2).HasMaxLength(200);
-                entity.Property(e => e.Image3).HasMaxLength(200);
-                entity.Property(e => e.Image4).HasMaxLength(200);
+                entity.Property(e => e.Image1).HasMaxLength(255);
+                entity.Property(e => e.Image2).HasMaxLength(255);
+                entity.Property(e => e.Image3).HasMaxLength(255);
+                entity.Property(e => e.Image4).HasMaxLength(255);
                 entity.Property(e => e.CreatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.UpdatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.IsDeleted).IsRequired();
+
+                // One-to-one relationship with Product             
+                entity.HasOne(d => d.Product)
+                      .WithOne()
+                      .HasForeignKey<DetailImage>(d => d.ProductId)
+                      .OnDelete(DeleteBehavior.Restrict)
+                      .IsRequired(false);
             });
 
             // Configuring Inventory entity
@@ -187,10 +192,14 @@ namespace anphuong.Repository.Context
                 entity.Property(e => e.UpdatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.IsDeleted).IsRequired();
 
-                // One-to-one relationship with Product
-                entity.HasOne(e => e.Product)
-                      .WithOne(p => p.Inventory)
-                      .HasForeignKey<Inventory>(i => i.ProductId)
+                // One-to-one relationship with Variant
+                // FIX:
+                // - Use the existing Inventory.Variant navigation
+                // - Do not reference Variant.Inventory (it doesn't exist in provided Variant signature)
+                // - Use VariantId as the FK on Inventory (not ProductId)
+                entity.HasOne(e => e.Variant)
+                      .WithOne() // Variant currently does not declare an Inventory navigation property
+                      .HasForeignKey<Inventory>(i => i.VariantId)
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
@@ -209,11 +218,21 @@ namespace anphuong.Repository.Context
             modelBuilder.Entity<Behavior>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.ViewCount).IsRequired();
-                entity.Property(e => e.BuyCount).IsRequired();
+                entity.Property(e => e.ActionType).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.Count).IsRequired();
                 entity.Property(e => e.CreatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.UpdatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.IsDeleted).IsRequired();
+
+                entity.HasOne(e => e.Customer)
+                .WithMany(b => b.Behaviors)
+                .HasForeignKey(e => e.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Product)
+                .WithMany(b => b.Behaviors)
+                .HasForeignKey(e => e.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
             });
 
             base.OnModelCreating(modelBuilder);
