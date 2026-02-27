@@ -1,5 +1,4 @@
-﻿using System.Linq.Expressions;
-using anphuong.Core.Domains.DTOs;
+﻿using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Products;
 using anphuong.Core.Domains.DTOs.ResponseDTOs.Product;
 using anphuong.Core.Domains.DTOs.StandardizedDTOs;
@@ -10,6 +9,7 @@ using anphuong.Core.Interfaces.Repositories;
 using anphuong.Core.Interfaces.Services;
 using anphuong.Core.Ultilities;
 using Mapster;
+using System.Linq.Expressions;
 
 namespace anphuong.Service
 {
@@ -33,28 +33,27 @@ namespace anphuong.Service
                 Description = product.Description,
                 Price = product.Price,
                 Discount = product.Discount,
-                Material = product.Material,
+                // FIX: Xóa Material và VariationId vì không còn nằm trong Product
                 LongSize = product.LongSize,
                 WidthSize = product.WidthSize,
                 HeightSize = product.HeightSize,
                 CategoryId = product.CategoryId,
-                VariationId = product.VariationId,
                 CreatedAt = product.CreatedAt,
                 UpdatedAt = product.UpdatedAt,
                 IsDeleted = product.IsDeleted,
-                DetailImage = new ProductDetailImageDTO
+                DetailImage = product.DetailImage != null ? new ProductDetailImageDTO
                 {
-                    Thumbnail = product.DetailImage.Thumbnail,
                     Image1 = product.DetailImage.Image1,
                     Image2 = product.DetailImage.Image2,
                     Image3 = product.DetailImage.Image3,
                     Image4 = product.DetailImage.Image4
-                },
+                } : null,
                 Category = new ProductCategoryDTO
                 {
                     Id = product.Category?.Id ?? 0,
                     Name = product.Category?.Name ?? string.Empty
-                }
+                },
+                Stock = request.Stock
             };
 
             return productDTO;
@@ -75,14 +74,11 @@ namespace anphuong.Service
 
         public async Task<(IEnumerable<ProductDTO>, int totalItems)> GetAll(SearchProductsRequestDTO request)
         {
-            // If request or its components are null, create safe defaults
             var searchCondition = request?.SearchCondition ?? new SearchProductCondition();
             var pageInfo = request?.PageInfo ?? new PageInfoRequestDTO();
 
-            // Start with a base filter that is always true
             Expression<Func<Product, bool>> filter = u => true;
 
-            // Only apply keyword filter if keyword exists
             if (!string.IsNullOrEmpty(searchCondition.Keyword))
             {
                 var key = searchCondition.Keyword.ToLower();
@@ -92,18 +88,20 @@ namespace anphuong.Service
                 );
             }
 
-            // Only apply deletion filter if specified (default: return non-deleted)
             filter = ExpressionUtils.AddFilter(filter, u => u.IsDeleted == searchCondition.IsDeleted);
 
-            // Query paginated 
-            var items = await _repository.GetWithPaginationAsync(pageInfo, filter, "DetailImage,Category,Inventory");
+            // FIX: Đổi Include từ Inventory sang Variants.Inventory
+            var items = await _repository.GetWithPaginationAsync(pageInfo, filter, "DetailImage,Category,Variants.Inventory");
             var totalItems = await _repository.CountAsync(filter);
 
             var productDTOs = new List<ProductDTO>();
             foreach (var product in items)
             {
                 var dto = product.Adapt<ProductDTO>();
-                dto.Stock = product.Inventory?.QuantityInStock ?? 0;
+
+                // FIX: Tính tổng tồn kho của tất cả các biến thể thuộc sản phẩm này
+                dto.Stock = product.Variants?.Sum(v => v.Inventory?.QuantityInStock ?? 0) ?? 0;
+
                 productDTOs.Add(dto);
             }
 
@@ -112,32 +110,36 @@ namespace anphuong.Service
 
         public async Task<ProductDTO> Get(int id)
         {
-            var item = await _repository.GetAsync(id, "DetailImage,Category,Inventory")
+            // FIX: Đổi Include từ Inventory sang Variants.Inventory
+            var item = await _repository.GetAsync(id, "DetailImage,Category,Variants.Inventory")
                 ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
 
             var productDTO = item.Adapt<ProductDTO>();
-            productDTO.Stock = item.Inventory.QuantityInStock;
+
+            // FIX: Tính tổng tồn kho
+            productDTO.Stock = item.Variants?.Sum(v => v.Inventory?.QuantityInStock ?? 0) ?? 0;
+
             return productDTO;
         }
 
         public async Task<ProductDTO> Update(int id, UpdateProductRequestDTO request)
         {
-            var item = await _repository.GetAsync(id, "DetailImage")
+            var item = await _repository.GetAsync(id, "DetailImage,Category")
                 ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
 
             bool isChanged = false;
 
-         
-
             // Apply updates
             isChanged |= GenericHelperUtils.SetIfChanged(request.Name, () => item.Name, i => item.Name = i);
             isChanged |= GenericHelperUtils.SetIfChanged(request.Description, () => item.Description, i => item.Description = i);
-            isChanged |= GenericHelperUtils.SetIfChanged(request.Material, () => item.Material, i => item.Material = i);
-            isChanged |= GenericHelperUtils.SetIfChanged(request.DetailImage.Thumbnail, () => item.DetailImage.Thumbnail, i => item.DetailImage.Thumbnail = i);
-            isChanged |= GenericHelperUtils.SetIfChanged(request.DetailImage.Image1, () => item.DetailImage.Image1, i => item.DetailImage.Image1 = i);
-            isChanged |= GenericHelperUtils.SetIfChanged(request.DetailImage.Image2, () => item.DetailImage.Image2, i => item.DetailImage.Image2 = i);
-            isChanged |= GenericHelperUtils.SetIfChanged(request.DetailImage.Image3, () => item.DetailImage.Image3, i => item.DetailImage.Image3 = i);
-            isChanged |= GenericHelperUtils.SetIfChanged(request.DetailImage.Image4, () => item.DetailImage.Image4, i => item.DetailImage.Image4 = i);
+
+            if (item.DetailImage != null && request.DetailImage != null)
+            {
+                isChanged |= GenericHelperUtils.SetIfChanged(request.DetailImage.Image1, () => item.DetailImage.Image1, i => item.DetailImage.Image1 = i);
+                isChanged |= GenericHelperUtils.SetIfChanged(request.DetailImage.Image2, () => item.DetailImage.Image2, i => item.DetailImage.Image2 = i);
+                isChanged |= GenericHelperUtils.SetIfChanged(request.DetailImage.Image3, () => item.DetailImage.Image3, i => item.DetailImage.Image3 = i);
+                isChanged |= GenericHelperUtils.SetIfChanged(request.DetailImage.Image4, () => item.DetailImage.Image4, i => item.DetailImage.Image4 = i);
+            }
 
             isChanged |= GenericHelperUtils.SetIfChangedValue(request.Price, () => item.Price, i => item.Price = i);
             isChanged |= GenericHelperUtils.SetIfChangedValue(request.Discount, () => item.Discount, i => item.Discount = i);
@@ -146,14 +148,15 @@ namespace anphuong.Service
             isChanged |= GenericHelperUtils.SetIfChangedValue(request.HeightSize, () => item.HeightSize, i => item.HeightSize = i);
             isChanged |= GenericHelperUtils.SetIfChangedValue(request.CategoryId, () => item.CategoryId, i => item.CategoryId = i);
 
-            isChanged |= GenericHelperUtils.SetIfChangedNullableValue(request.VariationId, () => item.VariationId, i => item.VariationId = i);
+            // FIX: Bỏ các dòng Update Material và VariationId vì chúng không thuộc Product nữa
 
             if (isChanged)
             {
-                item.UpdatedAt = DateTime.UtcNow;
+                item.UpdatedAt = DateTime.Now;
                 if (!_repository.Update(item))
                     throw new BusinessException(ErrorDetails.DEFAULT);
             }
+
             var itemDTO = item.Adapt<ProductDTO>();
             return itemDTO;
         }

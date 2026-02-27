@@ -62,7 +62,7 @@ namespace anphuong.Service
                 filter = AddFilter(filter, c =>
                     (c.FullName != null && c.FullName.ToLower().Contains(keyword)) ||
                     (c.Phone != null && c.Phone.ToLower().Contains(keyword)) ||
-                    (c.CustomerAddress != null && c.CustomerAddress.ToLower().Contains(keyword)) ||
+                    (c.Address != null && c.Address.ToLower().Contains(keyword)) ||
                     (c.User != null && c.User.Username != null && c.User.Username.ToLower().Contains(keyword))
                 );
             }
@@ -86,7 +86,7 @@ namespace anphuong.Service
                 IsDeleted = c.IsDeleted,
                 Fullname = c.FullName,
                 Phone = c.Phone,
-                CustomerAddress = c.CustomerAddress,
+                CustomerAddress = c.Address,
                 Username = c.User?.Username,
                 Email = c.User?.Email,
                 Status = c.User?.Status
@@ -120,7 +120,7 @@ namespace anphuong.Service
                 IsDeleted = customer.IsDeleted,
                 Fullname = customer.FullName,
                 Phone = customer.Phone,
-                CustomerAddress = customer.CustomerAddress,
+                CustomerAddress = customer.Address,
                 Username = customer.User?.Username,
                 Email = customer.User?.Email,
                 Status = customer.User?.Status
@@ -138,7 +138,7 @@ namespace anphuong.Service
             // Apply updates
             isChanged |= GenericHelperUtils.SetIfChanged(request.Fullname, () => item.FullName, i => item.FullName = i);
             isChanged |= GenericHelperUtils.SetIfChanged(request.Phone, () => item.Phone, i => item.Phone = i);
-            isChanged |= GenericHelperUtils.SetIfChanged(request.CustomerAddress, () => item.CustomerAddress, i => item.CustomerAddress = i);
+            isChanged |= GenericHelperUtils.SetIfChanged(request.CustomerAddress, () => item.Address, i => item.Address = i);
             if (isChanged)
             {
                 item.UpdatedAt = DateTime.UtcNow;

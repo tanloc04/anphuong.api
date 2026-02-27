@@ -44,7 +44,7 @@ namespace anphuong.Service
             {
                 Phone = requestDTO.Phone,
                 FullName = requestDTO.FullName,
-                CustomerAddress = requestDTO.CustomerAddress,
+                Address = requestDTO.CustomerAddress,
                 User = new User
                 {
                     Email = requestDTO.Email,
@@ -66,7 +66,7 @@ namespace anphuong.Service
             {
                 Phone = requestDTO.Phone,
                 FullName = requestDTO.FullName,
-                CustomerAddress = requestDTO.CustomerAddress,
+                Address = requestDTO.CustomerAddress,
                 User = new User
                 {
                     Email = requestDTO.Email,
@@ -84,7 +84,7 @@ namespace anphuong.Service
             {
                 Phone = "",
                 FullName = requestDTO.FullName,
-                CustomerAddress = "",
+                Address = "",
                 User = new User
                 {
                     Email = requestDTO.Email,
@@ -170,7 +170,7 @@ namespace anphuong.Service
                 IsDeleted = user.IsDeleted,
                 Fullname = user.Customer.FullName,
                 Phone = user.Customer.Phone,
-                CustomerAddress = user.Customer.CustomerAddress,
+                CustomerAddress = user.Customer.Address,
                 Username = user.Username,
                 Email = user.Email,
                 Status = user.Status

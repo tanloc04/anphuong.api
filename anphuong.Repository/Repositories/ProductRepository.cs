@@ -50,6 +50,23 @@ namespace anphuong.Repository.Repositories
                     Product = product
                 };
 
+                var variant = new Variant
+                {
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now,
+                    IsDeleted = false,
+                    Product = product
+                };
+
+                var inventory = new Inventory
+                {
+                    QuantityInStock = request.Stock,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now,
+                    IsDeleted = false,
+                    Variant = variant
+                };
+
                 _context.DetailImages.Add(detailImage);
 
                 await _context.SaveChangesAsync();
@@ -68,12 +85,24 @@ namespace anphuong.Repository.Repositories
                     UpdatedAt = product.UpdatedAt,
                     IsDeleted = product.IsDeleted,
                     DetailImageId = detailImage.Id,
+                    DetailImage = new ProductDetailImageDTO
+                    {
+                        Image1 = detailImage.Image1,
+                        Image2 = detailImage.Image2,
+                        Image3 = detailImage.Image3,
+                        Image4 = detailImage.Image4,
+                    },
+                    Category = new ProductCategoryDTO
+                    {
+                        Id = product.Category?.Id ?? 0,
+                        Name = product.Category?.Name ?? string.Empty
+                    },
+                    Stock = inventory.QuantityInStock
                 };
             }
-            catch (Exception)
+            catch (DbUpdateException ex) when (ex.InnerException is SqlException sqlEx && sqlEx.Number == 547)
             {
-
-                throw;
+                throw new BusinessException(ErrorDetails.INVALID_CATEGORY_ID);
             }
         }
     }

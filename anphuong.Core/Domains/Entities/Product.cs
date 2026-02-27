@@ -12,7 +12,7 @@
         public bool isCustomize { get; set; }
         public int CategoryId { get; set; }
         public Category Category { get; set; } = null!;
-
+        public virtual DetailImage DetailImage { get; set; }
         public ICollection<Variant> Variants { get; set; }
         public ICollection<Behavior> Behaviors { get; set; }
     }

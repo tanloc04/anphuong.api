@@ -10,5 +10,6 @@
         public Color Color { get; set; } = null!;
         public Product Product { get; set; } = null!;
         public Material Material { get; set; } = null!;
+        public virtual Inventory Inventory { get; set; }
     }
 }
