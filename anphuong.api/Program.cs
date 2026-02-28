@@ -13,9 +13,19 @@ using Microsoft.OpenApi.Models;
 Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddCors(o => o.AddPolicy("AllowAll", p =>
-    p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()
-));
+#region CORS Configuration
+// Giữ nguyên theo yêu cầu của bạn để tiện testing.
+// LƯU Ý: Khi deploy production hoặc tích hợp FE có gửi Cookie (withCredentials: true),
+// bạn SẼ KHÔNG THỂ dùng AllowAnyOrigin(). Lúc đó phải đổi sang WithOrigins("http://domain-fe.com").
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", p =>
+        p.WithOrigins("http://localhost:5173")
+         .AllowAnyHeader()
+         .AllowAnyMethod()
+         .AllowCredentials());
+});
+#endregion
 
 builder.Configuration
     .AddEnvironmentVariables();
@@ -98,6 +108,15 @@ builder.Services.AddAuthentication(options =>
                      claimsIdentity?.AddClaim(new Claim(ClaimTypes.Email, emailClaim));
                  }
                  return Task.CompletedTask;
+             },
+
+             OnMessageReceived = context =>
+             {
+                 if (context.Request.Cookies.ContainsKey("accessToken"))
+                 {
+                     context.Token = context.Request.Cookies["accessToken"];
+                 }
+                 return Task.CompletedTask;
              }
          };
      });
@@ -178,7 +197,7 @@ if (app.Environment.IsDevelopment())
 }
 app.UseRouting();
 
-app.UseCors("AllowAll");
+app.UseCors("AllowReactApp");
 
 app.UseAuthentication();
 

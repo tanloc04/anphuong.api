@@ -1,6 +1,4 @@
-﻿using System.Security.Claims;
-using System.Security.Cryptography;
-using anphuong.Core.Constants;
+﻿using anphuong.Core.Constants;
 using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.API;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Auth;
@@ -13,6 +11,9 @@ using anphuong.Repository.Repositories;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
+using System.Security.Claims;
+using System.Security.Cryptography;
 using static anphuong.Core.Exceptions.GoogleException;
 
 namespace anphuong.api.Controllers
@@ -64,14 +65,21 @@ namespace anphuong.api.Controllers
             user.RefreshTokenExpiry = DateTime.Now.AddDays(Consts.REFRESHTOKEN_EXPIRED_TIME);
             await _userService.Update(user);
 
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Expires = DateTime.UtcNow.AddDays(7),
+                SameSite = SameSiteMode.Lax,
+                Secure = false,
+                Path = "/"
+            };
+            Response.Cookies.Append("accessToken", accessToken, cookieOptions);
+            Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
+
             return Ok(new ApiResponseDTO<LoginDTO>()
             {
                 Success = true,
-                Data = new LoginDTO()
-                {
-                    AccessToken = accessToken,
-                    RefreshToken = refreshToken
-                }
+                Message = "Login Success"
             });
         }
         #endregion
@@ -185,14 +193,22 @@ namespace anphuong.api.Controllers
                 user.RefreshTokenExpiry = DateTime.Now.AddDays(Consts.REFRESHTOKEN_EXPIRED_TIME);
 
                 await _userService.Update(user);
+
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Expires = DateTime.UtcNow.AddDays(7),
+                    SameSite = SameSiteMode.Lax,
+                    Secure = false,
+                    Path = "/"
+                };
+                Response.Cookies.Append("accessToken", token, cookieOptions);
+                Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
+
                 return Ok(new ApiResponseDTO<LoginDTO>
                 {
                     Success = true,
-                    Data = new LoginDTO 
-                    { 
-                        AccessToken = token, 
-                        RefreshToken = user.RefreshToken
-                    }
+                    Message = "Login Success"
                 });
             }
             catch (TokenExpiredException)
@@ -229,16 +245,17 @@ namespace anphuong.api.Controllers
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> checkRefreshToken([FromBody] LoginDTO loginRequest)
         {
-            if (string.IsNullOrEmpty(loginRequest.RefreshToken))
+            var refreshToken = Request.Cookies["refreshToken"];
+            if (string.IsNullOrEmpty(refreshToken))
             {
                 return Unauthorized(new ApiResponseDTO<object>
                 {
                     Success = false,
-                    Message = "No Token provided"
+                    Message = "No Token provided in Cookies"
                 });
             }
 
-            var user = await _userService.CheckRefreshToken(loginRequest.RefreshToken);
+            var user = await _userService.CheckRefreshToken(refreshToken);
 
             if (user == null)
             {
