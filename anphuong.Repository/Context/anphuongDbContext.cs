@@ -82,6 +82,10 @@ namespace anphuong.Repository.Context
                 entity.Property(e => e.CreatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.UpdatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.IsDeleted).IsRequired();
+                entity.Property(e => e.isCustomized).IsRequired().HasDefaultValue(false);
+                entity.Property(e => e.CustomLongSize).HasColumnType("decimal(18,2)").IsRequired(false);
+                entity.Property(e => e.CustomWidthSize).HasColumnType("decimal(18,2)").IsRequired(false);
+                entity.Property(e => e.CustomHeightSize).HasColumnType("decimal(18,2)").IsRequired(false);
 
                 entity.HasOne(e => e.Variant)
                       .WithMany()

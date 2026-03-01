@@ -11,5 +11,9 @@ namespace anphuong.Core.Domains.DTOs
         public int Quantity { get; set; }
         public double UnitPrice { get; set; }
         public double Subtotal { get; set; }
+        public bool isCustomized { get; set; }
+        public decimal? CustomLongSize { get; set; }
+        public decimal? CustomWidthSize { get; set; }
+        public decimal? CustomHeightSize { get; set; }
     }
 }

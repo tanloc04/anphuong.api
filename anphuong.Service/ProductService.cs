@@ -37,6 +37,7 @@ namespace anphuong.Service
                 LongSize = product.LongSize,
                 WidthSize = product.WidthSize,
                 HeightSize = product.HeightSize,
+                
                 CategoryId = product.CategoryId,
                 CreatedAt = product.CreatedAt,
                 UpdatedAt = product.UpdatedAt,

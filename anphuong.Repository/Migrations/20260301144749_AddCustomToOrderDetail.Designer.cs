@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using anphuong.Repository.Context;
 
@@ -11,9 +12,11 @@ using anphuong.Repository.Context;
 namespace anphuong.Repository.Migrations
 {
     [DbContext(typeof(anphuongDbContext))]
-    partial class anphuongDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260301144749_AddCustomToOrderDetail")]
+    partial class AddCustomToOrderDetail
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -338,14 +341,14 @@ namespace anphuong.Repository.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime");
 
-                    b.Property<decimal?>("CustomHeightSize")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<double?>("CustomHeightSize")
+                        .HasColumnType("float");
 
-                    b.Property<decimal?>("CustomLongSize")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<double?>("CustomLongSize")
+                        .HasColumnType("float");
 
-                    b.Property<decimal?>("CustomWidthSize")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<double?>("CustomWidthSize")
+                        .HasColumnType("float");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
