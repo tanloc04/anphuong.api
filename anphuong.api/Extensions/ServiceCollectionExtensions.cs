@@ -55,6 +55,10 @@ namespace anphuong.api.Extensions
             //----------------Variant-----------------
             services.AddScoped<IVariantRepository, VariantRepository>();
             services.AddScoped<IVariantService, VariantService>();
+
+            //----------------Material-----------------
+            services.AddScoped<IMaterialRepository, MaterialRepository>();
+            services.AddScoped<IMaterialService, MaterialService>();
         }
     }
 }
