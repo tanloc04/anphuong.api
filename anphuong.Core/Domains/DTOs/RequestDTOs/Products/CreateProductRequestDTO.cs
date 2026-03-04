@@ -14,11 +14,10 @@ namespace anphuong.Core.Domains.DTOs.RequestDTOs.Products
 
         [DefaultValue(false)]
         public bool isCustomize { get; set; } = false;
-        public int CategoryId { get; set; }
-        public string Image1 { get; set; } = string.Empty;
-        public string Image2 { get; set; } = string.Empty;
-        public string Image3 { get; set; } = string.Empty;
-        public string Image4 { get; set; } = string.Empty;
-        public int Stock { get; set; }
+        public int? CategoryId { get; set; }
+        public string? Image1 { get; set; } = string.Empty;
+        public string? Image2 { get; set; } = string.Empty;
+        public string? Image3 { get; set; } = string.Empty;
+        public string? Image4 { get; set; } = string.Empty;
     }
 }

@@ -10,6 +10,7 @@ namespace anphuong.Core.Interfaces.Services
 {
     public interface IMaterialService
     {
+        Task<(IEnumerable<MaterialDto> pageData, int totalItems)> SearchAsync(SearchMaterialRequestDTO request);
         Task<IEnumerable<MaterialDto>> GetAllAsync();
         Task<MaterialDto?> GetByIdAsync(int id);
         Task<MaterialDto> CreateAsync(CreateMaterialRequestDto request);

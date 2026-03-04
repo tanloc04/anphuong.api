@@ -33,11 +33,12 @@ namespace anphuong.Service
                 Description = product.Description,
                 Price = product.Price,
                 Discount = product.Discount,
-                // FIX: Xóa Material và VariationId vì không còn nằm trong Product
+
                 LongSize = product.LongSize,
                 WidthSize = product.WidthSize,
                 HeightSize = product.HeightSize,
-                
+                isCustomize = product.isCustomize, // Map trường isCustomize
+
                 CategoryId = product.CategoryId,
                 CreatedAt = product.CreatedAt,
                 UpdatedAt = product.UpdatedAt,
@@ -54,7 +55,10 @@ namespace anphuong.Service
                     Id = product.Category?.Id ?? 0,
                     Name = product.Category?.Name ?? string.Empty
                 },
-                Stock = request.Stock
+
+                // Sản phẩm mới tạo chắc chắn chưa có Biến thể và Kho
+                TotalStock = 0,
+                IsMissingVariants = true
             };
 
             return productDTO;
@@ -91,7 +95,6 @@ namespace anphuong.Service
 
             filter = ExpressionUtils.AddFilter(filter, u => u.IsDeleted == searchCondition.IsDeleted);
 
-            // FIX: Đổi Include từ Inventory sang Variants.Inventory
             var items = await _repository.GetWithPaginationAsync(pageInfo, filter, "DetailImage,Category,Variants.Inventory");
             var totalItems = await _repository.CountAsync(filter);
 
@@ -100,8 +103,11 @@ namespace anphuong.Service
             {
                 var dto = product.Adapt<ProductDTO>();
 
-                // FIX: Tính tổng tồn kho của tất cả các biến thể thuộc sản phẩm này
-                dto.Stock = product.Variants?.Sum(v => v.Inventory?.QuantityInStock ?? 0) ?? 0;
+                // Tính tổng tồn kho của tất cả các biến thể
+                dto.TotalStock = product.Variants?.Sum(v => v.Inventory?.QuantityInStock ?? 0) ?? 0;
+
+                // Cờ cảnh báo: Check xem danh sách biến thể có trống không
+                dto.IsMissingVariants = product.Variants == null || !product.Variants.Any();
 
                 productDTOs.Add(dto);
             }
@@ -111,14 +117,14 @@ namespace anphuong.Service
 
         public async Task<ProductDTO> Get(int id)
         {
-            // FIX: Đổi Include từ Inventory sang Variants.Inventory
             var item = await _repository.GetAsync(id, "DetailImage,Category,Variants.Inventory")
                 ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
 
             var productDTO = item.Adapt<ProductDTO>();
 
-            // FIX: Tính tổng tồn kho
-            productDTO.Stock = item.Variants?.Sum(v => v.Inventory?.QuantityInStock ?? 0) ?? 0;
+            // Tính tổng tồn kho và check cờ cảnh báo
+            productDTO.TotalStock = item.Variants?.Sum(v => v.Inventory?.QuantityInStock ?? 0) ?? 0;
+            productDTO.IsMissingVariants = item.Variants == null || !item.Variants.Any();
 
             return productDTO;
         }
@@ -134,12 +140,29 @@ namespace anphuong.Service
             isChanged |= GenericHelperUtils.SetIfChanged(request.Name, () => item.Name, i => item.Name = i);
             isChanged |= GenericHelperUtils.SetIfChanged(request.Description, () => item.Description, i => item.Description = i);
 
-            if (item.DetailImage != null && request.DetailImage != null)
+            // Xử lý Update Hình ảnh chi tiết từ các thuộc tính phẳng
+            if (item.DetailImage != null)
             {
-                isChanged |= GenericHelperUtils.SetIfChanged(request.DetailImage.Image1, () => item.DetailImage.Image1, i => item.DetailImage.Image1 = i);
-                isChanged |= GenericHelperUtils.SetIfChanged(request.DetailImage.Image2, () => item.DetailImage.Image2, i => item.DetailImage.Image2 = i);
-                isChanged |= GenericHelperUtils.SetIfChanged(request.DetailImage.Image3, () => item.DetailImage.Image3, i => item.DetailImage.Image3 = i);
-                isChanged |= GenericHelperUtils.SetIfChanged(request.DetailImage.Image4, () => item.DetailImage.Image4, i => item.DetailImage.Image4 = i);
+                isChanged |= GenericHelperUtils.SetIfChanged(request.Image1, () => item.DetailImage.Image1, i => item.DetailImage.Image1 = i);
+                isChanged |= GenericHelperUtils.SetIfChanged(request.Image2, () => item.DetailImage.Image2, i => item.DetailImage.Image2 = i);
+                isChanged |= GenericHelperUtils.SetIfChanged(request.Image3, () => item.DetailImage.Image3, i => item.DetailImage.Image3 = i);
+                isChanged |= GenericHelperUtils.SetIfChanged(request.Image4, () => item.DetailImage.Image4, i => item.DetailImage.Image4 = i);
+
+                if (isChanged) item.DetailImage.UpdatedAt = DateTime.Now;
+            }
+            else if (!string.IsNullOrEmpty(request.Image1) || !string.IsNullOrEmpty(request.Image2) ||
+                     !string.IsNullOrEmpty(request.Image3) || !string.IsNullOrEmpty(request.Image4))
+            {
+                item.DetailImage = new DetailImage
+                {
+                    Image1 = request.Image1,
+                    Image2 = request.Image2,
+                    Image3 = request.Image3,
+                    Image4 = request.Image4,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
+                };
+                isChanged = true;
             }
 
             isChanged |= GenericHelperUtils.SetIfChangedValue(request.Price, () => item.Price, i => item.Price = i);
@@ -147,9 +170,8 @@ namespace anphuong.Service
             isChanged |= GenericHelperUtils.SetIfChangedValue(request.LongSize, () => item.LongSize, i => item.LongSize = i);
             isChanged |= GenericHelperUtils.SetIfChangedValue(request.WidthSize, () => item.WidthSize, i => item.WidthSize = i);
             isChanged |= GenericHelperUtils.SetIfChangedValue(request.HeightSize, () => item.HeightSize, i => item.HeightSize = i);
+            isChanged |= GenericHelperUtils.SetIfChangedValue(request.isCustomize, () => item.isCustomize, i => item.isCustomize = i);
             isChanged |= GenericHelperUtils.SetIfChangedValue(request.CategoryId, () => item.CategoryId, i => item.CategoryId = i);
-
-            // FIX: Bỏ các dòng Update Material và VariationId vì chúng không thuộc Product nữa
 
             if (isChanged)
             {
@@ -159,6 +181,11 @@ namespace anphuong.Service
             }
 
             var itemDTO = item.Adapt<ProductDTO>();
+
+            // Do hàm Update không Include Variants để tối ưu, trả về TotalStock = 0 tạm thời
+            // (Thường gọi Update xong UI sẽ refetch lại hàm GetById nên không sao)
+            itemDTO.TotalStock = 0;
+
             return itemDTO;
         }
     }

@@ -22,10 +22,29 @@ namespace anphuong.Service
         }
         public async Task<VariantDTO> Create(CreateVariantRequestDTO request)
         {
-            var entity = request.Adapt<Variant>();
-            await _repository.AddAsync(entity);
+            var variant = new Variant
+            {
+                ProductId = request.ProductId,
+                ColorId = request.ColorId,
+                MaterialId = request.MaterialId,
+                Price = request.Price,           
+                VariantImage = request.VariantImage,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                IsDeleted = false,
 
-            return entity.Adapt<VariantDTO>();
+                Inventory = new Inventory
+                {
+                    QuantityInStock = request.Stock,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    IsDeleted = false
+                }
+            };
+
+            await _repository.AddAsync(variant);
+
+            return variant.Adapt<VariantDTO>();
         }
         public async Task Delete(int id)
         {
@@ -59,7 +78,7 @@ namespace anphuong.Service
             filter = ExpressionUtils.AddFilter(filter, u => u.IsDeleted == searchCondition.IsDeleted);
 
             // Query paginated 
-            var items = await _repository.GetWithPaginationAsync(pageInfo, filter, "Color,Product,VariantImage");
+            var items = await _repository.GetWithPaginationAsync(pageInfo, filter, "Color,Material,Inventory");
             var totalItems = await _repository.CountAsync(filter);
 
             return (items.Adapt<IEnumerable<VariantDTO>>(), totalItems);

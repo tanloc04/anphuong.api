@@ -1,6 +1,4 @@
-﻿using anphuong.Core.Domains.DTOs;
-using anphuong.Core.Domains.DTOs.RequestDTOs.Products;
-using anphuong.Core.Domains.DTOs.ResponseDTOs.Product;
+﻿using anphuong.Core.Domains.DTOs.RequestDTOs.Products;
 using anphuong.Core.Domains.Entities;
 using anphuong.Core.Domains.Objects;
 using anphuong.Core.Exceptions;
@@ -14,14 +12,23 @@ namespace anphuong.Repository.Repositories
     public class ProductRepository : GenericRepository<Product>, IProductRepository
     {
         private readonly anphuongDbContext _context;
+
         public ProductRepository(anphuongDbContext context) : base(context)
         {
             _context = context;
         }
-        public async Task<ProductDTO> CreateFullProductAsync(CreateProductRequestDTO request)
+
+        public async Task<Product> CreateFullProductAsync(CreateProductRequestDTO request)
         {
             try
             {
+                // 1. Kiểm tra CategoryId hợp lệ
+                if (!request.CategoryId.HasValue)
+                {
+                    throw new BusinessException(ErrorDetails.INVALID_CATEGORY_ID);
+                }
+
+                // 2. Chỉ tạo Product gốc với đầy đủ các trường mới
                 var product = new Product
                 {
                     Name = request.Name,
@@ -32,73 +39,38 @@ namespace anphuong.Repository.Repositories
                     WidthSize = request.WidthSize,
                     HeightSize = request.HeightSize,
                     isCustomize = request.isCustomize,
-                    CategoryId = request.CategoryId,
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now,
+                    CategoryId = request.CategoryId.Value,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
                     IsDeleted = false
                 };
 
-                var detailImage = new DetailImage
+                // 3. Tạo hình ảnh chi tiết (nếu Admin có tải ảnh lên)
+                if (!string.IsNullOrEmpty(request.Image1) || !string.IsNullOrEmpty(request.Image2) ||
+                    !string.IsNullOrEmpty(request.Image3) || !string.IsNullOrEmpty(request.Image4))
                 {
-                    Image1 = request.Image1,
-                    Image2 = request.Image2,
-                    Image3 = request.Image3,
-                    Image4 = request.Image4,
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now,
-                    IsDeleted = false,
-                    Product = product
-                };
+                    product.DetailImage = new DetailImage
+                    {
+                        Image1 = request.Image1,
+                        Image2 = request.Image2,
+                        Image3 = request.Image3,
+                        Image4 = request.Image4,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        IsDeleted = false,
+                        Product = product
+                    };
+                }
 
-                var variant = new Variant
-                {
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now,
-                    IsDeleted = false,
-                    Product = product
-                };
-
-                var inventory = new Inventory
-                {
-                    QuantityInStock = request.Stock,
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now,
-                    IsDeleted = false,
-                    Variant = variant
-                };
-
-                _context.DetailImages.Add(detailImage);
-
+                // 4. Lưu tất cả xuống Database (EF Core sẽ tự map Khóa ngoại)
+                await _context.Products.AddAsync(product);
                 await _context.SaveChangesAsync();
 
+                // 5. Load thêm Category Name để lát nữa Service map DTO cho đẹp
                 await _context.Entry(product).Reference(p => p.Category).LoadAsync();
 
-                return new ProductDTO
-                {
-                    Id = product.Id,
-                    Name = product.Name,
-                    Description = product.Description,
-                    Price = product.Price,
-                    Discount = product.Discount,
-                    CategoryId = product.CategoryId,
-                    CreatedAt = product.CreatedAt,
-                    UpdatedAt = product.UpdatedAt,
-                    IsDeleted = product.IsDeleted,
-                    DetailImageId = detailImage.Id,
-                    DetailImage = new ProductDetailImageDTO
-                    {
-                        Image1 = detailImage.Image1,
-                        Image2 = detailImage.Image2,
-                        Image3 = detailImage.Image3,
-                        Image4 = detailImage.Image4,
-                    },
-                    Category = new ProductCategoryDTO
-                    {
-                        Id = product.Category?.Id ?? 0,
-                        Name = product.Category?.Name ?? string.Empty
-                    },
-                    Stock = inventory.QuantityInStock
-                };
+                // 6. Trả về Entity Product (KHÔNG trả về DTO ở đây nữa)
+                return product;
             }
             catch (DbUpdateException ex) when (ex.InnerException is SqlException sqlEx && sqlEx.Number == 547)
             {

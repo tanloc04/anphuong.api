@@ -6,11 +6,13 @@ namespace anphuong.Core.Domains.DTOs
 {
     public class VariantDTO : DTO
     {
-        public int ColorId { get; set; }
-        public int ProductId { get; set; }
-        public int VariantImageId { get; set; }
-        public VariantImageDTO VariantImage { get; set; }
-        public ColorNameDTO Color { get; set; }
-        //public ProductDTO Product { get; set; }
+        public int Id { get; set; }
+        public string? VariantImage { get; set; }
+        public decimal Price { get; set; }
+
+        // Navigation Properties (Tùy cấu trúc DTO của bạn mà gọi cho đúng)
+        public ColorDTO? Color { get; set; }
+        public MaterialDto? Material { get; set; } // Phải có cái này để show tên Chất liệu
+        public InventoryDTO? Inventory { get; set; } // Phải có cái này để show Kho
     }
 }

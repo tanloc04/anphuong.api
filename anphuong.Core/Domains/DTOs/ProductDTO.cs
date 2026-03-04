@@ -12,11 +12,11 @@ namespace anphuong.Core.Domains.DTOs
         public decimal LongSize { get; set; }
         public decimal WidthSize { get; set; }
         public decimal HeightSize { get; set; }
-        public int DetailImageId { get; set; }
-        public int CategoryId { get; set; }
-        public int? VariationId { get; set; }
-        public int Stock { get; set; }
+        public bool isCustomize { get; set; }
+        public int? CategoryId { get; set; }
         public ProductDetailImageDTO DetailImage { get; set; }
         public ProductCategoryDTO Category { get; set; }
+        public int TotalStock { get; set; }
+        public bool IsMissingVariants { get; set; }
     }
 }

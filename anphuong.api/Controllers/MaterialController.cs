@@ -17,14 +17,37 @@ namespace anphuong.api.Controllers
             _materialService = materialService;
         }
 
+        #region Search
+        [HttpPost("search")]
+        [Authorize(Policy = "AllowSpecificEmail")]
+        public async Task<IActionResult> Search([FromBody] SearchMaterialRequestDTO request)
+        {
+            var result = await _materialService.SearchAsync(request);
+
+            return Ok(new
+            {
+                Success = true,
+                Data = new
+                {
+                    pageData = result.pageData,
+                    totalItems = result.totalItems
+                }
+            });
+        }
+        #endregion
+
+        #region GetAll
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             var result = await _materialService.GetAllAsync();
             return Ok(new { Success = true, Data = result });
         }
+        #endregion
 
+        #region GetById
         [HttpGet("{id}")]
+        [Authorize(Policy = "AllowSpecificEmail")]
         public async Task<IActionResult> GetById(int id)
         {
             var result = await _materialService.GetByIdAsync(id);
@@ -32,17 +55,21 @@ namespace anphuong.api.Controllers
             if (result == null) return NotFound(new {Success = false, Message = "Không tìm thấy chất liệu!"});
             return Ok(new { Success = true, Data = result });
         }
+        #endregion
 
+        #region Create
         [HttpPost("create")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = "AllowSpecificEmail")]
         public async Task<IActionResult> Create([FromBody] CreateMaterialRequestDto request)
         {
             var result = await _materialService.CreateAsync(request);
             return Ok(new { Success = true, Message = "Thêm chất liệu thành công!" });
         }
+        #endregion
 
+        #region Update
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = "AllowSpecificEmail")]
         public async Task<IActionResult> Update(int id, [FromBody]CreateMaterialRequestDto request)
         {
             var success = await _materialService.UpdateAsync(id, request);
@@ -52,9 +79,11 @@ namespace anphuong.api.Controllers
             }
             return Ok(new { Success = true, Message = "Cập nhật chất liệu thành công!" });
         }
+        #endregion
 
+        #region Delete
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = "AllowSpecificEmail")]
         public async Task<IActionResult> Delete(int id)
         {
             var success = await _materialService.DeleteAsync(id);
@@ -64,5 +93,6 @@ namespace anphuong.api.Controllers
             }
             return Ok(new { Success = true, Message = "Xóa chất liệu thành công!" });
         }
+        #endregion
     }
 }
