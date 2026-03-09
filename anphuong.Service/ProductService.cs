@@ -84,6 +84,7 @@ namespace anphuong.Service
 
             Expression<Func<Product, bool>> filter = u => true;
 
+            // 1. LỌC THEO TỪ KHÓA (Giữ nguyên của bạn)
             if (!string.IsNullOrEmpty(searchCondition.Keyword))
             {
                 var key = searchCondition.Keyword.ToLower();
@@ -93,9 +94,54 @@ namespace anphuong.Service
                 );
             }
 
+            // 2. LỌC THEO DANH MỤC (Thêm mới)
+            if (searchCondition.CategoryId.HasValue && searchCondition.CategoryId.Value > 0)
+            {
+                filter = ExpressionUtils.AddFilter(filter, x => x.CategoryId == searchCondition.CategoryId.Value);
+            }
+
+            // 3. LỌC THEO KHOẢNG THỜI GIAN (Thêm mới)
+            if (searchCondition.StartDate.HasValue)
+            {
+                var start = searchCondition.StartDate.Value.Date; // Lấy mốc 00:00:00
+                filter = ExpressionUtils.AddFilter(filter, x => x.CreatedAt >= start);
+            }
+
+            if (searchCondition.EndDate.HasValue)
+            {
+                var end = searchCondition.EndDate.Value.Date.AddDays(1).AddTicks(-1); // Lấy mốc 23:59:59
+                filter = ExpressionUtils.AddFilter(filter, x => x.CreatedAt <= end);
+            }
+
             filter = ExpressionUtils.AddFilter(filter, u => u.IsDeleted == searchCondition.IsDeleted);
 
+            // 4. SẮP XẾP (SORTING) - PHẦN NÀY TÙY VÀO REPOSITORY CỦA BẠN
+            // Thường thì Repository chuẩn sẽ có thêm tham số Func<IQueryable<T>, IOrderedQueryable<T>> orderBy
+            // Ví dụ nếu Repository của bạn hỗ trợ truyền sort:
+            /*
+            Func<IQueryable<Product>, IOrderedQueryable<Product>> orderBy = q => 
+            {
+                if (!string.IsNullOrEmpty(searchCondition.SortBy))
+                {
+                    bool isDesc = searchCondition.SortDesc ?? false;
+                    return searchCondition.SortBy.ToLower() switch
+                    {
+                        "price" => isDesc ? q.OrderByDescending(x => x.Price) : q.OrderBy(x => x.Price),
+                        "name" => isDesc ? q.OrderByDescending(x => x.Name) : q.OrderBy(x => x.Name),
+                        "createdat" => isDesc ? q.OrderByDescending(x => x.CreatedAt) : q.OrderBy(x => x.CreatedAt),
+                        _ => q.OrderByDescending(x => x.CreatedAt) // Mặc định sort theo ngày tạo mới nhất
+                    };
+                }
+                return q.OrderByDescending(x => x.CreatedAt); // Mặc định
+            };
+
+            // Gọi hàm Get của Repo (truyền thêm orderBy vào)
+            var items = await _repository.GetWithPaginationAsync(pageInfo, filter, orderBy, "DetailImage,Category,Variants.Inventory");
+            */
+
+            // NẾU REPO HIỆN TẠI CHƯA HỖ TRỢ orderBy, MÌNH CỨ DÙNG TẠM CÁI CŨ CỦA BẠN (Cần cân nhắc nâng cấp Repo sau này):
             var items = await _repository.GetWithPaginationAsync(pageInfo, filter, "DetailImage,Category,Variants.Inventory");
+
             var totalItems = await _repository.CountAsync(filter);
 
             var productDTOs = new List<ProductDTO>();

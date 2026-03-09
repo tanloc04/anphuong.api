@@ -15,6 +15,7 @@ using anphuong.Core.Ultilities;
 using anphuong.Repository.Repositories;
 using Mapster;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 
 namespace anphuong.Service
 {
@@ -25,18 +26,25 @@ namespace anphuong.Service
         private readonly IJwtService _jwtService;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
+        private readonly IConfiguration _config;
+
         public UserService(IUserRepository userRepository, ICustomerRepository customerRepository,
-            IJwtService jwtService, IHttpContextAccessor httpContextAccessor)
+            IJwtService jwtService, IHttpContextAccessor httpContextAccessor, IConfiguration config)
         {
             _repository = userRepository;
             _customerRepository = customerRepository;
             _jwtService = jwtService;
             _httpContextAccessor = httpContextAccessor;
+            _config = config;
         }
 
         public async Task<int> RegisterAsync(RegisterRequestDTO requestDTO)
         {
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(requestDTO.Password);
+
+            string allowedEmails = _config["ALLOWED_EMAILS"] ?? "";
+
+            bool isAdmin = allowedEmails.Split(',').Any(e => e.Trim().Equals(requestDTO.Email, StringComparison.OrdinalIgnoreCase));
 
             var newCustomer = new Customer
             {
@@ -48,7 +56,8 @@ namespace anphuong.Service
                     Email = requestDTO.Email,
                     Username = requestDTO.Username,
                     PasswordHash = hashedPassword,
-                    Status = "DEACTIVE"
+                    Status = "DEACTIVE",
+                    Role = isAdmin
                 }
             };
 
@@ -60,6 +69,9 @@ namespace anphuong.Service
         {
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(requestDTO.Password);
 
+            string allowedEmails = _config["ALLOWED_EMAILS"] ?? "";
+            bool isAdmin = allowedEmails.Split(',').Any(e => e.Trim().Equals(requestDTO.Email, StringComparison.OrdinalIgnoreCase));
+
             var newCustomer = new Customer
             {
                 Phone = requestDTO.Phone,
@@ -70,7 +82,8 @@ namespace anphuong.Service
                     Email = requestDTO.Email,
                     Username = requestDTO.Username,
                     PasswordHash = hashedPassword,
-                    Status = "ACTIVE"
+                    Status = "ACTIVE",
+                    Role = isAdmin
                 }
             };
 
@@ -79,6 +92,8 @@ namespace anphuong.Service
 
         public async Task<User> GoogleRegisterAsync(GoogleRegisterRequestDTO requestDTO)
         {
+            string allowedEmails = _config["ALLOWED_EMAILS"] ?? "";
+            bool isAdmin = allowedEmails.Split(',').Any(e => e.Trim().Equals(requestDTO.Email, StringComparison.OrdinalIgnoreCase));
             var newCustomer = new Customer
             {
                 Phone = "",
@@ -88,7 +103,8 @@ namespace anphuong.Service
                 {
                     Email = requestDTO.Email,
                     Username = requestDTO.Username,
-                    Status = "ACTIVE"
+                    Status = "ACTIVE",
+                    Role = isAdmin
                 }
             };
 
@@ -166,7 +182,8 @@ namespace anphuong.Service
                 CustomerAddress = user.Customer?.Address ?? string.Empty,
                 Username = user.Username,
                 Email = user.Email,
-                Status = user.Status
+                Status = user.Status,
+                Role = user.Role
             };
 
             return dto;

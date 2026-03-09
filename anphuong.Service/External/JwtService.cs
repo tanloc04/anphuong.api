@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using anphuong.Core.Constants;
 using anphuong.Core.Interfaces.Services.External;
+using CloudinaryDotNet.Actions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
@@ -20,7 +21,7 @@ namespace anphuong.Service.Extenal
             _issuer = config["Jwt:Issuer"];
             _audience = config["Jwt:Audience"];
         }
-        public string GenerateToken(string? userId, string? userEmail)
+        public string GenerateToken(string? userId, string? userEmail, bool role)
         {
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(userEmail))
             {
@@ -31,6 +32,7 @@ namespace anphuong.Service.Extenal
             {
                 new Claim(ClaimTypes.NameIdentifier, userId),
                 new Claim(JwtRegisteredClaimNames.Email, userEmail),
+                new Claim(ClaimTypes.Role, role.ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 

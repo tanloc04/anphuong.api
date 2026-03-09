@@ -7,6 +7,11 @@ namespace anphuong.Core.Domains.DTOs.RequestDTOs.Products
         public string? Keyword { get; set; }
         public string? Status { get; set; }
         public bool IsDeleted { get; set; } = false;
+        public int? CategoryId { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public string? SortBy { get; set; }
+        public bool? SortDesc { get; set; }
     }
 
     public class SearchProductsRequestDTO

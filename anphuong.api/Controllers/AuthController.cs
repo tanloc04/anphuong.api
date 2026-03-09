@@ -8,6 +8,7 @@ using anphuong.Core.Interfaces.Services;
 using anphuong.Core.Interfaces.Services.External;
 using anphuong.Core.Ultilities;
 using anphuong.Repository.Repositories;
+using Azure.Core;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -50,7 +51,7 @@ namespace anphuong.api.Controllers
                     Message = "Invalid email or password."
                 });
             }
-            if (user.Status.Equals("0"))
+            if (user.Status.Equals("DEACTIVE", StringComparison.OrdinalIgnoreCase) || user.Status.Equals("0"))
             {
                 return StatusCode(StatusCodes.Status403Forbidden, new ApiResponseDTO<object>
                 {
@@ -59,7 +60,7 @@ namespace anphuong.api.Controllers
                 });
             }
 
-            var accessToken = _jwtService.GenerateToken(user.Id.ToString(), user.Email);
+            var accessToken = _jwtService.GenerateToken(user.Id.ToString(), user.Email, user.Role);
             var refreshToken = Guid.NewGuid().ToString();
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiry = DateTime.Now.AddDays(Consts.REFRESHTOKEN_EXPIRED_TIME);
@@ -187,7 +188,7 @@ namespace anphuong.api.Controllers
                     });
                 }
 
-                var token = _jwtService.GenerateToken(user.Id.ToString(), user.Email);
+                var token = _jwtService.GenerateToken(user.Id.ToString(), user.Email, user.Role);
                 refreshToken = Guid.NewGuid().ToString();
                 user.RefreshToken = refreshToken;
                 user.RefreshTokenExpiry = DateTime.Now.AddDays(Consts.REFRESHTOKEN_EXPIRED_TIME);
@@ -284,7 +285,7 @@ namespace anphuong.api.Controllers
                 });
             }
 
-            var accessToken = _jwtService.GenerateToken(user.Id.ToString(), user.Email);
+            var accessToken = _jwtService.GenerateToken(user.Id.ToString(), user.Email, user.Role);
             return Ok(new ApiResponseDTO<LoginDTO>()
             {
                 Success = true,

@@ -73,6 +73,7 @@ namespace anphuong.Service
             }
 
             filter = AddFilter(filter, c => c.IsDeleted == request.SearchCondition.IsDeleted);
+            filter = AddFilter(filter, c => c.User == null || c.User.Role == false);
 
             var customers = await _repository.GetWithPaginationAsync(request.PageInfo, filter, includeProperties: "User");
 
