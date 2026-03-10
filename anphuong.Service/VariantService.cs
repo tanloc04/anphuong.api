@@ -61,25 +61,24 @@ namespace anphuong.Service
 
         public async Task<(IEnumerable<VariantDTO>, int totalItems)> GetAll(SearchVariantRequestDTO request)
         {
-            // If request or its components are null, create safe defaults
             var searchCondition = request?.SearchCondition ?? new SearchVariantCondition();
             var pageInfo = request?.PageInfo ?? new PageInfoRequestDTO();
 
-            // Start with a base filter that is always true
             Expression<Func<Variant, bool>> filter = u => true;
 
-            // Only apply keyword filter if keyword exists
             if (searchCondition.ProductId.HasValue)
             {
                 var searchId = searchCondition.ProductId.Value;
                 filter = ExpressionUtils.AddFilter(filter, x => x.ProductId == searchId);
             }
-            // Only apply deletion filter if specified (default: return non-deleted)
+
             filter = ExpressionUtils.AddFilter(filter, u => u.IsDeleted == searchCondition.IsDeleted);
 
-            // Query paginated 
             var items = await _repository.GetWithPaginationAsync(pageInfo, filter, "Color,Material,Inventory");
             var totalItems = await _repository.CountAsync(filter);
+
+            TypeAdapterConfig<Variant, VariantDTO>.NewConfig()
+                .Map(dest => dest.QuantityInStock, src => src.Inventory != null ? src.Inventory.QuantityInStock : 0);
 
             return (items.Adapt<IEnumerable<VariantDTO>>(), totalItems);
         }

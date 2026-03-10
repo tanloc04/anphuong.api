@@ -17,23 +17,58 @@ namespace anphuong.Service
         private readonly IOrderRepository _repository;
         private readonly IProductRepository _productRepository;
         private readonly IInventoryRepository _inventoryRepository;
-
-        // FIX 1: Inject thêm IVariantRepository để query Variant
         private readonly IVariantRepository _variantRepository;
+        private readonly ICustomerRepository _customerRepository;
 
         public OrderService(IOrderRepository repository,
             IProductRepository productRepository,
             IInventoryRepository inventoryRepository,
-            IVariantRepository variantRepository)
+            IVariantRepository variantRepository,
+            ICustomerRepository customerRepository)
         {
             _repository = repository;
             _productRepository = productRepository;
             _inventoryRepository = inventoryRepository;
             _variantRepository = variantRepository;
+            _customerRepository = customerRepository;
         }
 
         public async Task<OrderDTO> PlaceOrderAsync(CreateOrderRequestDTO request)
         {
+            int finalCustomerId = 0;
+            string receiverName = "";
+            string receiverPhone = "";
+
+            if (request.IsNewCustomer)
+            {
+                var newCustomer = new Customer
+                {
+                    FullName = request.CustomerName,
+                    Phone = request.CustomerPhone,
+                    Address = request.ShippingAddress,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now,
+                    IsDeleted = false
+                };
+
+                await _customerRepository.AddAsync(newCustomer);
+
+                finalCustomerId = newCustomer.Id;
+                receiverName = request.CustomerName ?? "Khách vãng lai";
+                receiverPhone = request.CustomerPhone ?? "";
+            }
+            else
+            {
+                if (request.CustomerId == null)
+                    throw new BusinessException(ErrorDetails.DEFAULT);
+
+                finalCustomerId = request.CustomerId.Value;
+
+                var existingCustomer = await _customerRepository.GetAsync(finalCustomerId);
+                receiverName = existingCustomer?.FullName ?? "Khách hàng";
+                receiverPhone = existingCustomer?.Phone ?? "";
+            }
+
             var groupedItems = request.OrderDetails
                 .GroupBy(x => x.VariantId)
                 .Select(g => new OrderItemQuantity
@@ -46,11 +81,14 @@ namespace anphuong.Service
 
             var order = new Order
             {
-                CustomerId = request.CustomerId,
+                CustomerId = finalCustomerId,
                 PaymentMethod = request.PaymentMethod,
                 Status = 1,
-                ShippingDate = request.ShippingDate,
-                TotalPrice = 0, // Sẽ cộng dồn ở dưới
+                ShippingDate = request.DeliveryDate,
+                ShippingAddress = request.ShippingAddress,
+                ReceiverName = receiverName,
+                ReceiverPhone = receiverPhone,
+                TotalPrice = 0,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now,
                 IsDeleted = false,
@@ -81,7 +119,11 @@ namespace anphuong.Service
                     SubTotal = subTotal,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now,
-                    IsDeleted = false
+                    IsDeleted = false,
+                    isCustomized = d.IsCustomize,
+                    CustomHeightSize = d.CustomizeHeight,
+                    CustomWidthSize = d.CustomizeWidth,
+                    CustomLongSize = d.CustomizeLong
                 });
 
                 totalPrice += subTotal;
@@ -101,6 +143,9 @@ namespace anphuong.Service
                 ShippingDate = order.ShippingDate,
                 TotalPrice = order.TotalPrice,
                 CustomerId = order.CustomerId,
+                ShippingAddress = order.ShippingAddress,
+                ReceiverName = order.ReceiverName,
+                ReceiverPhone = order.ReceiverPhone,
                 OrderDetails = order.OrderDetails.Select(od => new OrderDetailDTO
                 {
                     Id = od.Id,
@@ -109,8 +154,8 @@ namespace anphuong.Service
                     ProductName = variants[od.VariantId].Product.Name,
                     VariantImage = variants[od.VariantId].Product.DetailImage?.Image1,
                     Quantity = od.Quantity,
-                    UnitPrice = od.UnitPrice, 
-                    Subtotal = od.SubTotal    
+                    UnitPrice = od.UnitPrice,
+                    Subtotal = od.SubTotal
                 }).ToList()
             };
         }
@@ -146,8 +191,8 @@ namespace anphuong.Service
                 filter = ExpressionUtils.AddFilter(filter, u => u.CreatedAt <= searchCondition.ToDate.Value);
             }
 
-            // FIX 4: Update chuỗi Include (Thêm Variant vào giữa)
-            var items = await _repository.GetWithPaginationAsync(pageInfo, filter, "OrderDetails.Variant.Product.DetailImage,Customer.User");
+            
+            var items = await _repository.GetWithPaginationAsync(pageInfo, filter, "OrderDetails.Variant.Product,Customer");
 
             var totalItems = await _repository.CountAsync(filter);
             double totalPrice = 0;
@@ -157,16 +202,19 @@ namespace anphuong.Service
                 totalPrice = items.Sum(o => o.TotalPrice);
             }
 
-            // FIX 5: Cập nhật Mapster config để trỏ đúng đường dẫn
             TypeAdapterConfig<OrderDetail, OrderDetailDTO>.NewConfig()
                     .Map(dest => dest.ProductName, src => src.Variant.Product.Name)
-                    .Map(dest => dest.VariantImage, src => src.Variant.Product.DetailImage != null ? src.Variant.Product.DetailImage.Image1 : null);
+                    .Map(dest => dest.VariantImage, src => src.Variant.Product.DetailImage != null ? src.Variant.Product.DetailImage.Image1 : null)
+                    .Map(dest => dest.FinalHeight, src => src.isCustomized ? src.CustomHeightSize : src.Variant.Product.HeightSize)
+                    .Map(dest => dest.FinalWidth, src => src.isCustomized ? src.CustomWidthSize : src.Variant.Product.WidthSize)
+                    .Map(dest => dest.FinalLong, src => src.isCustomized ? src.CustomLongSize : src.Variant.Product.LongSize);
 
             TypeAdapterConfig<Customer, CustomerDTO>.NewConfig()
                   .Map(dest => dest.Fullname, src => src.FullName)
                   .Map(dest => dest.Phone, src => src.Phone)
                   .Map(dest => dest.CustomerAddress, src => src.Address)
-                  .Map(dest => dest.Email, src => src.User.Email);
+                  // Mapster sẽ tự động trả null nếu không có User, không gây lỗi 500
+                  .Map(dest => dest.Email, src => src.User != null ? src.User.Email : null);
 
             var ordersDto = items.Adapt<IEnumerable<OrderDTO>>();
 
@@ -175,20 +223,22 @@ namespace anphuong.Service
 
         public async Task<OrderDTO> Get(int id)
         {
-            // FIX 6: Update chuỗi Include giống như GetAll
             var item = await _repository.GetAsync(
-             id, "OrderDetails.Variant.Product.DetailImage,Customer.User"
+             id, "OrderDetails.Variant.Product,Customer"
             ) ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
 
             TypeAdapterConfig<OrderDetail, OrderDetailDTO>.NewConfig()
                 .Map(dest => dest.ProductName, src => src.Variant.Product.Name)
-                .Map(dest => dest.VariantImage, src => src.Variant.Product.DetailImage != null ? src.Variant.Product.DetailImage.Image1 : null);
+                .Map(dest => dest.VariantImage, src => src.Variant.Product.DetailImage != null ? src.Variant.Product.DetailImage.Image1 : null)
+                .Map(dest => dest.FinalHeight, src => src.isCustomized ? src.CustomHeightSize : src.Variant.Product.HeightSize)
+                .Map(dest => dest.FinalWidth, src => src.isCustomized ? src.CustomWidthSize : src.Variant.Product.WidthSize)
+                .Map(dest => dest.FinalLong, src => src.isCustomized ? src.CustomLongSize : src.Variant.Product.LongSize);
 
             TypeAdapterConfig<Customer, CustomerDTO>.NewConfig()
               .Map(dest => dest.Fullname, src => src.FullName)
               .Map(dest => dest.Phone, src => src.Phone)
               .Map(dest => dest.CustomerAddress, src => src.Address)
-              .Map(dest => dest.Email, src => src.User.Email);
+              .Map(dest => dest.Email, src => src.User != null ? src.User.Email : null);
 
             return item.Adapt<OrderDTO>();
         }

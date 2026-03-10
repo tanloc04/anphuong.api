@@ -15,5 +15,8 @@ namespace anphuong.Core.Domains.DTOs
         public decimal? CustomLongSize { get; set; }
         public decimal? CustomWidthSize { get; set; }
         public decimal? CustomHeightSize { get; set; }
+        public decimal FinalHeight { get; set; }
+        public decimal FinalWidth { get; set; }
+        public decimal FinalLong { get; set; }
     }
 }

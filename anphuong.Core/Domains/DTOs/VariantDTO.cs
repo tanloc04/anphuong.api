@@ -9,6 +9,7 @@ namespace anphuong.Core.Domains.DTOs
         public int Id { get; set; }
         public string? VariantImage { get; set; }
         public decimal Price { get; set; }
+        public int QuantityInStock { get; set; }
 
         // Navigation Properties (Tùy cấu trúc DTO của bạn mà gọi cho đúng)
         public ColorDTO? Color { get; set; }
