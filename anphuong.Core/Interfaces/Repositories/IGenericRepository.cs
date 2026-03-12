@@ -12,7 +12,13 @@ namespace anphuong.Core.Interfaces.Repositories
 
         Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>>? filter = null, string? includeProperties = null, CancellationToken cancellationToken = default);
 
-        Task<IEnumerable<T>> GetWithPaginationAsync(PageInfoRequestDTO pageInfo, Expression<Func<T, bool>>? filter = null, string? includeProperties = null, CancellationToken cancellationToken = default);
+        Task<IEnumerable<T>> GetWithPaginationAsync(
+            PageInfoRequestDTO pageInfo,
+            Expression<Func<T, bool>> filter = null,
+            string includeProperties = "",
+            Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
+            CancellationToken cancellationToken = default);
+
         Task AddRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default);
 
         Task<bool> AddAsync(T entity, CancellationToken cancellationToken = default);

@@ -63,8 +63,23 @@ namespace anphuong.Service
             // Only apply deletion filter if specified (default: return non-deleted)
             filter = ExpressionUtils.AddFilter(filter, u => u.IsDeleted == searchCondition.IsDeleted);
 
+            Func<IQueryable<Category>, IOrderedQueryable<Category>> orderBy = q =>
+            {
+                if (!string.IsNullOrEmpty(pageInfo.SortBy))
+                {
+                    bool isDesc = pageInfo.SortDesc ?? false;
+                    return pageInfo.SortBy.ToLower() switch
+                    {
+                        "name" => isDesc ? q.OrderByDescending(x => x.Name) : q.OrderBy(x => x.Name),
+                        "description" => isDesc ? q.OrderByDescending(x => x.Description) : q.OrderBy(x => x.Description),
+                        _ => q.OrderByDescending(x => x.CreatedAt) // Mặc định
+                    };
+                }
+                return q.OrderByDescending(x => x.CreatedAt); // Mặc định
+            };
+
             // Query paginated products
-            var items = await _repository.GetWithPaginationAsync(pageInfo, filter);
+            var items = await _repository.GetWithPaginationAsync(pageInfo, filter, "", orderBy);
             var totalItems = await _repository.CountAsync(filter);
 
             return (items.Adapt<IEnumerable<CategoryDTO>>(), totalItems);

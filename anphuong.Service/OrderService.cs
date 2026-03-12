@@ -191,8 +191,24 @@ namespace anphuong.Service
                 filter = ExpressionUtils.AddFilter(filter, u => u.CreatedAt <= searchCondition.ToDate.Value);
             }
 
-            
-            var items = await _repository.GetWithPaginationAsync(pageInfo, filter, "OrderDetails.Variant.Product,Customer");
+            Func<IQueryable<Order>, IOrderedQueryable<Order>> orderBy = q =>
+            {
+                if (!string.IsNullOrEmpty(pageInfo.SortBy))
+                {
+                    bool isDesc = pageInfo.SortDesc ?? false;
+                    return pageInfo.SortBy.ToLower() switch
+                    {
+                        "id" => isDesc ? q.OrderByDescending(x => x.Id) : q.OrderBy(x => x.Id),
+                        "createdat" => isDesc ? q.OrderByDescending(x => x.CreatedAt) : q.OrderBy(x => x.CreatedAt),
+                        "totalprice" => isDesc ? q.OrderByDescending(x => x.TotalPrice) : q.OrderBy(x => x.TotalPrice),
+                        "status" => isDesc ? q.OrderByDescending(x => x.Status) : q.OrderBy(x => x.Status),
+                        _ => q.OrderByDescending(x => x.CreatedAt) // Mặc định sort theo ngày tạo
+                    };
+                }
+                return q.OrderByDescending(x => x.CreatedAt); // Mặc định
+            };
+
+            var items = await _repository.GetWithPaginationAsync(pageInfo, filter, "OrderDetails.Variant.Product.DetailImage,Customer.User", orderBy);
 
             var totalItems = await _repository.CountAsync(filter);
             double totalPrice = 0;
@@ -203,18 +219,18 @@ namespace anphuong.Service
             }
 
             TypeAdapterConfig<OrderDetail, OrderDetailDTO>.NewConfig()
-                    .Map(dest => dest.ProductName, src => src.Variant.Product.Name)
-                    .Map(dest => dest.VariantImage, src => src.Variant.Product.DetailImage != null ? src.Variant.Product.DetailImage.Image1 : null)
-                    .Map(dest => dest.FinalHeight, src => src.isCustomized ? src.CustomHeightSize : src.Variant.Product.HeightSize)
-                    .Map(dest => dest.FinalWidth, src => src.isCustomized ? src.CustomWidthSize : src.Variant.Product.WidthSize)
-                    .Map(dest => dest.FinalLong, src => src.isCustomized ? src.CustomLongSize : src.Variant.Product.LongSize);
+    .Map(dest => dest.ProductName, src => src.Variant.Product.Name)
+    .Map(dest => dest.VariantImage, src => src.Variant.Product.DetailImage != null ? src.Variant.Product.DetailImage.Image1 : null)
+    .Map(dest => dest.Subtotal, src => src.SubTotal)
+    .Map(dest => dest.FinalHeight, src => src.isCustomized ? src.CustomHeightSize : src.Variant.Product.HeightSize)
+    .Map(dest => dest.FinalWidth, src => src.isCustomized ? src.CustomWidthSize : src.Variant.Product.WidthSize)
+    .Map(dest => dest.FinalLong, src => src.isCustomized ? src.CustomLongSize : src.Variant.Product.LongSize);
 
             TypeAdapterConfig<Customer, CustomerDTO>.NewConfig()
-                  .Map(dest => dest.Fullname, src => src.FullName)
-                  .Map(dest => dest.Phone, src => src.Phone)
-                  .Map(dest => dest.CustomerAddress, src => src.Address)
-                  // Mapster sẽ tự động trả null nếu không có User, không gây lỗi 500
-                  .Map(dest => dest.Email, src => src.User != null ? src.User.Email : null);
+                .Map(dest => dest.Fullname, src => src.FullName)
+                .Map(dest => dest.Phone, src => src.Phone)
+                .Map(dest => dest.CustomerAddress, src => src.Address)
+                .Map(dest => dest.Email, src => src.User != null ? src.User.Email : null);
 
             var ordersDto = items.Adapt<IEnumerable<OrderDTO>>();
 
@@ -223,22 +239,22 @@ namespace anphuong.Service
 
         public async Task<OrderDTO> Get(int id)
         {
-            var item = await _repository.GetAsync(
-             id, "OrderDetails.Variant.Product,Customer"
-            ) ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
+            var item = await _repository.GetAsync(id, "OrderDetails.Variant.Product.DetailImage,Customer.User")
+    ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
 
             TypeAdapterConfig<OrderDetail, OrderDetailDTO>.NewConfig()
-                .Map(dest => dest.ProductName, src => src.Variant.Product.Name)
-                .Map(dest => dest.VariantImage, src => src.Variant.Product.DetailImage != null ? src.Variant.Product.DetailImage.Image1 : null)
-                .Map(dest => dest.FinalHeight, src => src.isCustomized ? src.CustomHeightSize : src.Variant.Product.HeightSize)
-                .Map(dest => dest.FinalWidth, src => src.isCustomized ? src.CustomWidthSize : src.Variant.Product.WidthSize)
-                .Map(dest => dest.FinalLong, src => src.isCustomized ? src.CustomLongSize : src.Variant.Product.LongSize);
+    .Map(dest => dest.ProductName, src => src.Variant.Product.Name)
+    .Map(dest => dest.VariantImage, src => src.Variant.Product.DetailImage != null ? src.Variant.Product.DetailImage.Image1 : null)
+    .Map(dest => dest.Subtotal, src => src.SubTotal)
+    .Map(dest => dest.FinalHeight, src => src.isCustomized ? src.CustomHeightSize : src.Variant.Product.HeightSize)
+    .Map(dest => dest.FinalWidth, src => src.isCustomized ? src.CustomWidthSize : src.Variant.Product.WidthSize)
+    .Map(dest => dest.FinalLong, src => src.isCustomized ? src.CustomLongSize : src.Variant.Product.LongSize);
 
             TypeAdapterConfig<Customer, CustomerDTO>.NewConfig()
-              .Map(dest => dest.Fullname, src => src.FullName)
-              .Map(dest => dest.Phone, src => src.Phone)
-              .Map(dest => dest.CustomerAddress, src => src.Address)
-              .Map(dest => dest.Email, src => src.User != null ? src.User.Email : null);
+                .Map(dest => dest.Fullname, src => src.FullName)
+                .Map(dest => dest.Phone, src => src.Phone)
+                .Map(dest => dest.CustomerAddress, src => src.Address)
+                .Map(dest => dest.Email, src => src.User != null ? src.User.Email : null);
 
             return item.Adapt<OrderDTO>();
         }
@@ -251,6 +267,22 @@ namespace anphuong.Service
             item.UpdatedAt = DateTime.Now;
 
             if (!_repository.Update(item))
+            {
+                throw new BusinessException(ErrorDetails.DEFAULT);
+            }
+        }
+
+        public async Task UpdateStatus(int id, int newStatus)
+        {
+            // Móc đơn hàng lên
+            var order = await _repository.GetAsync(id)
+                ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
+
+            // Cập nhật đúng trạng thái và ngày giờ
+            order.Status = newStatus;
+            order.UpdatedAt = DateTime.Now;
+
+            if (!_repository.Update(order))
             {
                 throw new BusinessException(ErrorDetails.DEFAULT);
             }

@@ -6,6 +6,8 @@ using anphuong.Core.Exceptions;
 using anphuong.Core.Interfaces.Services;
 using anphuong.Core.Interfaces.Services.External;
 using anphuong.Core.Ultilities;
+using anphuong.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace anphuong.api.Controllers
@@ -244,6 +246,16 @@ namespace anphuong.api.Controllers
                 });
             }
 
+        }
+        #endregion
+
+        #region Update Status Order
+        //[Authorize(Policy = "AllowSpecificEmail")]
+        [HttpPatch("{id}/status")]
+        public async Task<IActionResult> UpdateStatus(int id, [FromBody] int newStatus)
+        {
+            await _service.UpdateStatus(id, newStatus);
+            return Ok(new { success = true, message = "Cập nhật trạng thái thành công!" });
         }
         #endregion
     }
