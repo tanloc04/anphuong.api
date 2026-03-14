@@ -258,5 +258,39 @@ namespace anphuong.Service
         {
             return await _repository.ExistsAsync(u => u.Id == id);
         }
+
+        //public async Task<bool> BlockUserAsync(int userId)
+        //{
+        //    var user = await _repository.GetAsync(userId);
+
+        //    if (user == null)
+        //        return false;
+
+        //    user.Status = user.Status == "ACTIVE" ? "DEACTIVE" : "ACTIVE";
+        //    user.UpdatedAt = DateTime.Now;
+
+        //    await Update(user);
+
+        //    return true;
+        //}
+
+        public async Task<bool> BlockUserAsync(int userId)
+        {
+            var user = await _repository.GetAsync(userId);
+            if (user == null)
+                return false;
+
+            string currentStatus = user.Status?.Trim().ToUpper();
+
+            user.Status = (currentStatus == "ACTIVE") ? "DEACTIVE" : "ACTIVE";
+            user.UpdatedAt = DateTime.Now;
+
+            bool isSaved = await Update(user);
+            Console.WriteLine($"\n[DEBUG] USER ID: {userId}");
+            Console.WriteLine($"[DEBUG] CŨ: '{currentStatus}' ---> MỚI: '{user.Status}'");
+            Console.WriteLine($"[DEBUG] TRẠNG THÁI LƯU (isSaved): {isSaved}\n");
+
+            return isSaved;
+        }
     }
 }
