@@ -6,6 +6,7 @@ namespace anphuong.Core.Interfaces.Repositories
 {
     public interface IProductRepository : IGenericRepository<Product>
     {
-        Task<Product> CreateFullProductAsync(CreateProductRequestDTO request); // Thay đổi chữ ProductDTO thành Product
+        Task<Product> CreateFullProductAsync(CreateProductRequestDTO request);
+        Task<int> CountLowStockProductsAsync(int threshold);
     }
 }

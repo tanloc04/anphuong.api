@@ -18,5 +18,6 @@ namespace anphuong.Core.Domains.DTOs
         public ProductCategoryDTO Category { get; set; }
         public int TotalStock { get; set; }
         public bool IsMissingVariants { get; set; }
+        public string? Thumbnail { get; set; }
     }
 }

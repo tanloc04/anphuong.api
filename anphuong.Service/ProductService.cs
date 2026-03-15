@@ -8,7 +8,9 @@ using anphuong.Core.Exceptions;
 using anphuong.Core.Interfaces.Repositories;
 using anphuong.Core.Interfaces.Services;
 using anphuong.Core.Ultilities;
+using anphuong.Repository.Repositories;
 using Mapster;
+using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
 namespace anphuong.Service
@@ -37,7 +39,7 @@ namespace anphuong.Service
                 LongSize = product.LongSize,
                 WidthSize = product.WidthSize,
                 HeightSize = product.HeightSize,
-                isCustomize = product.isCustomize, // Map trường isCustomize
+                isCustomize = product.isCustomize,
 
                 CategoryId = product.CategoryId,
                 CreatedAt = product.CreatedAt,
@@ -137,10 +139,10 @@ namespace anphuong.Service
             {
                 var dto = product.Adapt<ProductDTO>();
 
-                // Tính tổng tồn kho của tất cả các biến thể
+                dto.Thumbnail = product.DetailImage?.Image1;
+
                 dto.TotalStock = product.Variants?.Sum(v => v.Inventory?.QuantityInStock ?? 0) ?? 0;
 
-                // Cờ cảnh báo: Check xem danh sách biến thể có trống không
                 dto.IsMissingVariants = product.Variants == null || !product.Variants.Any();
 
                 productDTOs.Add(dto);
@@ -156,7 +158,8 @@ namespace anphuong.Service
 
             var productDTO = item.Adapt<ProductDTO>();
 
-            // Tính tổng tồn kho và check cờ cảnh báo
+            productDTO.Thumbnail = item.DetailImage?.Image1;
+
             productDTO.TotalStock = item.Variants?.Sum(v => v.Inventory?.QuantityInStock ?? 0) ?? 0;
             productDTO.IsMissingVariants = item.Variants == null || !item.Variants.Any();
 
@@ -222,5 +225,11 @@ namespace anphuong.Service
 
             return itemDTO;
         }
+
+        public async Task<int> GetLowStockCountAsync(int threshold = 5)
+        {
+            return await _repository.CountLowStockProductsAsync(threshold);
+        }
+
     }
 }

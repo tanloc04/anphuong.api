@@ -77,5 +77,20 @@ namespace anphuong.Repository.Repositories
                 throw new BusinessException(ErrorDetails.INVALID_CATEGORY_ID);
             }
         }
+
+        public async Task<int> CountLowStockProductsAsync(int threshold)
+        {
+            var query = from p in _context.Products
+                        where !p.IsDeleted
+                        let totalStock = (from v in _context.Variants
+                                          join i in _context.Inventories on v.Id equals i.VariantId
+                                          where v.ProductId == p.Id
+                                                && !v.IsDeleted
+                                                && !i.IsDeleted
+                                          select i.QuantityInStock).Sum()
+                        where totalStock <= threshold
+                        select p;
+            return await query.CountAsync();
+        }
     }
 }

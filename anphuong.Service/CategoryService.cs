@@ -98,16 +98,18 @@ namespace anphuong.Service
                 ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
 
             bool isChanged = false;
-
-            // Apply updates
             isChanged |= GenericHelperUtils.SetIfChanged(request.Name, () => item.Name, i => item.Name = i);
             isChanged |= GenericHelperUtils.SetIfChanged(request.Description, () => item.Description, i => item.Description = i);
+
+            isChanged |= GenericHelperUtils.SetIfChanged(request.ImageUrl, () => item.ImageUrl, i => item.ImageUrl = i);
+
             if (isChanged)
             {
                 item.UpdatedAt = DateTime.UtcNow;
                 if (!_repository.Update(item))
                     throw new BusinessException(ErrorDetails.DEFAULT);
             }
+
             var itemDTO = item.Adapt<CategoryDTO>();
             return itemDTO;
         }

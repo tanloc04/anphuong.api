@@ -148,5 +148,21 @@ namespace anphuong.api.Controllers
         //    return Ok(new { imageUrl = url });
         //}
         //#endregion
+
+        #region LowStockCount
+        [HttpGet("low-stock-count")]
+        public async Task<IActionResult> GetLowStockCount([FromQuery] int threshold = 5)
+        {
+            try
+            {
+                var count = await _productService.GetLowStockCountAsync(threshold);
+                return Ok(count);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+        #endregion
     }
 }
