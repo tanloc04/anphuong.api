@@ -20,6 +20,7 @@ namespace anphuong.Repository.Context
         public DbSet<DetailImage> DetailImages { get; set; }
         public DbSet<Inventory> Inventories { get; set; }
         public DbSet<Variant> Variants { get; set; }
+        public DbSet<ProductReview> ProductReviews { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -119,6 +120,7 @@ namespace anphuong.Repository.Context
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.VariantImage).HasMaxLength(200);
+                entity.Property(e => e.SKU).HasMaxLength(50).IsRequired(false);
                 entity.Property(e => e.CreatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.UpdatedAt).IsRequired().HasColumnType("datetime");
                 entity.Property(e => e.IsDeleted).IsRequired();
@@ -209,6 +211,24 @@ namespace anphuong.Repository.Context
                 .WithMany(b => b.Behaviors)
                 .HasForeignKey(e => e.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<ProductReview>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.UserId).HasMaxLength(450).IsRequired(false);
+                entity.Property(e => e.ReviewerName).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.RatingValue).IsRequired();
+                entity.Property(e => e.Comment).HasMaxLength(1000).IsRequired(false);
+                entity.Property(e => e.CreatedAt).IsRequired().HasColumnType("datetime");
+                entity.Property(e => e.UpdatedAt).IsRequired().HasColumnType("datetime");
+                entity.Property(e => e.IsDeleted).IsRequired();
+
+                // Quan hệ 1-N với Product
+                entity.HasOne(e => e.Product)
+                      .WithMany(p => p.Reviews) // Đảm bảo class Product có: public virtual ICollection<ProductReview> Reviews { get; set; }
+                      .HasForeignKey(e => e.ProductId)
+                      .OnDelete(DeleteBehavior.Restrict); // Dùng Restrict để đồng bộ với các bảng khác của sếp
             });
 
             base.OnModelCreating(modelBuilder);

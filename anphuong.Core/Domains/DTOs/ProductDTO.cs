@@ -19,5 +19,7 @@ namespace anphuong.Core.Domains.DTOs
         public int TotalStock { get; set; }
         public bool IsMissingVariants { get; set; }
         public string? Thumbnail { get; set; }
+        public double AverageRating { get; set; }
+        public int TotalReviews { get; set; }
     }
 }

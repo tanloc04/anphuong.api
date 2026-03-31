@@ -103,6 +103,7 @@ namespace anphuong.Service
                 {
                     Email = requestDTO.Email,
                     Username = requestDTO.Username,
+                    Avatar = requestDTO.Avatar,
                     Status = "ACTIVE",
                     Role = isAdmin
                 }
@@ -183,6 +184,7 @@ namespace anphuong.Service
                 Username = user.Username,
                 Email = user.Email,
                 Status = user.Status,
+                Avatar = user.Avatar,
                 Role = user.Role
             };
 

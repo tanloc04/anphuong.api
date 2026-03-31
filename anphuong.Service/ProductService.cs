@@ -88,18 +88,32 @@ namespace anphuong.Service
 
             if (!string.IsNullOrEmpty(searchCondition.Keyword))
             {
-                var key = searchCondition.Keyword.ToLower();
-                filter = ExpressionUtils.AddFilter(filter, x =>
-                    x.Name.ToLower().Contains(key) ||
-                    (x.Description != null && x.Description.ToLower().Contains(key))
-                );
+                var key = searchCondition.Keyword.ToLower().Trim();
+
+                if (key.StartsWith("ap-") && int.TryParse(key.Substring(3), out int parsedId))
+                {
+                    // Nếu đúng chuẩn AP-xxx thì ưu tiên tìm theo ID (Mã SP), hoặc lỡ có trong Tên/Mô tả
+                    filter = ExpressionUtils.AddFilter(filter, x =>
+                        x.Id == parsedId ||
+                        x.Name.ToLower().Contains(key) ||
+                        (x.Description != null && x.Description.ToLower().Contains(key))
+                    );
+                }
+                else
+                {
+                    // Nếu gõ chữ bình thường thì tìm theo Tên và Mô tả như cũ
+                    filter = ExpressionUtils.AddFilter(filter, x =>
+                        x.Name.ToLower().Contains(key) ||
+                        (x.Description != null && x.Description.ToLower().Contains(key))
+                    );
+                }
             }
 
             if (searchCondition.CategoryId.HasValue && searchCondition.CategoryId.Value > 0)
             {
                 filter = ExpressionUtils.AddFilter(filter, x => x.CategoryId == searchCondition.CategoryId.Value);
             }
-          
+
             if (searchCondition.StartDate.HasValue)
             {
                 var start = searchCondition.StartDate.Value.Date;
@@ -153,7 +167,7 @@ namespace anphuong.Service
 
         public async Task<ProductDTO> Get(int id)
         {
-            var item = await _repository.GetAsync(id, "DetailImage,Category,Variants.Inventory")
+            var item = await _repository.GetAsync(id, "DetailImage,Category,Variants.Inventory,Reviews")
                 ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
 
             var productDTO = item.Adapt<ProductDTO>();

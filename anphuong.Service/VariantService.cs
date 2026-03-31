@@ -27,7 +27,8 @@ namespace anphuong.Service
                 ProductId = request.ProductId,
                 ColorId = request.ColorId,
                 MaterialId = request.MaterialId,
-                Price = request.Price,           
+                Price = request.Price,
+                SKU = request.SKU,
                 VariantImage = request.VariantImage,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
@@ -100,7 +101,6 @@ namespace anphuong.Service
             // Apply updates
             isChanged |= GenericHelperUtils.SetIfChangedValue(request.ProductId, () => item.ProductId, i => item.ProductId = i);
             isChanged |= GenericHelperUtils.SetIfChangedValue(request.ColorId, () => item.ColorId, i => item.ColorId = i);
-
             isChanged |= GenericHelperUtils.SetIfChanged(request.VariantImage, () => item.VariantImage, i => item.VariantImage = i);
             if (isChanged)
             {

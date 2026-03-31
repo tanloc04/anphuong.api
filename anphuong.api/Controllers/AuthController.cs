@@ -174,7 +174,8 @@ namespace anphuong.api.Controllers
                     {
                         Email = email,
                         FullName = name,
-                        Username = StringGeneratorUtils.GenerateRandomUsername(),
+                        Username = email.Split('@')[0],
+                        Avatar = payload.Picture
                     };
 
                     user = await _userService.GoogleRegisterAsync(registerDTO);
