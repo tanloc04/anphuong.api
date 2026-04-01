@@ -9,6 +9,7 @@ using anphuong.Core.Interfaces.Repositories;
 using anphuong.Core.Interfaces.Services;
 using anphuong.Core.Ultilities;
 using Mapster;
+using Microsoft.AspNetCore.SignalR;
 
 namespace anphuong.Service
 {
@@ -19,18 +20,23 @@ namespace anphuong.Service
         private readonly IInventoryRepository _inventoryRepository;
         private readonly IVariantRepository _variantRepository;
         private readonly ICustomerRepository _customerRepository;
+        private readonly IOrderHubService _orderHubService;
+        private readonly ICartService _cartService;
 
         public OrderService(IOrderRepository repository,
             IProductRepository productRepository,
             IInventoryRepository inventoryRepository,
             IVariantRepository variantRepository,
-            ICustomerRepository customerRepository)
+            ICustomerRepository customerRepository,
+            IOrderHubService orderHubService, ICartService cartService)
         {
             _repository = repository;
             _productRepository = productRepository;
             _inventoryRepository = inventoryRepository;
             _variantRepository = variantRepository;
             _customerRepository = customerRepository;
+            _orderHubService = orderHubService;
+            _cartService = cartService;
         }
 
         public async Task<OrderDTO> PlaceOrderAsync(CreateOrderRequestDTO request)
@@ -84,7 +90,7 @@ namespace anphuong.Service
                 CustomerId = finalCustomerId,
                 PaymentMethod = request.PaymentMethod,
                 Status = 1,
-                ShippingDate = request.DeliveryDate,
+                ShippingDate = request.ShippingDate,
                 ShippingAddress = request.ShippingAddress,
                 ReceiverName = receiverName,
                 ReceiverPhone = receiverPhone,
@@ -133,7 +139,14 @@ namespace anphuong.Service
 
             await _repository.AddAsync(order);
 
-            await _inventoryRepository.ReduceStockBatchAsync(groupedItems);
+            await _inventoryRepository.ReduceStockBatchAsync(groupedItems); 
+            
+            if (!request.IsNewCustomer && request.CustomerId.HasValue)
+            {
+                await _cartService.ClearCartAsync(request.CustomerId.Value);
+            }
+
+            await _orderHubService.NotifyNewOrderAsync();
 
             return new OrderDTO
             {

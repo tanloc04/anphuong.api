@@ -21,6 +21,8 @@ namespace anphuong.Repository.Context
         public DbSet<Inventory> Inventories { get; set; }
         public DbSet<Variant> Variants { get; set; }
         public DbSet<ProductReview> ProductReviews { get; set; }
+        public DbSet<Cart> Carts { get; set; }
+        public DbSet<CartItem> CartItems { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -229,6 +231,50 @@ namespace anphuong.Repository.Context
                       .WithMany(p => p.Reviews) // Đảm bảo class Product có: public virtual ICollection<ProductReview> Reviews { get; set; }
                       .HasForeignKey(e => e.ProductId)
                       .OnDelete(DeleteBehavior.Restrict); // Dùng Restrict để đồng bộ với các bảng khác của sếp
+            });
+
+            // Cấu hình bảng Cart
+            modelBuilder.Entity<Cart>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.CreatedAt).IsRequired().HasColumnType("datetime");
+                entity.Property(e => e.UpdatedAt).IsRequired().HasColumnType("datetime");
+                entity.Property(e => e.IsDeleted).IsRequired();
+
+                // Quan hệ 1-1 hoặc 1-N với User (Mỗi user có 1 giỏ hàng active)
+                entity.HasOne(e => e.User)
+                      .WithMany() // Nếu sếp có list Carts trong class User thì gọi ra đây, không thì để trống
+                      .HasForeignKey(e => e.UserId)
+                      .OnDelete(DeleteBehavior.Cascade); // Xóa User thì xóa luôn giỏ hàng của họ
+            });
+
+            // Cấu hình bảng CartItem
+            modelBuilder.Entity<CartItem>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Quantity).IsRequired();
+                entity.Property(e => e.CreatedAt).IsRequired().HasColumnType("datetime");
+                entity.Property(e => e.UpdatedAt).IsRequired().HasColumnType("datetime");
+                entity.Property(e => e.IsDeleted).IsRequired();
+
+                // Nối với giỏ hàng
+                entity.HasOne(e => e.Cart)
+                      .WithMany(c => c.CartItems) // Giả định trong class Cart sếp có ICollection<CartItem> CartItems
+                      .HasForeignKey(e => e.CartId)
+                      .OnDelete(DeleteBehavior.Cascade); // Xóa giỏ hàng thì xóa luôn các món đồ bên trong
+
+                // Nối với Sản phẩm
+                entity.HasOne(e => e.Product)
+                      .WithMany()
+                      .HasForeignKey(e => e.ProductId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                // Nối với Biến thể (Variant) - Có thể null nếu sản phẩm ko có biến thể
+                entity.HasOne(e => e.Variant)
+                      .WithMany()
+                      .HasForeignKey(e => e.VariantId)
+                      .OnDelete(DeleteBehavior.Restrict)
+                      .IsRequired(false); // Quan trọng: Cho phép null
             });
 
             base.OnModelCreating(modelBuilder);

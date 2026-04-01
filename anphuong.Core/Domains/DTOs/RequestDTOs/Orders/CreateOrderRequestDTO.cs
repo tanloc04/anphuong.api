@@ -7,7 +7,6 @@
         public string? CustomerName { get; set; }
         public string? CustomerPhone { get; set; }
         public string ShippingAddress { get; set; } = null!;
-        public DateTime? DeliveryDate { get; set; }
         public int PaymentMethod { get; set; }
         public double TotalPrice { get; set; }
         public int Status { get; set; }

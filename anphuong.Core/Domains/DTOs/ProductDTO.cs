@@ -21,5 +21,6 @@ namespace anphuong.Core.Domains.DTOs
         public string? Thumbnail { get; set; }
         public double AverageRating { get; set; }
         public int TotalReviews { get; set; }
+        public ICollection<VariantDTO> Variants { get; set; }
     }
 }

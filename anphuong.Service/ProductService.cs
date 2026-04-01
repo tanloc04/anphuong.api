@@ -167,8 +167,8 @@ namespace anphuong.Service
 
         public async Task<ProductDTO> Get(int id)
         {
-            var item = await _repository.GetAsync(id, "DetailImage,Category,Variants.Inventory,Reviews")
-                ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
+            var item = await _repository.GetAsync(id, "DetailImage,Category,Variants.Inventory,Variants.Color,Variants.Material,Reviews")
+    ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
 
             var productDTO = item.Adapt<ProductDTO>();
 

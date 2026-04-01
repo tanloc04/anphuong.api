@@ -1,7 +1,5 @@
-using System.Security.Claims;
-using System.Text;
-using System.Text.Json;
 using anphuong.api.Extensions;
+using anphuong.api.Hubs;
 using anphuong.Core.Domains.DTOs.Config;
 using anphuong.Repository.Context;
 using DotNetEnv;
@@ -9,6 +7,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Security.Claims;
+using System.Text;
+using System.Text.Json;
 
 Env.Load();
 var builder = WebApplication.CreateBuilder(args);
@@ -128,6 +129,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.Register();
+builder.Services.AddSignalR();
 
 #region Allow Specific Email
 var allowedEmail = builder.Configuration["ALLOWED_EMAILS"]?.Trim();
@@ -198,6 +200,8 @@ if (app.Environment.IsDevelopment())
 app.UseRouting();
 
 app.UseCors("AllowReactApp");
+
+app.MapHub<OrderHub>("/orderHub");
 
 app.UseAuthentication();
 

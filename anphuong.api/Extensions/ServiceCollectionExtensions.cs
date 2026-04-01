@@ -1,4 +1,5 @@
-﻿using anphuong.Core.Interfaces.Repositories;
+﻿using anphuong.api.SignalRServices;
+using anphuong.Core.Interfaces.Repositories;
 using anphuong.Core.Interfaces.Services;
 using anphuong.Core.Interfaces.Services.External;
 using anphuong.Repository.Repositories;
@@ -63,6 +64,13 @@ namespace anphuong.api.Extensions
             //----------------ProductReview-----------------
             services.AddScoped<IProductReviewRepository, ProductReviewRepository>();
             services.AddScoped<IProductReviewService, ProductReviewService>();
+
+            //----------------Cart-----------------
+            services.AddScoped<ICartRepository, CartRepository>();
+            services.AddScoped<ICartService, CartService>();
+
+            // Thêm dòng này vào khu vực sếp đang AddScoped các Service khác nhé
+            services.AddScoped<IOrderHubService, OrderHubService>();
 
         }
     }
