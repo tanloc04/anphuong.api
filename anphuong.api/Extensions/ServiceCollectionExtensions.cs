@@ -69,8 +69,9 @@ namespace anphuong.api.Extensions
             services.AddScoped<ICartRepository, CartRepository>();
             services.AddScoped<ICartService, CartService>();
 
-            // Thêm dòng này vào khu vực sếp đang AddScoped các Service khác nhé
             services.AddScoped<IOrderHubService, OrderHubService>();
+
+            services.AddScoped<IVnPayService, VnPayService>();
 
         }
     }

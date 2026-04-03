@@ -7,8 +7,9 @@
         public DateTime? ShippingDate { get; set; }
         public double TotalPrice { get; set; }
         public int CustomerId { get; set; }
-        public Customer Customer { get; set; }
+        public virtual Customer Customer { get; set; }
         public ICollection<OrderDetail> OrderDetails { get; set; }
+        public string? Email { get; set; }
 
         public string? ShippingAddress { get; set; }
         public string? ReceiverName { get; set; }

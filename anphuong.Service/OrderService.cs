@@ -88,6 +88,7 @@ namespace anphuong.Service
             var order = new Order
             {
                 CustomerId = finalCustomerId,
+                Email = request.Email,
                 PaymentMethod = request.PaymentMethod,
                 Status = 1,
                 ShippingDate = request.ShippingDate,
@@ -152,6 +153,7 @@ namespace anphuong.Service
             {
                 Id = order.Id,
                 PaymentMethod = order.PaymentMethod,
+                Email = order.Email,
                 Status = order.Status,
                 ShippingDate = order.ShippingDate,
                 TotalPrice = order.TotalPrice,
@@ -245,6 +247,12 @@ namespace anphuong.Service
                 .Map(dest => dest.CustomerAddress, src => src.Address)
                 .Map(dest => dest.Email, src => src.User != null ? src.User.Email : null);
 
+            // Cấu hình mapping cho Order -> OrderDTO
+            TypeAdapterConfig<Order, OrderDTO>.NewConfig()
+                .Map(dest => dest.Email, src => !string.IsNullOrEmpty(src.Email)
+                                                ? src.Email  // Nếu có email lưu trong đơn hàng (Guest) thì lấy luôn
+                                                : (src.Customer != null && src.Customer.User != null ? src.Customer.User.Email : null)); // Không thì bốc từ User (Member)
+
             var ordersDto = items.Adapt<IEnumerable<OrderDTO>>();
 
             return (ordersDto, totalPrice, totalItems);
@@ -268,6 +276,12 @@ namespace anphuong.Service
                 .Map(dest => dest.Phone, src => src.Phone)
                 .Map(dest => dest.CustomerAddress, src => src.Address)
                 .Map(dest => dest.Email, src => src.User != null ? src.User.Email : null);
+
+            // Cấu hình mapping cho Order -> OrderDTO
+            TypeAdapterConfig<Order, OrderDTO>.NewConfig()
+                .Map(dest => dest.Email, src => !string.IsNullOrEmpty(src.Email)
+                                                ? src.Email  // Nếu có email lưu trong đơn hàng (Guest) thì lấy luôn
+                                                : (src.Customer != null && src.Customer.User != null ? src.Customer.User.Email : null)); // Không thì bốc từ User (Member)
 
             return item.Adapt<OrderDTO>();
         }

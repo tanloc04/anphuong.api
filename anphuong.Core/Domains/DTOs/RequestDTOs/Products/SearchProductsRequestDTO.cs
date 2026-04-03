@@ -12,6 +12,8 @@ namespace anphuong.Core.Domains.DTOs.RequestDTOs.Products
         public DateTime? EndDate { get; set; }
         public string? SortBy { get; set; }
         public bool? SortDesc { get; set; }
+        public double? MinPrice { get; set; }
+        public double? MaxPrice { get; set; }
     }
 
     public class SearchProductsRequestDTO

@@ -114,6 +114,17 @@ namespace anphuong.Service
                 filter = ExpressionUtils.AddFilter(filter, x => x.CategoryId == searchCondition.CategoryId.Value);
             }
 
+            
+            if (searchCondition.MinPrice.HasValue)
+            {
+                filter = ExpressionUtils.AddFilter(filter, x => x.Price >= searchCondition.MinPrice.Value);
+            }
+
+            if (searchCondition.MaxPrice.HasValue)
+            {
+                filter = ExpressionUtils.AddFilter(filter, x => x.Price <= searchCondition.MaxPrice.Value);
+            }
+
             if (searchCondition.StartDate.HasValue)
             {
                 var start = searchCondition.StartDate.Value.Date;
