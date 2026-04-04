@@ -8,5 +8,6 @@ namespace anphuong.Core.Interfaces.Repositories
     {
         Task<Product> CreateFullProductAsync(CreateProductRequestDTO request);
         Task<int> CountLowStockProductsAsync(int threshold);
+        Task<IEnumerable<Product>> GetAutocompleteSuggestionsAsync(string keyword);
     }
 }

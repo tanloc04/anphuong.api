@@ -10,6 +10,7 @@ namespace anphuong.Core.Interfaces.Services
         public Task Delete(int id);
 
         public Task<(IEnumerable<ProductDTO>, int totalItems)> GetAll(SearchProductsRequestDTO request);
+        Task<IEnumerable<object>> GetAutocompleteSuggestionsAsync(string keyword);
         public Task<ProductDTO> Get(int id);
         public Task<ProductDTO> Update(int id, UpdateProductRequestDTO request);
         public Task<int> GetLowStockCountAsync(int threshold = 5);

@@ -23,6 +23,7 @@ namespace anphuong.Repository.Context
         public DbSet<ProductReview> ProductReviews { get; set; }
         public DbSet<Cart> Carts { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -275,6 +276,30 @@ namespace anphuong.Repository.Context
                       .HasForeignKey(e => e.VariantId)
                       .OnDelete(DeleteBehavior.Restrict)
                       .IsRequired(false); // Quan trọng: Cho phép null
+            });
+
+            modelBuilder.Entity<ChatMessage>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.UserId)
+                      .IsRequired();
+
+                entity.Property(e => e.Sender)
+                      .IsRequired()
+                      .HasMaxLength(20); // Chỉ lưu "User" hoặc "Admin" nên 20 ký tự là dư xài
+
+                entity.Property(e => e.Content)
+                      .IsRequired()
+                      .HasMaxLength(2000); // Giới hạn tin nhắn 2000 ký tự (tránh spam)
+
+                entity.Property(e => e.Timestamp)
+                      .IsRequired()
+                      .HasColumnType("datetime");
+
+                entity.Property(e => e.IsRead)
+                      .IsRequired()
+                      .HasDefaultValue(false); // Mặc định tin nhắn mới là chưa đọc
             });
 
             base.OnModelCreating(modelBuilder);

@@ -176,6 +176,32 @@ namespace anphuong.Service
             return (productDTOs, totalItems);
         }
 
+        public async Task<IEnumerable<object>> GetAutocompleteSuggestionsAsync(string keyword)
+        {
+            var products = await _repository.GetAutocompleteSuggestionsAsync(keyword);
+
+            keyword = keyword.ToLower().Trim();
+
+            var result = products.Select(p =>
+            {
+                // Ưu tiên tìm biến thể (Variant) khớp với từ khóa SKU khách gõ, nếu không có thì lấy biến thể đầu tiên
+                var matchedVariant = p.Variants.FirstOrDefault(v => v.SKU != null && v.SKU.ToLower().Contains(keyword))
+                                     ?? p.Variants.FirstOrDefault();
+
+                return new
+                {
+                    Id = p.Id, // ID của Product để bấm vào chuyển trang chi tiết
+                    ProductCode = matchedVariant?.SKU ?? "N/A", // Trả về SKU thay cho ProductCode
+                    ProductName = p.Name,
+                    Price = matchedVariant?.Price ?? 0, // Giá lấy từ Variant
+                    ImageUrl = matchedVariant?.VariantImage ?? "", // Ảnh lấy từ Variant
+                    CategoryName = p.Category?.Name ?? ""
+                };
+            });
+
+            return result;
+        }
+
         public async Task<ProductDTO> Get(int id)
         {
             var item = await _repository.GetAsync(id, "DetailImage,Category,Variants.Inventory,Variants.Color,Variants.Material,Reviews")

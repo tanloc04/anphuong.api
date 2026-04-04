@@ -203,6 +203,8 @@ app.UseCors("AllowReactApp");
 
 app.MapHub<OrderHub>("/orderHub");
 
+app.MapHub<ChatHub>("/chatHub");
+
 app.UseAuthentication();
 
 app.UseAuthorization();

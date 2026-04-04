@@ -92,5 +92,24 @@ namespace anphuong.Repository.Repositories
                         select p;
             return await query.CountAsync();
         }
+
+        public async Task<IEnumerable<Product>> GetAutocompleteSuggestionsAsync(string keyword)
+        {
+            keyword = keyword.ToLower().Trim();
+
+            return await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.Variants)
+                .Where(p =>
+                    // 1. Tìm theo tên Sản phẩm
+                    (p.Name != null && p.Name.ToLower().Contains(keyword)) ||
+                    // 2. Tìm theo tên Danh mục
+                    (p.Category != null && p.Category.Name.ToLower().Contains(keyword)) ||
+                    // 3. Tìm theo mã SKU trong bảng Variants (Kiểm tra != null vì DB sếp có dòng SKU bị NULL)
+                    p.Variants.Any(v => v.SKU != null && v.SKU.ToLower().Contains(keyword))
+                )
+                .Take(8)
+                .ToListAsync();
+        }
     }
 }
