@@ -63,10 +63,10 @@ namespace anphuong.Core.Ultilities
             string tableRows = "";
             foreach (var item in order.OrderDetails)
             {
-                string imageUrl = !string.IsNullOrEmpty(item.Thumbnail)
-                    ? item.Thumbnail
+                string imageUrl = !string.IsNullOrEmpty(item.VariantImage)
+                    ? item.VariantImage
                     : "https://via.placeholder.com/80";
-                double price = item.Quantity > 0 ? item.SubTotalPrice / item.Quantity : 0;
+                double price = item.Quantity > 0 ? item.Subtotal / item.Quantity : 0;
 
                 tableRows += $@"
                 <tr>
@@ -76,7 +76,7 @@ namespace anphuong.Core.Ultilities
                     <td style='border:1px solid #ddd;padding:8px;'>{item.ProductName}</td>
                     <td style='border:1px solid #ddd;padding:8px;text-align:right;'>{price:N0}</td>
                     <td style='border:1px solid #ddd;padding:8px;text-align:center;'>{item.Quantity}</td>
-                    <td style='border:1px solid #ddd;padding:8px;text-align:right;'>{item.SubTotalPrice:N0}</td>
+                    <td style='border:1px solid #ddd;padding:8px;text-align:right;'>{item.Subtotal:N0}</td>
                 </tr>";
             }
 

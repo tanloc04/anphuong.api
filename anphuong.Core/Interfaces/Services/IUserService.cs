@@ -22,5 +22,6 @@ namespace anphuong.Core.Interfaces.Services
         Task<User?> CheckRefreshToken(string refreshToken);
         Task<bool> Update(User user);
         Task<bool> UserExist(int id);
+        Task<bool> BlockUserAsync(int userId);
     }
 }

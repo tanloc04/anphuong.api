@@ -72,33 +72,54 @@ namespace anphuong.api.Controllers
             }
             try
             {
+                // 1. Lưu user vào DB
                 var id = await _userService.RegisterAsync(registerRequest);
-                var baseConfirmAccountEndpoint = Environment.GetEnvironmentVariable("CONFIRM_ACCOUNT_ENDPOINT")
-                ?? throw new InvalidOperationException("CONFIRM_ACCOUNT_ENDPOINT environment variable is not set.");
 
-                string confirmAccountEndpoint = baseConfirmAccountEndpoint + id;
+                // 2. Lấy Icon từ .env
+                var anphuongIcon = Environment.GetEnvironmentVariable("AN_PHUONG_ICON")
+                ?? throw new InvalidOperationException("AN_PHUONG_ICON environment variable is not set.");
 
+                // 3. TẠO LINK TRỎ VỀ REACT (PORT 5173) THAY VÌ SWAGGER
+                // Bạn có thể đổi localhost thành domain thật sau này khi deploy
+                string confirmLink = $"http://localhost:5173/account/confirmation/{id}";
+
+                // 4. Bơm HTML siêu đẹp vào
+                string htmlBody = $@"
+                <html>
+                <body style='font-family: Roboto, sans-serif; background-color: #f4f4f4; padding: 20px;'>
+                    <div style='max-width: 600px; margin: auto; background: #ffffff; padding: 30px; border-radius: 10px; text-align: center;'>
+                        <img src='{anphuongIcon}' 
+                             style='margin-bottom: 20px; max-width: 150px; height: auto;' />
+                        <h2 style='color: #202124;'>Xác nhận tài khoản của bạn</h2>
+                        <p style='color: #5f6368;'>Vui lòng nhấn nút bên dưới để xác nhận tài khoản và hoàn tất quá trình đăng ký.</p>
+                        <a href='{confirmLink}' 
+                           style='display: inline-block; margin: 20px 0; padding: 12px 25px; background-color: #1a73e8; color: #ffffff; text-decoration: none; border-radius: 5px; font-weight: bold;'>Xác Nhận Tài Khoản</a>
+                        <p style='color: #5f6368; font-size: 12px;'>Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.</p>
+                    </div>
+                </body>
+                </html>";
+
+                // 5. Gửi 1 email duy nhất!
                 await _emailService.SendEmailAsync(
                     registerRequest.Email,
-                    "Confirm Your An Phuong Account",
-                    "Click here to confirm your account: " + confirmAccountEndpoint
+                    "Xác Nhận Tài Khoản An Phương",
+                    htmlBody
                 );
 
                 return StatusCode(StatusCodes.Status201Created, new ApiResponseDTO<object>
                 {
                     Success = true,
-                    Message = "Email have sent to your"
+                    Message = "Email đã được gửi đến hộp thư của bạn!"
                 });
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponseDTO<object>
                 {
-                    Success = true,
+                    Success = false,
                     Message = ex.ToString()
                 });
             }
-
         }
         #endregion
 

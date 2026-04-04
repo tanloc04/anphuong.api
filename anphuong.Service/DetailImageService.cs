@@ -67,8 +67,7 @@ namespace anphuong.Service
 
             bool isChanged = false;
 
-            // Apply updates
-            isChanged |= GenericHelperUtils.SetIfChanged(request.Thumbnail, () => item.Thumbnail, i => item.Thumbnail = i);
+            // Apply updates           
             isChanged |= GenericHelperUtils.SetIfChanged(request.Image1, () => item.Image1, i => item.Image1 = i);
             isChanged |= GenericHelperUtils.SetIfChanged(request.Image2, () => item.Image2, i => item.Image2 = i);
             isChanged |= GenericHelperUtils.SetIfChanged(request.Image3, () => item.Image3, i => item.Image3 = i);

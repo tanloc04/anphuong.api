@@ -6,6 +6,8 @@ using anphuong.Core.Exceptions;
 using anphuong.Core.Interfaces.Services;
 using anphuong.Core.Interfaces.Services.External;
 using anphuong.Core.Ultilities;
+using anphuong.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace anphuong.api.Controllers
@@ -72,26 +74,30 @@ namespace anphuong.api.Controllers
         #endregion
 
         #region Create        
-        //[Authorize(Policy = "AllowSpecificEmail")]
         [HttpPost("create")]
-        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponseDTO<OrderDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Create([FromBody] CreateOrderRequestDTO request)
         {
             try
             {
+                // 1. PlaceOrderAsync đã trả về OrderDTO có chứa Email rồi (do sếp gán tay ở Service)
                 var item = await _service.PlaceOrderAsync(request);
-                //var generator = new StringGeneratorUtils();
-                //string htmlBody = generator.GenerateOrderEmailHtml(item);
 
-                //await _emailService.SendEmailAsync(item.Customer?.Email ?? 
-                //    "customer@example.com",
-                //    "Your Order Confirmation",
-                //    htmlBody);
+                if (request.PaymentMethod == 0) // COD
+                {
+                    var generator = new StringGeneratorUtils();
+                    // Dùng luôn cái 'item' vừa tạo, không cần gọi _service.Get nữa
+                    string htmlBody = generator.GenerateOrderEmailHtml(item);
+                    string recipientEmail = item.Email ?? "tanloc040403@gmail.com";
 
+                    await _emailService.SendEmailAsync(
+                        recipientEmail,
+                        "Xác nhận đặt hàng thành công - Nội Thất An Phương",
+                        htmlBody);
+                }
 
+                // Với VNPay (PaymentMethod == 1), ta không gửi mail ở đây mà đợi ở luồng VnPayReturn
                 return Ok(new ApiResponseDTO<OrderDTO>
                 {
                     Success = true,
@@ -106,7 +112,14 @@ namespace anphuong.api.Controllers
                     Message = ex.Message
                 });
             }
-
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Lỗi hệ thống: " + ex.Message
+                });
+            }
         }
         #endregion
 
@@ -244,6 +257,16 @@ namespace anphuong.api.Controllers
                 });
             }
 
+        }
+        #endregion
+
+        #region Update Status Order
+        //[Authorize(Policy = "AllowSpecificEmail")]
+        [HttpPatch("{id}/status")]
+        public async Task<IActionResult> UpdateStatus(int id, [FromBody] int newStatus)
+        {
+            await _service.UpdateStatus(id, newStatus);
+            return Ok(new { success = true, message = "Cập nhật trạng thái thành công!" });
         }
         #endregion
     }

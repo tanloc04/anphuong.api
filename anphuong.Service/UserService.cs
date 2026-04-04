@@ -15,42 +15,49 @@ using anphuong.Core.Ultilities;
 using anphuong.Repository.Repositories;
 using Mapster;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 
 namespace anphuong.Service
 {
-
     public class UserService : IUserService
     {
-
         private readonly IUserRepository _repository;
         private readonly ICustomerRepository _customerRepository;
         private readonly IJwtService _jwtService;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
+        private readonly IConfiguration _config;
+
         public UserService(IUserRepository userRepository, ICustomerRepository customerRepository,
-            IJwtService jwtService, IHttpContextAccessor httpContextAccessor)
+            IJwtService jwtService, IHttpContextAccessor httpContextAccessor, IConfiguration config)
         {
             _repository = userRepository;
             _customerRepository = customerRepository;
             _jwtService = jwtService;
             _httpContextAccessor = httpContextAccessor;
+            _config = config;
         }
 
         public async Task<int> RegisterAsync(RegisterRequestDTO requestDTO)
         {
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(requestDTO.Password);
 
+            string allowedEmails = _config["ALLOWED_EMAILS"] ?? "";
+
+            bool isAdmin = allowedEmails.Split(',').Any(e => e.Trim().Equals(requestDTO.Email, StringComparison.OrdinalIgnoreCase));
+
             var newCustomer = new Customer
             {
                 Phone = requestDTO.Phone,
                 FullName = requestDTO.FullName,
-                CustomerAddress = requestDTO.CustomerAddress,
+                Address = requestDTO.CustomerAddress,
                 User = new User
                 {
                     Email = requestDTO.Email,
                     Username = requestDTO.Username,
                     PasswordHash = hashedPassword,
-                    Status = "DEACTIVE"
+                    Status = "DEACTIVE",
+                    Role = isAdmin
                 }
             };
 
@@ -62,34 +69,43 @@ namespace anphuong.Service
         {
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(requestDTO.Password);
 
+            string allowedEmails = _config["ALLOWED_EMAILS"] ?? "";
+            bool isAdmin = allowedEmails.Split(',').Any(e => e.Trim().Equals(requestDTO.Email, StringComparison.OrdinalIgnoreCase));
+
             var newCustomer = new Customer
             {
                 Phone = requestDTO.Phone,
                 FullName = requestDTO.FullName,
-                CustomerAddress = requestDTO.CustomerAddress,
+                Address = requestDTO.CustomerAddress,
                 User = new User
                 {
                     Email = requestDTO.Email,
                     Username = requestDTO.Username,
                     PasswordHash = hashedPassword,
-                    Status = "ACTIVE"
+                    Status = "ACTIVE",
+                    Role = isAdmin
                 }
             };
 
             await _customerRepository.AddAsync(newCustomer);
         }
+
         public async Task<User> GoogleRegisterAsync(GoogleRegisterRequestDTO requestDTO)
         {
+            string allowedEmails = _config["ALLOWED_EMAILS"] ?? "";
+            bool isAdmin = allowedEmails.Split(',').Any(e => e.Trim().Equals(requestDTO.Email, StringComparison.OrdinalIgnoreCase));
             var newCustomer = new Customer
             {
                 Phone = "",
                 FullName = requestDTO.FullName,
-                CustomerAddress = "",
+                Address = "",
                 User = new User
                 {
                     Email = requestDTO.Email,
                     Username = requestDTO.Username,
-                    Status = "ACTIVE"
+                    Avatar = requestDTO.Avatar,
+                    Status = "ACTIVE",
+                    Role = isAdmin
                 }
             };
 
@@ -102,13 +118,11 @@ namespace anphuong.Service
             var user = await _repository.GetAsync(user => user.Email == email);
             if (user == null)
             {
-                // User with the given email doesn't exist
                 return null;
             }
             var isPasswordValid = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
             if (!isPasswordValid)
             {
-                // Password is incorrect
                 return null;
             }
             return user;
@@ -155,11 +169,7 @@ namespace anphuong.Service
 
         public async Task<CustomerUserDTO?> FindByIdAsync(int id)
         {
-            var user = await _repository.GetAsync(id, includeProperties:"Customer");
-            if (user == null)
-            {
-                return null;
-            }
+            var user = await _repository.GetAsync(id, includeProperties: "Customer");
             if (user == null) return null;
 
             var dto = new CustomerUserDTO
@@ -168,12 +178,14 @@ namespace anphuong.Service
                 CreatedAt = user.CreatedAt,
                 UpdatedAt = user.UpdatedAt,
                 IsDeleted = user.IsDeleted,
-                Fullname = user.Customer.FullName,
-                Phone = user.Customer.Phone,
-                CustomerAddress = user.Customer.CustomerAddress,
+                Fullname = user.Customer?.FullName ?? user.Username,
+                Phone = user.Customer?.Phone ?? string.Empty,
+                CustomerAddress = user.Customer?.Address ?? string.Empty,
                 Username = user.Username,
                 Email = user.Email,
-                Status = user.Status
+                Status = user.Status,
+                Avatar = user.Avatar,
+                Role = user.Role
             };
 
             return dto;
@@ -189,40 +201,13 @@ namespace anphuong.Service
             return BCrypt.Net.BCrypt.Verify(oldPassword, user.PasswordHash);
         }
 
-        //public async Task<(List<UserDTO>, int totalItems)> GetUsersAsync(SearchUsersRequestDTO request)
-        //{
-        //    // Start with a base filter that is always true
-        //    Expression<Func<User, bool>> filter = u => true;
-
-        //    // Apply filters dynamically
-        //    if (!string.IsNullOrEmpty(SearchUsersCondition.Keyword))
-        //    {
-        //        string keyword = SearchUsersCondition.Keyword.ToLower();
-        //        filter = AddFilter(filter, u =>
-        //            (u.Username != null && u.Username.ToLower().Contains(keyword)) ||
-        //            u.Email.ToLower().Contains(keyword));
-        //    }
-
-        //    filter = AddFilter(filter, u => u.Status == searchCondition.Status && u.IsDeleted == searchCondition.IsDeleted);
-
-        //    var users = await _repository.GetWithPaginationAsync(pageInfo, filter);
-        //    int totalItems = await _repository.CountAsync(filter);
-
-        //    List<UserDTO> userDTOs = users.Select(user => user.Adapt<UserDTO>()).ToList();
-
-        //    return (userDTOs, totalItems);
-        //}
-
         public async Task<(IEnumerable<UserDTO>, int totalItems)> GetUsersAsync(SearchUsersRequestDTO request)
         {
-            // If request or its components are null, create safe defaults
             var searchCondition = request?.SearchCondition ?? new SearchUsersCondition();
             var pageInfo = request?.PageInfo ?? new PageInfoRequestDTO();
 
-            // Start with a base filter that is always true
             Expression<Func<User, bool>> filter = u => true;
 
-            // Only apply keyword filter if keyword exists
             if (!string.IsNullOrEmpty(searchCondition.Keyword))
             {
                 var key = searchCondition.Keyword.ToLower();
@@ -232,10 +217,8 @@ namespace anphuong.Service
                 );
             }
 
-            // Only apply deletion filter if specified (default: return non-deleted)
             filter = ExpressionUtils.AddFilter(filter, u => u.IsDeleted == searchCondition.IsDeleted);
 
-            // Query paginated products
             var items = await _repository.GetWithPaginationAsync(pageInfo, filter);
             var totalItems = await _repository.CountAsync(filter);
 
@@ -253,7 +236,7 @@ namespace anphuong.Service
             if (parsedId == id) throw new BusinessException(ErrorDetails.CAN_NOT_DELETE_YOURSELF);
 
             var user = await _repository.GetAsync(id);
-            if (user == null) return false; // User not found
+            if (user == null) return false;
             user.IsDeleted = true;
             return _repository.Update(user);
         }
@@ -262,17 +245,54 @@ namespace anphuong.Service
         {
             return await _repository.ActivateUserAsync(id);
         }
+
         public async Task<User?> CheckRefreshToken(string refreshToken)
         {
             return await _repository.CheckRefreshToken(refreshToken);
         }
+
         public async Task<bool> Update(User user)
         {
             return _repository.Update(user);
         }
+
         public async Task<bool> UserExist(int id)
         {
             return await _repository.ExistsAsync(u => u.Id == id);
+        }
+
+        //public async Task<bool> BlockUserAsync(int userId)
+        //{
+        //    var user = await _repository.GetAsync(userId);
+
+        //    if (user == null)
+        //        return false;
+
+        //    user.Status = user.Status == "ACTIVE" ? "DEACTIVE" : "ACTIVE";
+        //    user.UpdatedAt = DateTime.Now;
+
+        //    await Update(user);
+
+        //    return true;
+        //}
+
+        public async Task<bool> BlockUserAsync(int userId)
+        {
+            var user = await _repository.GetAsync(userId);
+            if (user == null)
+                return false;
+
+            string currentStatus = user.Status?.Trim().ToUpper();
+
+            user.Status = (currentStatus == "ACTIVE") ? "DEACTIVE" : "ACTIVE";
+            user.UpdatedAt = DateTime.Now;
+
+            bool isSaved = await Update(user);
+            Console.WriteLine($"\n[DEBUG] USER ID: {userId}");
+            Console.WriteLine($"[DEBUG] CŨ: '{currentStatus}' ---> MỚI: '{user.Status}'");
+            Console.WriteLine($"[DEBUG] TRẠNG THÁI LƯU (isSaved): {isSaved}\n");
+
+            return isSaved;
         }
     }
 }

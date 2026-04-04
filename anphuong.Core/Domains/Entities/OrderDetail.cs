@@ -1,17 +1,17 @@
 ﻿namespace anphuong.Core.Domains.Entities
 {
     public class OrderDetail : Entity
-    {
-        public bool IsCustomize { get; set; }
-        public int? CustomizeHeight { get; set; }
-        public int? CustomizeWidth { get; set; }
-        public int? CustomizeLong { get; set; }
-        public string? CustomizeMaterial { get; set; }
+    {   
         public int Quantity { get; set; }
-        public double SubTotalPrice { get; set; }
-        public int ProductId { get; set; }
+        public double UnitPrice { get; set; }
+        public double SubTotal { get; set; }
+        public bool isCustomized { get; set; } = false;
+        public decimal? CustomLongSize { get; set; }
+        public decimal? CustomWidthSize { get; set; }
+        public decimal? CustomHeightSize { get; set; }
+        public int VariantId { get; set; }
         public int OrderId { get; set; }
         public Order Order { get; set; }
-        public Product Product { get; set; }
+        public Variant Variant { get; set; }
     }
 }

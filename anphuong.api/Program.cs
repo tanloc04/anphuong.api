@@ -1,7 +1,5 @@
-﻿using System.Security.Claims;
-using System.Text;
-using System.Text.Json;
 using anphuong.api.Extensions;
+using anphuong.api.Hubs;
 using anphuong.Core.Domains.DTOs.Config;
 using anphuong.Repository.Context;
 using DotNetEnv;
@@ -9,16 +7,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Security.Claims;
+using System.Text;
+using System.Text.Json;
 
-// 1. Load Environment Variables (.env file)
 Env.Load();
-
 var builder = WebApplication.CreateBuilder(args);
-
-// 2. Load Configuration sources (Environment variables are added automatically by CreateBuilder)
-builder.Configuration.AddEnvironmentVariables();
-
-// --- SERVICES REGISTRATION ---
 
 #region CORS Configuration
 // Giữ nguyên theo yêu cầu của bạn để tiện testing.
@@ -34,117 +28,112 @@ builder.Services.AddCors(options =>
 });
 #endregion
 
-#region Cloudinary Configuration
-// Tối ưu: Dùng builder.Configuration thay vì Environment.GetEnvironmentVariable trực tiếp
-// để tận dụng cơ chế config binding của .NET
+builder.Configuration
+    .AddEnvironmentVariables();
+
+#region Environment configuration
 builder.Services.Configure<CloudinarySettings>(options =>
 {
-    options.CloudName = builder.Configuration["CLOUDINARY_CLOUDNAME"];
-    options.ApiKey = builder.Configuration["CLOUDINARY_APIKEY"];
-    options.ApiSecret = builder.Configuration["CLOUDINARY_APISECRET"];
+    options.CloudName = Environment.GetEnvironmentVariable("CLOUDINARY_CLOUDNAME");
+    options.ApiKey = Environment.GetEnvironmentVariable("CLOUDINARY_APIKEY");
+    options.ApiSecret = Environment.GetEnvironmentVariable("CLOUDINARY_APISECRET");
 });
 #endregion
 
-#region JWT Authentication Configuration
-var jwtIssuer = builder.Configuration["Jwt:Issuer"];
-var jwtAudience = builder.Configuration["Jwt:Audience"];
-var jwtKey = builder.Configuration["Jwt:Key"];
+#region Jwt configuration 
+var jwtIssuer = builder.Configuration.GetSection("Jwt:Issuer").Get<string>();
+var jwtAudience = builder.Configuration.GetSection("Jwt:Audience").Get<string>();
+var jwtKey = builder.Configuration.GetSection("Jwt:Key").Get<string>();
 
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtIssuer,
-        ValidAudience = jwtAudience,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey ?? "")),
-        ClockSkew = TimeSpan.Zero // Loại bỏ độ trễ mặc định 5 phút khi token hết hạn
-    };
+     .AddJwtBearer(options =>
+     {
+         options.TokenValidationParameters = new TokenValidationParameters
+         {
+             ValidateIssuer = true,
+             ValidateAudience = true,
+             ValidateLifetime = true,
+             ValidateIssuerSigningKey = true,
+             ValidIssuer = jwtIssuer,
+             ValidAudience = jwtAudience,
+             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+         };
 
-    options.Events = new JwtBearerEvents
-    {
-        // --- QUAN TRỌNG: Logic lấy Token từ Cookie ---
-        OnMessageReceived = context =>
-        {
-            // Kiểm tra xem token có trong Cookie "accessToken" không
-            if (context.Request.Cookies.ContainsKey("accessToken"))
-            {
-                context.Token = context.Request.Cookies["accessToken"];
-            }
-            return Task.CompletedTask;
-        },
-        // ---------------------------------------------
+         options.Events = new JwtBearerEvents
+         {
+             // Customize the 401 response
+             OnChallenge = context =>
+             {
+                 // Skip the default response
+                 context.HandleResponse();
 
-        // Customize 401 Unauthorized Response
-        OnChallenge = async context =>
-        {
-            // Bỏ qua logic mặc định để không ghi đè response
-            context.HandleResponse();
+                 // Customize the response
+                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                 context.Response.ContentType = "application/json";
 
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            context.Response.ContentType = "application/json";
+                 var result = JsonSerializer.Serialize(new
+                 {
+                     success = false,
+                     message = "Access Denied. Token is missing or invalid."
+                 });
 
-            var result = JsonSerializer.Serialize(new
-            {
-                success = false,
-                message = "Access Denied. Token is missing, invalid, or expired."
-            });
+                 return context.Response.WriteAsync(result);
+             },
 
-            await context.Response.WriteAsync(result);
-        },
+             // Customize the 403 response
+             OnForbidden = context =>
+             {
+                 // Customize the response
+                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                 context.Response.ContentType = "application/json";
 
-        // Customize 403 Forbidden Response
-        OnForbidden = async context =>
-        {
-            context.Response.StatusCode = StatusCodes.Status403Forbidden;
-            context.Response.ContentType = "application/json";
+                 var result = JsonSerializer.Serialize(new
+                 {
+                     success = false,
+                     message = "Access Denied. You do not have permission to access this resource."
+                 });
 
-            var result = JsonSerializer.Serialize(new
-            {
-                success = false,
-                message = "Access Denied. You do not have permission to access this resource."
-            });
+                 return context.Response.WriteAsync(result);
+             },
 
-            await context.Response.WriteAsync(result);
-        },
+             OnTokenValidated = context =>
+             {
+                 var emailClaim = context.Principal?.FindFirst("email")?.Value;
+                 if (!string.IsNullOrEmpty(emailClaim))
+                 {
+                     var claimsIdentity = context.Principal?.Identity as ClaimsIdentity;
+                     claimsIdentity?.AddClaim(new Claim(ClaimTypes.Email, emailClaim));
+                 }
+                 return Task.CompletedTask;
+             },
 
-        // Map Email Claim when Token Validated
-        OnTokenValidated = context =>
-        {
-            var emailClaim = context.Principal?.FindFirst("email")?.Value ??
-                             context.Principal?.FindFirst(ClaimTypes.Email)?.Value;
-
-            if (!string.IsNullOrEmpty(emailClaim))
-            {
-                var claimsIdentity = context.Principal?.Identity as ClaimsIdentity;
-                // Đảm bảo claim type chuẩn ClaimTypes.Email được set
-                if (claimsIdentity != null && !claimsIdentity.HasClaim(c => c.Type == ClaimTypes.Email))
-                {
-                    claimsIdentity.AddClaim(new Claim(ClaimTypes.Email, emailClaim));
-                }
-            }
-            return Task.CompletedTask;
-        }
-    };
-});
+             OnMessageReceived = context =>
+             {
+                 if (context.Request.Cookies.ContainsKey("accessToken"))
+                 {
+                     context.Token = context.Request.Cookies["accessToken"];
+                 }
+                 return Task.CompletedTask;
+             }
+         };
+     });
 #endregion
 
-#region Database Connection
-var connectionString = builder.Configuration.GetConnectionString("AnPhuongFurnitureDb");
-builder.Services.AddDbContext<anphuongDbContext>(options =>
-    options.UseSqlServer(connectionString));
-#endregion
+// Add services to the container.
+builder.Services.AddControllers();
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
 
-#region Authorization Policies
+builder.Services.Register();
+builder.Services.AddSignalR();
+
+#region Allow Specific Email
 var allowedEmail = builder.Configuration["ALLOWED_EMAILS"]?.Trim();
+
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AllowSpecificEmail", policy =>
@@ -155,16 +144,12 @@ builder.Services.AddAuthorization(options =>
 });
 #endregion
 
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.Register(); // Register custom services (DI)
-
 #region Swagger Configuration
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "An Phuong API", Version = "v1" });
 
-    // Cấu hình JWT cho Swagger (Nút Authorize)
+    // Add JWT Authentication to Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -172,31 +157,38 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Enter your JWT token here."
+        Description = "Enter your JWT token here. Example: Bearer {your token}"
     });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
         {
-            new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference
+                new OpenApiSecurityScheme
                 {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                new string[] {}
+            }
+        });
 });
 #endregion
 
-// --- BUILD APP ---
+#region DBConnection
+
+
+var connectionString = builder.Configuration.GetConnectionString("AnPhuongFurnitureDb");
+
+builder.Services.AddDbContext<anphuongDbContext>(options =>
+    options.UseSqlServer(connectionString));
+#endregion
+
 var app = builder.Build();
 
-// --- MIDDLEWARE PIPELINE ---
-
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -205,24 +197,17 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "An Phuong API v1");
     });
 }
-
 app.UseRouting();
 
-app.Use(async (context, next) =>
-{
-    var token = context.Request.Cookies["accessToken"];
-    if (!string.IsNullOrEmpty(token))
-    {
-        context.Request.Headers.Append("Authorization", "Bearer " + token);
-    }
-    await next();
-});
-
-// CORS phải đặt giữa Routing và Authentication
 app.UseCors("AllowReactApp");
 
-app.UseAuthentication(); // Xác thực (Ai đang đăng nhập? Check Header/Cookie)
-app.UseAuthorization();  // Phân quyền (Có được phép vào không?)
+app.MapHub<OrderHub>("/orderHub");
+
+app.MapHub<ChatHub>("/chatHub");
+
+app.UseAuthentication();
+
+app.UseAuthorization();
 
 app.MapControllers();
 

@@ -1,4 +1,5 @@
-﻿using anphuong.Core.Interfaces.Repositories;
+﻿using anphuong.api.SignalRServices;
+using anphuong.Core.Interfaces.Repositories;
 using anphuong.Core.Interfaces.Services;
 using anphuong.Core.Interfaces.Services.External;
 using anphuong.Repository.Repositories;
@@ -55,6 +56,23 @@ namespace anphuong.api.Extensions
             //----------------Variant-----------------
             services.AddScoped<IVariantRepository, VariantRepository>();
             services.AddScoped<IVariantService, VariantService>();
+
+            //----------------Material-----------------
+            services.AddScoped<IMaterialRepository, MaterialRepository>();
+            services.AddScoped<IMaterialService, MaterialService>();
+
+            //----------------ProductReview-----------------
+            services.AddScoped<IProductReviewRepository, ProductReviewRepository>();
+            services.AddScoped<IProductReviewService, ProductReviewService>();
+
+            //----------------Cart-----------------
+            services.AddScoped<ICartRepository, CartRepository>();
+            services.AddScoped<ICartService, CartService>();
+
+            services.AddScoped<IOrderHubService, OrderHubService>();
+
+            services.AddScoped<IVnPayService, VnPayService>();
+
         }
     }
 }

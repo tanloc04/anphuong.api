@@ -1,6 +1,4 @@
-﻿using anphuong.Core.Domains.DTOs;
-using anphuong.Core.Domains.DTOs.RequestDTOs.Products;
-using anphuong.Core.Domains.DTOs.ResponseDTOs.Product;
+﻿using anphuong.Core.Domains.DTOs.RequestDTOs.Products;
 using anphuong.Core.Domains.Entities;
 using anphuong.Core.Domains.Objects;
 using anphuong.Core.Exceptions;
@@ -14,112 +12,104 @@ namespace anphuong.Repository.Repositories
     public class ProductRepository : GenericRepository<Product>, IProductRepository
     {
         private readonly anphuongDbContext _context;
+
         public ProductRepository(anphuongDbContext context) : base(context)
         {
             _context = context;
         }
-        public async Task<ProductDTO> CreateFullProductAsync(CreateProductRequestDTO request)
-        {
-            await using var transaction = await _context.Database.BeginTransactionAsync();
 
+        public async Task<Product> CreateFullProductAsync(CreateProductRequestDTO request)
+        {
             try
             {
-                var detailImage = new DetailImage
+                // 1. Kiểm tra CategoryId hợp lệ
+                if (!request.CategoryId.HasValue)
                 {
-                    Thumbnail = request.Thumbnail,
-                    Image1 = request.Image1,
-                    Image2 = request.Image2,
-                    Image3 = request.Image3,
-                    Image4 = request.Image4,
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now,
-                    IsDeleted = false
-                };
-                _context.DetailImages.Add(detailImage);
+                    throw new BusinessException(ErrorDetails.INVALID_CATEGORY_ID);
+                }
 
-                await _context.SaveChangesAsync();
-
+                // 2. Chỉ tạo Product gốc với đầy đủ các trường mới
                 var product = new Product
                 {
                     Name = request.Name,
                     Description = request.Description,
                     Price = request.Price,
                     Discount = request.Discount,
-                    Material = request.Material,
                     LongSize = request.LongSize,
                     WidthSize = request.WidthSize,
                     HeightSize = request.HeightSize,
-                    CategoryId = request.CategoryId,
-                    DetailImageId = detailImage.Id,
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now,
+                    isCustomize = request.isCustomize,
+                    CategoryId = request.CategoryId.Value,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
                     IsDeleted = false
                 };
-                _context.Products.Add(product);
 
-                await _context.SaveChangesAsync();
-
-                var inventory = new Inventory
+                // 3. Tạo hình ảnh chi tiết (nếu Admin có tải ảnh lên)
+                if (!string.IsNullOrEmpty(request.Image1) || !string.IsNullOrEmpty(request.Image2) ||
+                    !string.IsNullOrEmpty(request.Image3) || !string.IsNullOrEmpty(request.Image4))
                 {
-                    QuantityInStock = request.Stock,
-                    ProductId = product.Id,
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now,
-                    IsDeleted = false
-                };
-                _context.Inventories.Add(inventory);
+                    product.DetailImage = new DetailImage
+                    {
+                        Image1 = request.Image1,
+                        Image2 = request.Image2,
+                        Image3 = request.Image3,
+                        Image4 = request.Image4,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        IsDeleted = false,
+                        Product = product
+                    };
+                }
 
+                // 4. Lưu tất cả xuống Database (EF Core sẽ tự map Khóa ngoại)
+                await _context.Products.AddAsync(product);
                 await _context.SaveChangesAsync();
 
-                await transaction.CommitAsync();
-
-                await _context.Entry(product).Reference(p => p.DetailImage).LoadAsync();
+                // 5. Load thêm Category Name để lát nữa Service map DTO cho đẹp
                 await _context.Entry(product).Reference(p => p.Category).LoadAsync();
 
-                var productDTO = new ProductDTO
-                {
-                    Id = product.Id,
-                    Name = product.Name,
-                    Description = product.Description,
-                    Price = product.Price,
-                    Discount = product.Discount,
-                    Material = product.Material,
-                    LongSize = product.LongSize,
-                    WidthSize = product.WidthSize,
-                    HeightSize = product.HeightSize,
-                    CategoryId = product.CategoryId,
-                    CreatedAt = product.CreatedAt,
-                    UpdatedAt = product.UpdatedAt,
-                    IsDeleted = product.IsDeleted,
-                    DetailImageId = detailImage.Id,
-                    DetailImage = new ProductDetailImageDTO
-                    {
-                        Thumbnail = detailImage.Thumbnail,
-                        Image1 = detailImage.Image1,
-                        Image2 = detailImage.Image2,
-                        Image3 = detailImage.Image3,
-                        Image4 = detailImage.Image4
-                    },
-                    Category = new ProductCategoryDTO
-                    {
-                        Id = product.Category?.Id ?? 0,
-                        Name = product.Category?.Name ?? string.Empty
-                    },
-                    Stock = inventory.QuantityInStock
-                };
-
-                return productDTO;
+                // 6. Trả về Entity Product (KHÔNG trả về DTO ở đây nữa)
+                return product;
             }
             catch (DbUpdateException ex) when (ex.InnerException is SqlException sqlEx && sqlEx.Number == 547)
             {
-                await transaction.RollbackAsync();
                 throw new BusinessException(ErrorDetails.INVALID_CATEGORY_ID);
             }
-            catch
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
+        }
+
+        public async Task<int> CountLowStockProductsAsync(int threshold)
+        {
+            var query = from p in _context.Products
+                        where !p.IsDeleted
+                        let totalStock = (from v in _context.Variants
+                                          join i in _context.Inventories on v.Id equals i.VariantId
+                                          where v.ProductId == p.Id
+                                                && !v.IsDeleted
+                                                && !i.IsDeleted
+                                          select i.QuantityInStock).Sum()
+                        where totalStock <= threshold
+                        select p;
+            return await query.CountAsync();
+        }
+
+        public async Task<IEnumerable<Product>> GetAutocompleteSuggestionsAsync(string keyword)
+        {
+            keyword = keyword.ToLower().Trim();
+
+            return await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.Variants)
+                .Where(p =>
+                    // 1. Tìm theo tên Sản phẩm
+                    (p.Name != null && p.Name.ToLower().Contains(keyword)) ||
+                    // 2. Tìm theo tên Danh mục
+                    (p.Category != null && p.Category.Name.ToLower().Contains(keyword)) ||
+                    // 3. Tìm theo mã SKU trong bảng Variants (Kiểm tra != null vì DB sếp có dòng SKU bị NULL)
+                    p.Variants.Any(v => v.SKU != null && v.SKU.ToLower().Contains(keyword))
+                )
+                .Take(8)
+                .ToListAsync();
         }
     }
 }

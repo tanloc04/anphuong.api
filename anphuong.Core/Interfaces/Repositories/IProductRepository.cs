@@ -6,6 +6,8 @@ namespace anphuong.Core.Interfaces.Repositories
 {
     public interface IProductRepository : IGenericRepository<Product>
     {
-        Task<ProductDTO> CreateFullProductAsync(CreateProductRequestDTO request);
+        Task<Product> CreateFullProductAsync(CreateProductRequestDTO request);
+        Task<int> CountLowStockProductsAsync(int threshold);
+        Task<IEnumerable<Product>> GetAutocompleteSuggestionsAsync(string keyword);
     }
 }

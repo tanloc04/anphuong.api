@@ -1,9 +1,10 @@
-﻿using System.Linq.Expressions;
-using anphuong.Core.Domains.DTOs.StandardizedDTOs;
+﻿using anphuong.Core.Domains.DTOs.StandardizedDTOs;
 using anphuong.Core.Domains.Entities;
 using anphuong.Core.Interfaces.Repositories;
 using anphuong.Repository.Context;
 using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Asn1;
+using System.Linq.Expressions;
 
 namespace anphuong.Repository.Repositories
 {
@@ -93,10 +94,13 @@ namespace anphuong.Repository.Repositories
             return await _set.SingleOrDefaultAsync(filter, cancellationToken);
         }
 
-        public async Task<IEnumerable<T>> GetWithPaginationAsync(PageInfoRequestDTO pageInfo, Expression<Func<T, bool>>? filter = null, string? includeProperties = null, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<T>> GetWithPaginationAsync(
+    PageInfoRequestDTO pageInfo,
+    Expression<Func<T, bool>> filter = null,
+    string includeProperties = "",
+    Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
+    CancellationToken cancellationToken = default)
         {
-            int pageNum = pageInfo.PageNum;
-            int pageSize = pageInfo.PageSize;
             IQueryable<T> query = _set;
 
             if (filter != null)
@@ -104,19 +108,27 @@ namespace anphuong.Repository.Repositories
                 query = query.Where(filter);
             }
 
-            if (pageNum > 0 && pageSize > 0)
+            if (!string.IsNullOrWhiteSpace(includeProperties))
             {
-                query = query.Skip((pageNum - 1) * pageSize).Take(pageSize);
-            }
-
-            if (!string.IsNullOrEmpty(includeProperties))
-            {
-                foreach (var incluProp in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                foreach (var includeProperty in includeProperties.Split
+                    (new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
                 {
-                    query = query.Include(incluProp);
+                    query = query.Include(includeProperty.Trim());
                 }
             }
-            return await query.ToListAsync(cancellationToken);
+
+            if (orderBy != null)
+            {
+                query = orderBy(query);
+            }
+            else
+            {
+                query = query.OrderBy(e => 1);
+            }
+
+            return await query.Skip((pageInfo.PageNum - 1) * pageInfo.PageSize)
+                              .Take(pageInfo.PageSize)
+                              .ToListAsync(cancellationToken);
         }
 
         public bool Update(T entity)

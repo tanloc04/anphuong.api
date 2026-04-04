@@ -9,6 +9,7 @@ using anphuong.Core.Interfaces.Repositories;
 using anphuong.Core.Interfaces.Services;
 using anphuong.Core.Ultilities;
 using Mapster;
+using Microsoft.AspNetCore.SignalR;
 
 namespace anphuong.Service
 {
@@ -17,128 +18,161 @@ namespace anphuong.Service
         private readonly IOrderRepository _repository;
         private readonly IProductRepository _productRepository;
         private readonly IInventoryRepository _inventoryRepository;
+        private readonly IVariantRepository _variantRepository;
+        private readonly ICustomerRepository _customerRepository;
+        private readonly IOrderHubService _orderHubService;
+        private readonly ICartService _cartService;
 
         public OrderService(IOrderRepository repository,
             IProductRepository productRepository,
-            IInventoryRepository inventoryRepository)
+            IInventoryRepository inventoryRepository,
+            IVariantRepository variantRepository,
+            ICustomerRepository customerRepository,
+            IOrderHubService orderHubService, ICartService cartService)
         {
             _repository = repository;
             _productRepository = productRepository;
             _inventoryRepository = inventoryRepository;
+            _variantRepository = variantRepository;
+            _customerRepository = customerRepository;
+            _orderHubService = orderHubService;
+            _cartService = cartService;
         }
 
         public async Task<OrderDTO> PlaceOrderAsync(CreateOrderRequestDTO request)
         {
+            int finalCustomerId = 0;
+            string receiverName = "";
+            string receiverPhone = "";
+
+            if (request.IsNewCustomer)
+            {
+                var newCustomer = new Customer
+                {
+                    FullName = request.CustomerName,
+                    Phone = request.CustomerPhone,
+                    Address = request.ShippingAddress,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now,
+                    IsDeleted = false
+                };
+
+                await _customerRepository.AddAsync(newCustomer);
+
+                finalCustomerId = newCustomer.Id;
+                receiverName = request.CustomerName ?? "Khách vãng lai";
+                receiverPhone = request.CustomerPhone ?? "";
+            }
+            else
+            {
+                if (request.CustomerId == null)
+                    throw new BusinessException(ErrorDetails.DEFAULT);
+
+                finalCustomerId = request.CustomerId.Value;
+
+                var existingCustomer = await _customerRepository.GetAsync(finalCustomerId);
+                receiverName = existingCustomer?.FullName ?? "Khách hàng";
+                receiverPhone = existingCustomer?.Phone ?? "";
+            }
+
             var groupedItems = request.OrderDetails
-             .GroupBy(x => x.ProductId)
-             .Select(g => new OrderItemQuantity
-             {
-                 ProductId = g.Key,
-                 Quantity = g.Sum(x => x.Quantity)
-             })
-             .ToList();
+                .GroupBy(x => x.VariantId)
+                .Select(g => new OrderItemQuantity
+                {
+                    VariantId = g.Key,
+                    Quantity = g.Sum(x => x.Quantity)
+                }).ToList();
 
             await _inventoryRepository.CheckStockAsync(groupedItems);
 
-
             var order = new Order
             {
-                CustomerId = request.CustomerId,
+                CustomerId = finalCustomerId,
+                Email = request.Email,
                 PaymentMethod = request.PaymentMethod,
                 Status = 1,
                 ShippingDate = request.ShippingDate,
-                TotalPrice = 0
+                ShippingAddress = request.ShippingAddress,
+                ReceiverName = receiverName,
+                ReceiverPhone = receiverPhone,
+                TotalPrice = 0,
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now,
+                IsDeleted = false,
+                OrderDetails = new List<OrderDetail>()
             };
 
-            await _repository.AddAsync(order);
-
-
-            var products = new Dictionary<int, Product>();
-
+            var variants = new Dictionary<int, Variant>();
             foreach (var item in groupedItems)
             {
-                var product = await _productRepository.GetAsync(item.ProductId, "DetailImage")
-                ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
-
-                products.Add(item.ProductId, product);
+                var variant = await _variantRepository.GetAsync(item.VariantId, "Product.DetailImage")
+                    ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
+                variants.Add(item.VariantId, variant);
             }
 
-
-            var orderDetails = new List<OrderDetail>();
             double totalPrice = 0;
 
             foreach (var d in request.OrderDetails)
             {
-                var product = products[d.ProductId];
-                var subTotal = product.Price * d.Quantity;
+                var variant = variants[d.VariantId];
+                var unitPrice = variant.Product.Price;
+                var subTotal = unitPrice * d.Quantity;
 
-                orderDetails.Add(new OrderDetail
+                order.OrderDetails.Add(new OrderDetail
                 {
-                    Order = order,
-                    Product = product,
-                    ProductId = product.Id,
-
+                    VariantId = d.VariantId,
                     Quantity = d.Quantity,
-                    SubTotalPrice = subTotal,
-
-                    IsCustomize = d.IsCustomize,
-                    CustomizeHeight = d.IsCustomize ? d.CustomizeHeight : null,
-                    CustomizeWidth = d.IsCustomize ? d.CustomizeWidth : null,
-                    CustomizeLong = d.IsCustomize ? d.CustomizeLong : null,
-                    CustomizeMaterial = d.IsCustomize ? d.CustomizeMaterial : null
+                    UnitPrice = unitPrice,
+                    SubTotal = subTotal,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now,
+                    IsDeleted = false,
+                    isCustomized = d.IsCustomize,
+                    CustomHeightSize = d.CustomizeHeight,
+                    CustomWidthSize = d.CustomizeWidth,
+                    CustomLongSize = d.CustomizeLong
                 });
 
                 totalPrice += subTotal;
             }
 
-            await _repository.AddRangeOrderDetailsAsync(orderDetails);
-
-            await _inventoryRepository.ReduceStockBatchAsync(groupedItems);
-
-
             order.TotalPrice = totalPrice;
-            _repository.Update(order);
+
+            await _repository.AddAsync(order);
+
+            await _inventoryRepository.ReduceStockBatchAsync(groupedItems); 
+            
+            if (!request.IsNewCustomer && request.CustomerId.HasValue)
+            {
+                await _cartService.ClearCartAsync(request.CustomerId.Value);
+            }
+
+            await _orderHubService.NotifyNewOrderAsync();
 
             return new OrderDTO
             {
                 Id = order.Id,
                 PaymentMethod = order.PaymentMethod,
+                Email = order.Email,
                 Status = order.Status,
                 ShippingDate = order.ShippingDate,
                 TotalPrice = order.TotalPrice,
                 CustomerId = order.CustomerId,
-
-                OrderDetails = orderDetails.Select(od => new OrderDetailDTO
+                ShippingAddress = order.ShippingAddress,
+                ReceiverName = order.ReceiverName,
+                ReceiverPhone = order.ReceiverPhone,
+                OrderDetails = order.OrderDetails.Select(od => new OrderDetailDTO
                 {
                     Id = od.Id,
-                    ProductId = od.ProductId,
-                    ProductName = od.Product?.Name,
-                    Thumbnail = od.Product?.DetailImage?.Thumbnail,
-
+                    OrderId = od.OrderId,
+                    VariantId = od.VariantId,
+                    ProductName = variants[od.VariantId].Product.Name,
+                    VariantImage = variants[od.VariantId].Product.DetailImage?.Image1,
                     Quantity = od.Quantity,
-                    SubTotalPrice = od.SubTotalPrice,
-
-                    IsCustomize = od.IsCustomize,
-                    CustomizeHeight = od.CustomizeHeight,
-                    CustomizeWidth = od.CustomizeWidth,
-                    CustomizeLong = od.CustomizeLong,
-                    CustomizeMaterial = od.CustomizeMaterial
+                    UnitPrice = od.UnitPrice,
+                    Subtotal = od.SubTotal
                 }).ToList()
             };
-        }
-
-
-        public async Task Delete(int id)
-        {
-            var item = await _repository.GetAsync(id) ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
-
-            item.IsDeleted = true;
-            item.UpdatedAt = DateTime.Now;
-
-            if (!_repository.Update(item))
-            {
-                throw new BusinessException(ErrorDetails.DEFAULT);
-            }
         }
 
         public async Task<(IEnumerable<OrderDTO> Orders, double TotalPrice, int TotalItems)> GetAll(
@@ -148,7 +182,6 @@ namespace anphuong.Service
             var pageInfo = request?.PageInfo ?? new PageInfoRequestDTO();
 
             Expression<Func<Order, bool>> filter = u => true;
-
             filter = ExpressionUtils.AddFilter(filter, u => u.IsDeleted == searchCondition.IsDeleted);
 
             if (!string.IsNullOrWhiteSpace(searchCondition.Status) &&
@@ -173,10 +206,26 @@ namespace anphuong.Service
                 filter = ExpressionUtils.AddFilter(filter, u => u.CreatedAt <= searchCondition.ToDate.Value);
             }
 
-            var items = await _repository.GetWithPaginationAsync(pageInfo, filter, "OrderDetails.Product.DetailImage,Customer.User");
+            Func<IQueryable<Order>, IOrderedQueryable<Order>> orderBy = q =>
+            {
+                if (!string.IsNullOrEmpty(pageInfo.SortBy))
+                {
+                    bool isDesc = pageInfo.SortDesc ?? false;
+                    return pageInfo.SortBy.ToLower() switch
+                    {
+                        "id" => isDesc ? q.OrderByDescending(x => x.Id) : q.OrderBy(x => x.Id),
+                        "createdat" => isDesc ? q.OrderByDescending(x => x.CreatedAt) : q.OrderBy(x => x.CreatedAt),
+                        "totalprice" => isDesc ? q.OrderByDescending(x => x.TotalPrice) : q.OrderBy(x => x.TotalPrice),
+                        "status" => isDesc ? q.OrderByDescending(x => x.Status) : q.OrderBy(x => x.Status),
+                        _ => q.OrderByDescending(x => x.CreatedAt) // Mặc định sort theo ngày tạo
+                    };
+                }
+                return q.OrderByDescending(x => x.CreatedAt); // Mặc định
+            };
+
+            var items = await _repository.GetWithPaginationAsync(pageInfo, filter, "OrderDetails.Variant.Product.DetailImage,Customer.User", orderBy);
 
             var totalItems = await _repository.CountAsync(filter);
-
             double totalPrice = 0;
 
             if (searchCondition.isTotalPrice.HasValue && searchCondition.isTotalPrice.Value)
@@ -185,12 +234,24 @@ namespace anphuong.Service
             }
 
             TypeAdapterConfig<OrderDetail, OrderDetailDTO>.NewConfig()
-                    .Map(dest => dest.Thumbnail, src => src.Product.DetailImage!.Thumbnail);
+    .Map(dest => dest.ProductName, src => src.Variant.Product.Name)
+    .Map(dest => dest.VariantImage, src => src.Variant.Product.DetailImage != null ? src.Variant.Product.DetailImage.Image1 : null)
+    .Map(dest => dest.Subtotal, src => src.SubTotal)
+    .Map(dest => dest.FinalHeight, src => src.isCustomized ? src.CustomHeightSize : src.Variant.Product.HeightSize)
+    .Map(dest => dest.FinalWidth, src => src.isCustomized ? src.CustomWidthSize : src.Variant.Product.WidthSize)
+    .Map(dest => dest.FinalLong, src => src.isCustomized ? src.CustomLongSize : src.Variant.Product.LongSize);
+
             TypeAdapterConfig<Customer, CustomerDTO>.NewConfig()
-                  .Map(dest => dest.Fullname, src => src.FullName)
-                  .Map(dest => dest.Phone, src => src.Phone)
-                  .Map(dest => dest.CustomerAddress, src => src.CustomerAddress)
-                  .Map(dest => dest.Email, src => src.User.Email);
+                .Map(dest => dest.Fullname, src => src.FullName)
+                .Map(dest => dest.Phone, src => src.Phone)
+                .Map(dest => dest.CustomerAddress, src => src.Address)
+                .Map(dest => dest.Email, src => src.User != null ? src.User.Email : null);
+
+            // Cấu hình mapping cho Order -> OrderDTO
+            TypeAdapterConfig<Order, OrderDTO>.NewConfig()
+                .Map(dest => dest.Email, src => !string.IsNullOrEmpty(src.Email)
+                                                ? src.Email  // Nếu có email lưu trong đơn hàng (Guest) thì lấy luôn
+                                                : (src.Customer != null && src.Customer.User != null ? src.Customer.User.Email : null)); // Không thì bốc từ User (Member)
 
             var ordersDto = items.Adapt<IEnumerable<OrderDTO>>();
 
@@ -199,92 +260,59 @@ namespace anphuong.Service
 
         public async Task<OrderDTO> Get(int id)
         {
-            var item = await _repository.GetAsync(
-             id, "OrderDetails.Product.DetailImage,Customer.User"
-            ) ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
+            var item = await _repository.GetAsync(id, "OrderDetails.Variant.Product.DetailImage,Customer.User")
+    ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
+
             TypeAdapterConfig<OrderDetail, OrderDetailDTO>.NewConfig()
-                .Map(dest => dest.Thumbnail, src => src.Product.DetailImage!.Thumbnail);
+    .Map(dest => dest.ProductName, src => src.Variant.Product.Name)
+    .Map(dest => dest.VariantImage, src => src.Variant.Product.DetailImage != null ? src.Variant.Product.DetailImage.Image1 : null)
+    .Map(dest => dest.Subtotal, src => src.SubTotal)
+    .Map(dest => dest.FinalHeight, src => src.isCustomized ? src.CustomHeightSize : src.Variant.Product.HeightSize)
+    .Map(dest => dest.FinalWidth, src => src.isCustomized ? src.CustomWidthSize : src.Variant.Product.WidthSize)
+    .Map(dest => dest.FinalLong, src => src.isCustomized ? src.CustomLongSize : src.Variant.Product.LongSize);
+
             TypeAdapterConfig<Customer, CustomerDTO>.NewConfig()
-              .Map(dest => dest.Fullname, src => src.FullName)
-              .Map(dest => dest.Phone, src => src.Phone)
-              .Map(dest => dest.CustomerAddress, src => src.CustomerAddress)
-              .Map(dest => dest.Email, src => src.User.Email);
+                .Map(dest => dest.Fullname, src => src.FullName)
+                .Map(dest => dest.Phone, src => src.Phone)
+                .Map(dest => dest.CustomerAddress, src => src.Address)
+                .Map(dest => dest.Email, src => src.User != null ? src.User.Email : null);
+
+            // Cấu hình mapping cho Order -> OrderDTO
+            TypeAdapterConfig<Order, OrderDTO>.NewConfig()
+                .Map(dest => dest.Email, src => !string.IsNullOrEmpty(src.Email)
+                                                ? src.Email  // Nếu có email lưu trong đơn hàng (Guest) thì lấy luôn
+                                                : (src.Customer != null && src.Customer.User != null ? src.Customer.User.Email : null)); // Không thì bốc từ User (Member)
+
             return item.Adapt<OrderDTO>();
         }
 
-        //public async Task<OrderDTO> Update(int id, UpdateProductRequestDTO request)
-        //{
-        //    var item = await _repository.GetAsync(id, "OrderDetail")
-        //        ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
+        public async Task Delete(int id)
+        {
+            var item = await _repository.GetAsync(id) ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
 
-        //    bool isChanged = false;
+            item.IsDeleted = true;
+            item.UpdatedAt = DateTime.Now;
 
-        //    // Reference-type (string) helper
-        //    bool SetIfChanged<T>(T? newValue, Func<T?> getter, Action<T?> setter)
-        //    {
-        //        var oldValue = getter();
-        //        if (newValue != null && !Equals(oldValue, newValue))
-        //        {
-        //            setter(newValue);
-        //            return true;
-        //        }
-        //        return false;
-        //    }
+            if (!_repository.Update(item))
+            {
+                throw new BusinessException(ErrorDetails.DEFAULT);
+            }
+        }
 
-        //    // Non-nullable value-type helper (for product.Price, etc.)
-        //    bool SetIfChangedValue<T>(T? newValue, Func<T> getter, Action<T> setter) where T : struct
-        //    {
-        //        if (newValue.HasValue && !EqualityComparer<T>.Default.Equals(getter(), newValue.Value))
-        //        {
-        //            setter(newValue.Value);
-        //            return true;
-        //        }
-        //        return false;
-        //    }
+        public async Task UpdateStatus(int id, int newStatus)
+        {
+            // Móc đơn hàng lên
+            var order = await _repository.GetAsync(id)
+                ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
 
-        //    // Nullable-target value-type helper (for product.DetailImageId, product.CategoryId, product.VariationId)
-        //    bool SetIfChangedNullableValue<T>(T? newValue, Func<T?> getter, Action<T?> setter) where T : struct
-        //    {
-        //        var oldValue = getter();
-        //        if (newValue.HasValue)
-        //        {
-        //            // update if old is null or different
-        //            if (!oldValue.HasValue || !EqualityComparer<T>.Default.Equals(oldValue.Value, newValue.Value))
-        //            {
-        //                setter(newValue); // set nullable
-        //                return true;
-        //            }
-        //        }
-        //        return false;
-        //    }
+            // Cập nhật đúng trạng thái và ngày giờ
+            order.Status = newStatus;
+            order.UpdatedAt = DateTime.Now;
 
-        //    // Apply updates
-        //    isChanged |= SetIfChanged(request.Name, () => item.Name, i => item.Name = i);
-        //    isChanged |= SetIfChanged(request.Description, () => item.Description, i => item.Description = i);
-        //    isChanged |= SetIfChanged(request.Material, () => item.Material, i => item.Material = i);
-        //    isChanged |= SetIfChanged(request.DetailImage.Thumbnail, () => item.DetailImage.Thumbnail, i => item.DetailImage.Thumbnail = i);
-        //    isChanged |= SetIfChanged(request.DetailImage.Image1, () => item.DetailImage.Image1, i => item.DetailImage.Image1 = i);
-        //    isChanged |= SetIfChanged(request.DetailImage.Image2, () => item.DetailImage.Image2, i => item.DetailImage.Image2 = i);
-        //    isChanged |= SetIfChanged(request.DetailImage.Image3, () => item.DetailImage.Image3, i => item.DetailImage.Image3 = i);
-        //    isChanged |= SetIfChanged(request.DetailImage.Image4, () => item.DetailImage.Image4, i => item.DetailImage.Image4 = i);
-
-        //    isChanged |= SetIfChangedValue(request.Price, () => item.Price, i => item.Price = i);
-        //    isChanged |= SetIfChangedValue(request.Discount, () => item.Discount, i => item.Discount = i);
-        //    isChanged |= SetIfChangedValue(request.LongSize, () => item.LongSize, i => item.LongSize = i);
-        //    isChanged |= SetIfChangedValue(request.WidthSize, () => item.WidthSize, i => item.WidthSize = i);
-        //    isChanged |= SetIfChangedValue(request.HeightSize, () => item.HeightSize, i => item.HeightSize = i);
-        //    isChanged |= SetIfChangedValue(request.CategoryId, () => item.CategoryId, i => item.CategoryId = i);
-
-        //    isChanged |= SetIfChangedNullableValue(request.VariationId, () => item.VariationId, i => item.VariationId = i);
-
-        //    if (isChanged)
-        //    {
-        //        item.UpdatedAt = DateTime.UtcNow;
-        //        if (!_repository.Update(item))
-        //            throw new BusinessException(ErrorDetails.DEFAULT);
-        //    }
-        //    var itemDTO = item.Adapt<ProductDTO>();
-        //    return itemDTO;
-        //}
+            if (!_repository.Update(order))
+            {
+                throw new BusinessException(ErrorDetails.DEFAULT);
+            }
+        }
     }
 }

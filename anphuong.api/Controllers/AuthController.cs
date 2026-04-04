@@ -1,19 +1,20 @@
-﻿using System.Security.Claims;
-using System.Security.Cryptography;
-using anphuong.Core.Constants;
+﻿using anphuong.Core.Constants;
 using anphuong.Core.Domains.DTOs;
 using anphuong.Core.Domains.DTOs.API;
 using anphuong.Core.Domains.DTOs.RequestDTOs.Auth;
 using anphuong.Core.Domains.DTOs.RequestDTOs.AuthController;
-using anphuong.Core.Domains.DTOs.ResponseDTOs;
 using anphuong.Core.Domains.Entities;
 using anphuong.Core.Interfaces.Services;
 using anphuong.Core.Interfaces.Services.External;
 using anphuong.Core.Ultilities;
 using anphuong.Repository.Repositories;
+using Azure.Core;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
+using System.Security.Claims;
+using System.Security.Cryptography;
 using static anphuong.Core.Exceptions.GoogleException;
 
 namespace anphuong.api.Controllers
@@ -25,34 +26,22 @@ namespace anphuong.api.Controllers
         private readonly IJwtService _jwtService;
         private readonly IUserService _userService;
         private readonly IGoogleAuthService _googleAuthService;
-
+        private readonly IEmailService _emailService;
         public AuthController(IJwtService jwtService, IUserService userService,
-            IGoogleAuthService googleAuthService)
+            IGoogleAuthService googleAuthService, IEmailService emailService)
         {
             _jwtService = jwtService;
             _userService = userService;
             _googleAuthService = googleAuthService;
-        }
-
-        private void SetTokenCookies(string accessToken, string refreshToken)
-        {
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = false,
-                SameSite = SameSiteMode.Lax, 
-                Expires = DateTime.UtcNow.AddDays(Consts.REFRESHTOKEN_EXPIRED_TIME)
-            };
-
-            Response.Cookies.Append("accessToken", accessToken, cookieOptions);
-
-            Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
+            _emailService = emailService;
         }
 
         #region Login
         [HttpPost("login")]
-        [ProducesResponseType(typeof(ApiResponseDTO<LoginResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponseDTO<LoginDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status401Unauthorized)]
+        //[ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> Login([FromBody] LoginRequestDTO loginRequest)
         {
             var user = await _userService.AuthenticateUserAsync(loginRequest.Email, loginRequest.Password);
@@ -64,7 +53,7 @@ namespace anphuong.api.Controllers
                     Message = "Invalid email or password."
                 });
             }
-            if (user.Status.Equals("0"))
+            if (user.Status.Equals("DEACTIVE", StringComparison.OrdinalIgnoreCase) || user.Status.Equals("0"))
             {
                 return StatusCode(StatusCodes.Status403Forbidden, new ApiResponseDTO<object>
                 {
@@ -73,23 +62,27 @@ namespace anphuong.api.Controllers
                 });
             }
 
-            var accessToken = _jwtService.GenerateToken(user.Id.ToString(), user.Email);
+            var accessToken = _jwtService.GenerateToken(user.Id.ToString(), user.Email, user.Role);
             var refreshToken = Guid.NewGuid().ToString();
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiry = DateTime.Now.AddDays(Consts.REFRESHTOKEN_EXPIRED_TIME);
             await _userService.Update(user);
-   
-            LoginResponseDTO loginResponse = new LoginResponseDTO
-            {
-                Email = user.Email,
-                Username = user.Username
-            };
 
-            SetTokenCookies(accessToken, refreshToken);
-            return Ok(new ApiResponseDTO<LoginResponseDTO>
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Expires = DateTime.UtcNow.AddDays(7),
+                SameSite = SameSiteMode.Lax,
+                Secure = false,
+                Path = "/"
+            };
+            Response.Cookies.Append("accessToken", accessToken, cookieOptions);
+            Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
+
+            return Ok(new ApiResponseDTO<LoginDTO>()
             {
                 Success = true,
-                Data = loginResponse
+                Message = "Login Success"
             });
         }
         #endregion
@@ -181,11 +174,12 @@ namespace anphuong.api.Controllers
                     {
                         Email = email,
                         FullName = name,
-                        Username = StringGeneratorUtils.GenerateRandomUsername(),
+                        Username = email.Split('@')[0],
+                        Avatar = payload.Picture
                     };
 
                     user = await _userService.GoogleRegisterAsync(registerDTO);
-
+                    
                 }
 
                 if (!user.Status.Equals("ACTIVE"))
@@ -197,23 +191,28 @@ namespace anphuong.api.Controllers
                     });
                 }
 
-                var token = _jwtService.GenerateToken(user.Id.ToString(), user.Email);
+                var token = _jwtService.GenerateToken(user.Id.ToString(), user.Email, user.Role);
                 refreshToken = Guid.NewGuid().ToString();
                 user.RefreshToken = refreshToken;
                 user.RefreshTokenExpiry = DateTime.Now.AddDays(Consts.REFRESHTOKEN_EXPIRED_TIME);
 
                 await _userService.Update(user);
 
-                SetTokenCookies(token, refreshToken);
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Expires = DateTime.UtcNow.AddDays(7),
+                    SameSite = SameSiteMode.Lax,
+                    Secure = false,
+                    Path = "/"
+                };
+                Response.Cookies.Append("accessToken", token, cookieOptions);
+                Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
 
-                return Ok(new ApiResponseDTO<LoginResponseDTO>
+                return Ok(new ApiResponseDTO<LoginDTO>
                 {
                     Success = true,
-                    Data = new LoginResponseDTO
-                    {
-                        Email = user.Email,
-                        Username = user.Username
-                    }
+                    Message = "Login Success"
                 });
             }
             catch (TokenExpiredException)
@@ -246,38 +245,28 @@ namespace anphuong.api.Controllers
 
         #region Refresh Token
         [HttpPost("refresh-token")]
-        [AllowAnonymous]
         [ProducesResponseType(typeof(ApiResponseDTO<LoginDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> CheckRefreshToken([FromBody] LoginDTO? loginRequest)
+        public async Task<IActionResult> checkRefreshToken([FromBody] LoginDTO loginRequest)
         {
-            var refreshTokenToCheck = loginRequest?.RefreshToken;
-
-            if (string.IsNullOrEmpty(refreshTokenToCheck))
-            {
-                Request.Cookies.TryGetValue("refreshToken", out refreshTokenToCheck);
-            }
-
-            if (string.IsNullOrEmpty(refreshTokenToCheck))
+            var refreshToken = Request.Cookies["refreshToken"];
+            if (string.IsNullOrEmpty(refreshToken))
             {
                 return Unauthorized(new ApiResponseDTO<object>
                 {
                     Success = false,
-                    Message = "No Token provided"
+                    Message = "No Token provided in Cookies"
                 });
             }
 
-            var user = await _userService.CheckRefreshToken(refreshTokenToCheck);
+            var user = await _userService.CheckRefreshToken(refreshToken);
 
             if (user == null)
             {
-                Response.Cookies.Delete("accessToken");
-                Response.Cookies.Delete("refreshToken");
-
                 return Unauthorized(new ApiResponseDTO<object>
                 {
                     Success = false,
-                    Message = "Invalid Refresh Token"
+                    Message = "Invalid Refresh Token (User not found)"
                 });
             }
 
@@ -299,35 +288,15 @@ namespace anphuong.api.Controllers
                 });
             }
 
-            var accessToken = _jwtService.GenerateToken(user.Id.ToString(), user.Email);
-
-            SetTokenCookies(accessToken, user.RefreshToken);
-
+            var accessToken = _jwtService.GenerateToken(user.Id.ToString(), user.Email, user.Role);
             return Ok(new ApiResponseDTO<LoginDTO>()
             {
                 Success = true,
                 Data = new LoginDTO()
                 {
-                    AccessToken = accessToken,
-                    RefreshToken = user.RefreshToken
+                    AccessToken = accessToken
                 }
             });
-        }
-
-        // Thêm API Logout để xóa Cookie
-        [HttpPost("logout")]
-        public IActionResult Logout()
-        {
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
-            };
-
-            Response.Cookies.Delete("accessToken");
-            Response.Cookies.Delete("refreshToken");
-            return Ok(new ApiResponseDTO<object> { Success = true, Message = "Logged out successfully" });
         }
         #endregion
 
@@ -336,6 +305,8 @@ namespace anphuong.api.Controllers
         [HttpPost("password")]
         [ProducesResponseType(typeof(ApiResponseDTO<LoginDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status401Unauthorized)]
+        //[ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDTO request)
         {
             var (success, message) = await _userService.UpdatePassword(request);
@@ -353,6 +324,92 @@ namespace anphuong.api.Controllers
             {
                 Success = true,
                 Message = message
+            });
+        }
+        #endregion
+
+        #region Forgot Password
+        [HttpPost("forgot-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDTO request)
+        {
+            var user = await _userService.FindByEmailAsync(request.Email);
+            if (user == null)
+            {
+                return BadRequest(new ApiResponseDTO<object> { Success = false, Message = "Email không tồn tại trong hệ thống!" });
+            }
+
+            var otp = new Random().Next(100000, 999999).ToString();
+
+            user.ResetPasswordToken = otp;
+            user.ResetPasswordExpiry = DateTime.Now.AddMinutes(15);
+            await _userService.Update(user);
+
+            string htmlBody = $@"
+                <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;'>
+                    <h2 style='color: #333;'>Khôi phục mật khẩu</h2>
+                    <p>Bạn vừa yêu cầu đặt lại mật khẩu tại Nội Thất An Phương.</p>
+                    <p>Mã xác nhận (OTP) của bạn là: <strong style='color: #c4a484; font-size: 24px; padding: 5px 10px; background: #f9f9f9; border-radius: 5px;'>{otp}</strong></p>
+                    <p style='color: #777; font-size: 14px;'>Mã này sẽ hết hạn sau 15 phút. Vui lòng không chia sẻ mã này cho bất kỳ ai!</p>
+                </div>";
+
+            await _emailService.SendEmailAsync(request.Email, "Mã xác nhận khôi phục mật khẩu - Nội Thất An Phương", htmlBody);
+
+            return Ok(new ApiResponseDTO<object>
+            {
+                Success = true,
+                Message = "Mã OTP đã được gửi đến email của bạn!"
+            });
+        }
+
+        [HttpPost("reset-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDTO request)
+        {
+            var user = await _userService.FindByEmailAsync(request.Email);
+            if (user == null)
+            {
+                return BadRequest(new ApiResponseDTO<object> { Success = false, Message = "Email không hợp lệ!" });
+            }
+
+            if (user.ResetPasswordToken != request.Otp || user.ResetPasswordExpiry < DateTime.Now)
+            {
+                return BadRequest(new ApiResponseDTO<object> { Success = false, Message = "Mã OTP không hợp lệ hoặc đã hết hạn!" });
+            }
+
+            user.PasswordHash = request.NewPassword;
+            user.ResetPasswordToken = null;
+            user.ResetPasswordExpiry = null;
+            await _userService.Update(user);
+
+            return Ok(new ApiResponseDTO<object>
+            {
+                Success = true,
+                Message = "Đặt lại mật khẩu thành công! Vui lòng đăng nhập lại."
+            });
+        }
+        #endregion
+
+        #region Block User
+        [HttpPut("block/{id}")]
+        [Authorize(Policy = "AllowSpecificEmail")]
+        public async Task<IActionResult> BlockUser(int id)
+        {
+            var success = await _userService.BlockUserAsync(id);
+
+            if (!success)
+            {
+                return NotFound(new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = "Không tìm thấy người dùng trong hệ thống!"
+                });
+            }
+
+            return Ok(new ApiResponseDTO<object>
+            {
+                Success = true,
+                Message = "Đã khóa tài khoản người dùng thành công!"
             });
         }
         #endregion

@@ -44,6 +44,38 @@ namespace anphuong.api.Controllers
         }
         #endregion
 
+        #region Autocomplete (Cho Search Bar Client)
+        [HttpGet("autocomplete")]
+        [ProducesResponseType(typeof(ApiResponseDTO<object>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Autocomplete([FromQuery] string keyword)
+        {
+            if (string.IsNullOrWhiteSpace(keyword))
+            {
+                return Ok(new ApiResponseDTO<object> { Success = true, Data = new List<object>() });
+            }
+
+            try
+            {
+                // Gọi thẳng xuống Service để lấy 8 sản phẩm gợi ý
+                var results = await _productService.GetAutocompleteSuggestionsAsync(keyword);
+
+                return Ok(new ApiResponseDTO<object>
+                {
+                    Success = true,
+                    Data = results
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiResponseDTO<object>
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+        }
+        #endregion
+
         #region Get
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(ApiResponseDTO<ProductDTO>), StatusCodes.Status200OK)]
@@ -148,5 +180,21 @@ namespace anphuong.api.Controllers
         //    return Ok(new { imageUrl = url });
         //}
         //#endregion
+
+        #region LowStockCount
+        [HttpGet("low-stock-count")]
+        public async Task<IActionResult> GetLowStockCount([FromQuery] int threshold = 5)
+        {
+            try
+            {
+                var count = await _productService.GetLowStockCountAsync(threshold);
+                return Ok(count);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+        #endregion
     }
 }

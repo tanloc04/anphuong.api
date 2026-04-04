@@ -18,15 +18,15 @@ namespace anphuong.Repository.Repositories
         }
         public async Task CheckStockAsync(IEnumerable<OrderItemQuantity> items)
         {
-            var productIds = items.Select(x => x.ProductId).ToList();
+            var productIds = items.Select(x => x.VariantId).ToList();
 
             var inventories = await _context.Inventories
-                .Where(i => productIds.Contains(i.ProductId) && !i.IsDeleted)
+                .Where(i => productIds.Contains(i.VariantId) && !i.IsDeleted)
                 .ToListAsync();
 
             foreach (var item in items)
             {
-                var inventory = inventories.FirstOrDefault(i => i.ProductId == item.ProductId);
+                var inventory = inventories.FirstOrDefault(i => i.VariantId == item.VariantId);
 
                 if (inventory == null)
                     throw new BusinessException(ErrorDetails.OUT_OF_STOCK);
@@ -37,15 +37,15 @@ namespace anphuong.Repository.Repositories
         }
         public async Task ReduceStockBatchAsync(IEnumerable<OrderItemQuantity> items)
         {
-            var productIds = items.Select(x => x.ProductId).ToList();
+            var productIds = items.Select(x => x.VariantId).ToList();
 
             var inventories = await _context.Inventories
-                .Where(i => productIds.Contains(i.ProductId) && !i.IsDeleted)
+                .Where(i => productIds.Contains(i.VariantId) && !i.IsDeleted)
                 .ToListAsync();
 
             foreach (var item in items)
             {
-                var inventory = inventories.First(i => i.ProductId == item.ProductId);
+                var inventory = inventories.First(i => i.VariantId == item.VariantId);
                 inventory.QuantityInStock -= item.Quantity;
                 inventory.UpdatedAt = DateTime.UtcNow;
             }

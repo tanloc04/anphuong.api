@@ -14,5 +14,7 @@ namespace anphuong.Core.Interfaces.Services
         public Task<OrderDTO> Get(int id);
 
         //public Task<OrderDTO> Update(int id, UpdateOrderRequestDTO request);
+
+        public Task UpdateStatus(int id, int newStatus);
     }
 }

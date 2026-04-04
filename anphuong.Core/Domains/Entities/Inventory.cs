@@ -2,8 +2,9 @@
 {
     public class Inventory : Entity
     {
+        public int VariantId { get; set; }
+        public string ProductName { get; set; } = string.Empty;
         public int QuantityInStock { get; set; }
-        public int ProductId { get; set; }
-        public Product Product { get; set; }
+        public Variant Variant { get; set; }
     }
 }

@@ -63,8 +63,23 @@ namespace anphuong.Service
             // Only apply deletion filter if specified (default: return non-deleted)
             filter = ExpressionUtils.AddFilter(filter, u => u.IsDeleted == searchCondition.IsDeleted);
 
+            Func<IQueryable<Category>, IOrderedQueryable<Category>> orderBy = q =>
+            {
+                if (!string.IsNullOrEmpty(pageInfo.SortBy))
+                {
+                    bool isDesc = pageInfo.SortDesc ?? false;
+                    return pageInfo.SortBy.ToLower() switch
+                    {
+                        "name" => isDesc ? q.OrderByDescending(x => x.Name) : q.OrderBy(x => x.Name),
+                        "description" => isDesc ? q.OrderByDescending(x => x.Description) : q.OrderBy(x => x.Description),
+                        _ => q.OrderByDescending(x => x.CreatedAt) // Mặc định
+                    };
+                }
+                return q.OrderByDescending(x => x.CreatedAt); // Mặc định
+            };
+
             // Query paginated products
-            var items = await _repository.GetWithPaginationAsync(pageInfo, filter);
+            var items = await _repository.GetWithPaginationAsync(pageInfo, filter, "", orderBy);
             var totalItems = await _repository.CountAsync(filter);
 
             return (items.Adapt<IEnumerable<CategoryDTO>>(), totalItems);
@@ -83,16 +98,18 @@ namespace anphuong.Service
                 ?? throw new BusinessException(ErrorDetails.ID_NOT_FOUND);
 
             bool isChanged = false;
-
-            // Apply updates
             isChanged |= GenericHelperUtils.SetIfChanged(request.Name, () => item.Name, i => item.Name = i);
             isChanged |= GenericHelperUtils.SetIfChanged(request.Description, () => item.Description, i => item.Description = i);
+
+            isChanged |= GenericHelperUtils.SetIfChanged(request.ImageUrl, () => item.ImageUrl, i => item.ImageUrl = i);
+
             if (isChanged)
             {
                 item.UpdatedAt = DateTime.UtcNow;
                 if (!_repository.Update(item))
                     throw new BusinessException(ErrorDetails.DEFAULT);
             }
+
             var itemDTO = item.Adapt<CategoryDTO>();
             return itemDTO;
         }

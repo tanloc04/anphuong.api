@@ -2,20 +2,20 @@
 {
     public class Product : Entity
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         public double Price { get; set; }
         public double Discount { get; set; }
-        public string Description { get; set; }
-        public int LongSize { get; set; }
-        public int WidthSize { get; set; }
-        public int HeightSize { get; set; }
-        public string Material { get; set; }
-        public int? DetailImageId { get; set; }
+        public string Description { get; set; } = string.Empty;
+        public decimal LongSize { get; set; }
+        public decimal WidthSize { get; set; }
+        public decimal HeightSize { get; set; }
+        public bool isCustomize { get; set; } = false;
         public int CategoryId { get; set; }
-        public int? VariationId { get; set; }
-        public Variant Variant { get; set; }
-        public DetailImage DetailImage { get; set; }
-        public Category Category { get; set; }
-        public Inventory Inventory { get; set; }
+        public Category Category { get; set; } = null!;
+        public virtual ICollection<ProductReview> Reviews { get; set; }
+        public virtual DetailImage DetailImage { get; set; }
+        public ICollection<Variant> Variants { get; set; }
+        public ICollection<Behavior> Behaviors { get; set; }
+        
     }
 }
