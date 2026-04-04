@@ -21,7 +21,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", p =>
-        p.WithOrigins("http://localhost:5173")
+        p.WithOrigins("http://localhost:5173", "https://anphuong-web-git-release-tanloc04s-projects.vercel.app")
          .AllowAnyHeader()
          .AllowAnyMethod()
          .AllowCredentials());
