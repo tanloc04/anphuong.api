@@ -35,24 +35,27 @@ namespace anphuong.Service
 
             // VNPay yêu cầu số tiền phải nhân lên 100 lần (VD: 10,000 VND -> 1000000)
             var amount = (long)(request.Amount * 100);
+      
+            TimeZoneInfo tz = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            DateTime timeNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz);
 
             var vnpayData = new SortedList<string, string>(new VnPayCompare())
-        {
-            { "vnp_Version", "2.1.0" },
-            { "vnp_Command", "pay" },
-            { "vnp_TmnCode", vnp_TmnCode },
-            { "vnp_Amount", amount.ToString() },
-            { "vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss") },
-            { "vnp_CurrCode", "VND" },
-            { "vnp_IpAddr", GetIpAddress(context) },
-            { "vnp_Locale", "vn" },
-            { "vnp_OrderInfo", request.OrderDescription },
-            { "vnp_OrderType", "other" },
-            { "vnp_ReturnUrl", vnp_Returnurl },
-            { "vnp_TxnRef", request.OrderId.ToString() + "_" + DateTime.Now.Ticks } // Mã giao dịch phải duy nhất
-        };
+    {
+        { "vnp_Version", "2.1.0" },
+        { "vnp_Command", "pay" },
+        { "vnp_TmnCode", vnp_TmnCode },
+        { "vnp_Amount", amount.ToString() },
+        { "vnp_CreateDate", timeNow.ToString("yyyyMMddHHmmss") },
+        { "vnp_CurrCode", "VND" },
+        { "vnp_IpAddr", GetIpAddress(context) },
+        { "vnp_Locale", "vn" },
+        { "vnp_OrderInfo", request.OrderDescription },
+        { "vnp_OrderType", "other" },
+        { "vnp_ReturnUrl", vnp_Returnurl },
+        { "vnp_TxnRef", request.OrderId.ToString() + "_" + timeNow.Ticks }, 
+        { "vnp_ExpireDate", timeNow.AddMinutes(15).ToString("yyyyMMddHHmmss") }
+    };
 
-            // Build chuỗi querystring
             var queryString = new StringBuilder();
             foreach (var kvp in vnpayData)
             {
@@ -63,7 +66,6 @@ namespace anphuong.Service
             }
             var signData = queryString.ToString().TrimEnd('&');
 
-            // Băm mã SHA512
             var vnp_SecureHash = HmacSHA512(vnp_HashSecret, signData);
             var paymentUrl = $"{vnp_Url}?{signData}&vnp_SecureHash={vnp_SecureHash}";
 
